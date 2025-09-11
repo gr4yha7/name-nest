@@ -105,7 +105,7 @@ const DomainVerificationStep = ({ onNext, formData, setFormData }) => {
               <div className="text-sm text-muted-foreground space-y-2">
                 <p>Add the following TXT record to your DNS settings:</p>
                 <div className="bg-background p-3 rounded border font-mono text-xs">
-                  <div>Name: _domainhub-verification</div>
+                  <div>Name: _namenest-verification</div>
                   <div>Value: dh-verify-{Math.random()?.toString(36)?.substr(2, 9)}</div>
                 </div>
                 <p>DNS changes may take up to 24 hours to propagate.</p>
@@ -121,9 +121,9 @@ const DomainVerificationStep = ({ onNext, formData, setFormData }) => {
               <div className="text-sm text-muted-foreground space-y-2">
                 <p>Upload this file to your domain's root directory:</p>
                 <div className="bg-background p-3 rounded border font-mono text-xs">
-                  domainhub-verification.txt
+                  namenest-verification.txt
                 </div>
-                <p>File should be accessible at: {formData?.domain}/domainhub-verification.txt</p>
+                <p>File should be accessible at: {formData?.domain}/namenest-verification.txt</p>
               </div>
             )}
           </div>

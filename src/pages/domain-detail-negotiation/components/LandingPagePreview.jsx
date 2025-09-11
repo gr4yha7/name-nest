@@ -6,7 +6,7 @@ const LandingPagePreview = ({ domain }) => {
   const [viewMode, setViewMode] = useState('desktop');
   const [isFullscreen, setIsFullscreen] = useState(false);
 
-  const previewUrl = `https://preview.domainhub.com/${domain?.name}`;
+  const previewUrl = `https://preview.namenest.com/${domain?.name}`;
 
   const toggleFullscreen = () => {
     setIsFullscreen(!isFullscreen);

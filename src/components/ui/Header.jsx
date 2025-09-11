@@ -107,7 +107,7 @@ const Header = () => {
               <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
                 <Icon name="Globe" size={20} color="white" />
               </div>
-              <span className="text-xl font-bold text-foreground">DomainHub</span>
+              <span className="text-xl font-bold text-foreground">NameNest</span>
             </a>
           </div>
 

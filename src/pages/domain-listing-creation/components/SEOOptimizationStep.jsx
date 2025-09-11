@@ -121,7 +121,7 @@ const SEOOptimizationStep = ({ onNext, onPrev, formData, setFormData }) => {
               <Input
                 label="Canonical URL"
                 type="url"
-                placeholder="https://domainhub.com/listing/[domain]"
+                placeholder="https://namenest.com/listing/[domain]"
                 value={formData?.seoData?.canonicalUrl || ''}
                 onChange={(e) => handleMetaChange('canonicalUrl', e?.target?.value)}
                 description="Preferred URL for this page"
@@ -230,7 +230,7 @@ const SEOOptimizationStep = ({ onNext, onPrev, formData, setFormData }) => {
                   {formData?.seoData?.title || `${formData?.domain} - Premium Domain for Sale`}
                 </h4>
                 <p className="text-green-700 text-sm">
-                  domainhub.com/listing/{formData?.domain?.toLowerCase()?.replace(/\./g, '-') || 'domain'}
+                  namenest.com/listing/{formData?.domain?.toLowerCase()?.replace(/\./g, '-') || 'domain'}
                 </p>
                 <p className="text-muted-foreground text-sm">
                   {formData?.seoData?.metaDescription || 

@@ -192,7 +192,7 @@ const ReviewPublishStep = ({ onPrev, formData, setFormData }) => {
                       {formData?.seoData?.title}
                     </h5>
                     <p className="text-green-700 text-xs">
-                      domainhub.com/listing/{formData?.domain?.toLowerCase()?.replace(/\./g, '-')}
+                      namenest.com/listing/{formData?.domain?.toLowerCase()?.replace(/\./g, '-')}
                     </p>
                     <p className="text-muted-foreground text-xs mt-1">
                       {formData?.seoData?.metaDescription || `Premium domain ${formData?.domain} for sale`}

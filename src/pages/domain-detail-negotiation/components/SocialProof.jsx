@@ -6,7 +6,7 @@ const SocialProof = ({ domain }) => {
     {
       icon: 'Shield',
       label: 'Verified Seller',
-      description: 'Identity verified by DomainHub',
+      description: 'Identity verified by NameNest',
       color: 'text-success'
     },
     {

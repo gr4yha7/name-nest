@@ -63,7 +63,7 @@ class DomaXMTPService {
       // Create XMTP client with proper options
       this.client = await Client.create(signer, {
         env: config.xmtp.env || 'dev',
-        appVersion: 'domainhub/1.0.0', // Required by XMTP docs
+        appVersion: 'namenest/1.0.0', // Required by XMTP docs
       });
 
       this.isInitialized = true;

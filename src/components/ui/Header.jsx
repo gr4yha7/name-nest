@@ -99,7 +99,7 @@ const Header = () => {
 
   return (
     <header className="sticky top-0 z-1000 bg-card border-b border-border shadow-card">
-      <div className="w-full">
+      <div className="w-full mt-4 py-2">
         <div className="flex items-center justify-between h-16 px-4 lg:px-6">
           {/* Logo */}
           <div className="flex items-center">

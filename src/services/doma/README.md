@@ -624,10 +624,10 @@ const config = {
     offererAddress: "eip155:1:0x...",
     orderbook: "DOMA",
     currency: {
-      address: "0x...",
       symbol: "ETH",
       name: "Ethereum",
-      decimals: 18
+      decimals: 18,
+      usdExchangeRate: 2500.50
     },
     expiresAt: "2024-12-31T23:59:59Z",
     createdAt: "2024-01-01T00:00:00Z",
@@ -636,14 +636,14 @@ const config = {
     registrar: {
       ianaId: 1,
       name: "Example Registrar",
-      url: "https://example.com"
+      websiteUrl: "https://example.com"
     },
     tokenId: "123456789",
     tokenAddress: "0x...",
     chain: {
-      chainId: 1,
+      networkId: "eip155:1",
       name: "Ethereum",
-      rpcUrl: "https://..."
+      addressUrlTemplate: "https://etherscan.io/address/{address}"
     }
   }],
   totalCount: 100,
@@ -665,12 +665,10 @@ const config = {
   registrar: {
     ianaId: 1,
     name: "Example Registrar",
-    url: "https://example.com"
+    websiteUrl: "https://example.com"
   },
   nameservers: [{
-    name: "ns1.example.com",
-    ipv4: "192.168.1.1",
-    ipv6: "2001:db8::1"
+    ldhName: "ns1.example.com"
   }],
   dsKeys: [{
     keyTag: 12345,
@@ -681,14 +679,13 @@ const config = {
   transferLock: false,
   claimedBy: "eip155:1:0x...",
   tokens: [{
-    id: "token_123",
     tokenId: "123456789",
     tokenAddress: "0x...",
-    owner: "eip155:1:0x...",
+    ownerAddress: "eip155:1:0x...",
     chain: {
-      chainId: 1,
+      networkId: "eip155:1",
       name: "Ethereum",
-      rpcUrl: "https://..."
+      addressUrlTemplate: "https://etherscan.io/address/{address}"
     }
   }],
   activities: [/* activity history */],

@@ -279,17 +279,17 @@ const DomaIntegrationExample = () => {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {listings.map((listing) => (
+            {(listings || []).map((listing) => (
               <div 
                 key={listing.id} 
                 className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow"
               >
-                <h3 className="font-medium text-lg">{listing.domain.name}</h3>
+                <h3 className="font-medium text-lg">{listing.name}</h3>
                 <p className="text-gray-600 text-sm mb-2">
-                  {listing.domain.network} • {listing.currency}
+                  {listing.chain?.name} • {listing.currency?.symbol}
                 </p>
                 <p className="text-2xl font-bold text-green-600">
-                  {listing.price} {listing.currency}
+                  {listing.price} {listing.currency?.symbol}
                 </p>
                 <div className="flex space-x-2 mt-4">
                   <Button 
@@ -329,7 +329,7 @@ const DomaIntegrationExample = () => {
       {selectedDomain && (
         <div>
           <h2 className="text-xl font-semibold mb-4">
-            Offers for {selectedDomain.domain.name}
+            Offers for {selectedDomain.name}
           </h2>
           
           {offersLoading ? (
@@ -342,9 +342,9 @@ const DomaIntegrationExample = () => {
               <Icon name="AlertCircle" size={20} className="mx-auto mb-2" />
               <p>Failed to load offers: {offersError.message}</p>
             </div>
-          ) : offers.length > 0 ? (
+          ) : (offers || []).length > 0 ? (
             <div className="space-y-3">
-              {offers.map((offer) => (
+              {(offers || []).map((offer) => (
                 <div 
                   key={offer.id} 
                   className="bg-gray-50 border border-gray-200 rounded-lg p-4"
@@ -352,10 +352,10 @@ const DomaIntegrationExample = () => {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="font-medium">
-                        {offer.price} {offer.currency}
+                        {offer.price} {offer.currency?.symbol}
                       </p>
                       <p className="text-sm text-gray-600">
-                        From: {offer.buyer.slice(0, 6)}...{offer.buyer.slice(-4)}
+                        From: {offer.offererAddress?.slice(0, 6)}...{offer.offererAddress?.slice(-4)}
                       </p>
                     </div>
                     <div className="flex space-x-2">

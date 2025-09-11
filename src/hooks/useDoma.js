@@ -139,10 +139,14 @@ export function useDomainListings(filters = {}) {
 
     try {
       const currentOffset = reset ? 0 : offset;
-      const newListings = await services.subgraph.getDomainListings({
+      const response = await services.subgraph.getDomainListings({
         ...filters,
-        offset: currentOffset,
+        skip: currentOffset,
+        take: filters.limit || 50,
       });
+
+      const newListings = response?.items || [];
+      const totalCount = response?.totalCount || 0;
 
       if (reset) {
         setListings(newListings);
@@ -152,7 +156,7 @@ export function useDomainListings(filters = {}) {
         setOffset(prev => prev + newListings.length);
       }
 
-      setHasMore(newListings.length === (filters.limit || 50));
+      setHasMore(newListings.length === (filters.limit || 50) && (currentOffset + newListings.length) < totalCount);
     } catch (err) {
       setError(err);
     } finally {
@@ -209,7 +213,8 @@ export function useDomainOffers(filters = {}) {
     setError(null);
 
     try {
-      const newOffers = await services.subgraph.getDomainOffers(filters);
+      const response = await services.subgraph.getDomainOffers(filters);
+      const newOffers = response?.items || [];
       setOffers(newOffers);
     } catch (err) {
       setError(err);
@@ -252,7 +257,8 @@ export function useUserDomains(userAddress) {
     setError(null);
 
     try {
-      const userDomains = await services.subgraph.getUserDomains(userAddress);
+      const response = await services.subgraph.getUserDomains(userAddress);
+      const userDomains = response?.items || [];
       setDomains(userDomains);
     } catch (err) {
       setError(err);

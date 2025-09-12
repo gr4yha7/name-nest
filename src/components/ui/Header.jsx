@@ -2,6 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import Icon from '../AppIcon';
 import Button from './Button';
+import { useAccount, useConnect, useDisconnect } from 'wagmi';
+import { injected } from 'wagmi/connectors'
+import { shortenAddress } from 'utils/cn';
+import { ConnectKitButton } from "connectkit";
 
 const Header = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -11,6 +15,10 @@ const Header = () => {
   const [notificationCount, setNotificationCount] = useState(3);
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
   const location = useLocation();
+
+  const { address, isConnecting, isDisconnected} = useAccount();
+  const { disconnect } = useDisconnect();
+  const { connect } = useConnect();
 
   const navigationItems = [
     {
@@ -82,7 +90,11 @@ const Header = () => {
   }, []);
 
   const handleWalletConnect = () => {
-    setIsWalletConnected(!isWalletConnected);
+    if (!address) {
+      connect({ connector: injected() })
+    } else {
+      disconnect();
+    }
   };
 
   const handleSearchSubmit = (e) => {
@@ -181,17 +193,8 @@ const Header = () => {
             </div>
 
             {/* Wallet Connection */}
-            <Button
-              variant={isWalletConnected ? "outline" : "default"}
-              size="sm"
-              onClick={handleWalletConnect}
-              className="hidden lg:flex"
-            >
-              <Icon name={isWalletConnected ? "Wallet" : "Wallet"} size={16} />
-              <span className="ml-2">
-                {isWalletConnected ? "0x1234...5678" : "Connect Wallet"}
-              </span>
-            </Button>
+            
+            <ConnectKitButton />
 
             {/* Profile/Auth */}
             {isWalletConnected && (

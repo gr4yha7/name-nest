@@ -104,10 +104,10 @@ class DomaSubgraphService {
             offererAddress
             orderbook
             currency {
-              address
               symbol
               name
               decimals
+              usdExchangeRate
             }
             expiresAt
             createdAt
@@ -117,14 +117,14 @@ class DomaSubgraphService {
             registrar {
               ianaId
               name
-              url
+              websiteUrl
             }
             tokenId
             tokenAddress
             chain {
-              chainId
+              networkId
               name
-              rpcUrl
+              addressUrlTemplate
             }
           }
           totalCount
@@ -140,12 +140,24 @@ class DomaSubgraphService {
     const variables = {
       skip: filters.skip || 0,
       take: filters.take || 50,
-      tlds: filters.tlds || null,
-      createdSince: filters.createdSince || null,
-      sld: filters.sld || null,
-      networkIds: filters.networkIds || null,
-      registrarIanaIds: filters.registrarIanaIds || null,
     };
+
+    // Only add optional parameters if they have valid values
+    if (filters.tlds && filters.tlds.length > 0) {
+      variables.tlds = filters.tlds;
+    }
+    if (filters.createdSince) {
+      variables.createdSince = filters.createdSince;
+    }
+    if (filters.sld) {
+      variables.sld = filters.sld;
+    }
+    if (filters.networkIds && filters.networkIds.length > 0) {
+      variables.networkIds = filters.networkIds;
+    }
+    if (filters.registrarIanaIds && filters.registrarIanaIds.length > 0) {
+      variables.registrarIanaIds = filters.registrarIanaIds;
+    }
 
     try {
       const result = await this.client.query({
@@ -154,6 +166,7 @@ class DomaSubgraphService {
         fetchPolicy: 'cache-first',
       });
 
+      console.log('Domain listings:', result);
       return result.data.listings;
     } catch (error) {
       console.error('Failed to fetch domain listings:', error);
@@ -192,10 +205,10 @@ class DomaSubgraphService {
             offererAddress
             orderbook
             currency {
-              address
               symbol
               name
               decimals
+              usdExchangeRate
             }
             expiresAt
             createdAt
@@ -204,14 +217,14 @@ class DomaSubgraphService {
             registrar {
               ianaId
               name
-              url
+              websiteUrl
             }
             tokenId
             tokenAddress
             chain {
-              chainId
+              networkId
               name
-              rpcUrl
+              addressUrlTemplate
             }
           }
           totalCount
@@ -228,10 +241,18 @@ class DomaSubgraphService {
       skip: filters.skip || 0,
       take: filters.take || 50,
       sortOrder: filters.sortOrder || 'DESC',
-      tokenId: filters.tokenId || null,
-      offeredBy: filters.offeredBy || null,
-      status: filters.status || null,
     };
+
+    // Only add optional parameters if they have valid values
+    if (filters.tokenId) {
+      variables.tokenId = filters.tokenId;
+    }
+    if (filters.offeredBy && filters.offeredBy.length > 0) {
+      variables.offeredBy = filters.offeredBy;
+    }
+    if (filters.status) {
+      variables.status = filters.status;
+    }
 
     try {
       const result = await this.client.query({
@@ -240,6 +261,7 @@ class DomaSubgraphService {
         fetchPolicy: 'cache-first',
       });
 
+      console.log('Domain offers:', result);
       return result.data.offers;
     } catch (error) {
       console.error('Failed to fetch domain offers:', error);
@@ -264,7 +286,7 @@ class DomaSubgraphService {
           registrar {
             ianaId
             name
-            url
+            websiteUrl
           }
           nameservers {
             name
@@ -285,9 +307,9 @@ class DomaSubgraphService {
             tokenAddress
             owner
             chain {
-              chainId
+              networkId
               name
-              rpcUrl
+              addressUrlTemplate
             }
           }
           activities {
@@ -359,9 +381,9 @@ class DomaSubgraphService {
             launchpadAddress
             vestingWalletAddress
             chain {
-              chainId
+              networkId
               name
-              rpcUrl
+              addressUrlTemplate
             }
             params {
               initialValuation
@@ -459,12 +481,10 @@ class DomaSubgraphService {
             registrar {
               ianaId
               name
-              url
+              websiteUrl
             }
             nameservers {
-              name
-              ipv4
-              ipv6
+              ldhName
             }
             dsKeys {
               keyTag
@@ -475,14 +495,13 @@ class DomaSubgraphService {
             transferLock
             claimedBy
             tokens {
-              id
               tokenId
               tokenAddress
-              owner
+              ownerAddress
               chain {
-                chainId
+                networkId
                 name
-                rpcUrl
+                addressUrlTemplate
               }
             }
             isFractionalized
@@ -491,9 +510,9 @@ class DomaSubgraphService {
               address
               status
               chain {
-                chainId
+                networkId
                 name
-                rpcUrl
+                addressUrlTemplate
               }
             }
           }
@@ -511,20 +530,46 @@ class DomaSubgraphService {
       skip: filters.skip || 0,
       take: filters.take || 20,
       sortOrder: filters.sortOrder || 'DESC',
-      ownedBy: filters.ownedBy || null,
       claimStatus: filters.claimStatus || 'ALL',
-      name: filters.name || null,
-      networkIds: filters.networkIds || null,
-      registrarIanaIds: filters.registrarIanaIds || null,
-      tlds: filters.tlds || null,
-      sortBy: filters.sortBy || null,
-      fractionalized: filters.fractionalized || null,
-      listed: filters.listed || null,
-      active: filters.active || null,
-      priceRangeMin: filters.priceRangeMin || null,
-      priceRangeMax: filters.priceRangeMax || null,
-      priceRangeCurrency: filters.priceRangeCurrency || null,
     };
+
+    // Only add optional parameters if they have valid values
+    if (filters.ownedBy && filters.ownedBy.length > 0) {
+      variables.ownedBy = filters.ownedBy;
+    }
+    if (filters.name) {
+      variables.name = filters.name;
+    }
+    if (filters.networkIds && filters.networkIds.length > 0) {
+      variables.networkIds = filters.networkIds;
+    }
+    if (filters.registrarIanaIds && filters.registrarIanaIds.length > 0) {
+      variables.registrarIanaIds = filters.registrarIanaIds;
+    }
+    if (filters.tlds && filters.tlds.length > 0) {
+      variables.tlds = filters.tlds;
+    }
+    if (filters.sortBy) {
+      variables.sortBy = filters.sortBy;
+    }
+    if (filters.fractionalized !== null && filters.fractionalized !== undefined) {
+      variables.fractionalized = filters.fractionalized;
+    }
+    if (filters.listed !== null && filters.listed !== undefined) {
+      variables.listed = filters.listed;
+    }
+    if (filters.active !== null && filters.active !== undefined) {
+      variables.active = filters.active;
+    }
+    if (filters.priceRangeMin !== null && filters.priceRangeMin !== undefined) {
+      variables.priceRangeMin = filters.priceRangeMin;
+    }
+    if (filters.priceRangeMax !== null && filters.priceRangeMax !== undefined) {
+      variables.priceRangeMax = filters.priceRangeMax;
+    }
+    if (filters.priceRangeCurrency) {
+      variables.priceRangeCurrency = filters.priceRangeCurrency;
+    }
 
     try {
       const result = await this.client.query({
@@ -573,12 +618,10 @@ class DomaSubgraphService {
             registrar {
               ianaId
               name
-              url
+              websiteUrl
             }
             nameservers {
-              name
-              ipv4
-              ipv6
+              ldhName
             }
             dsKeys {
               keyTag
@@ -589,14 +632,13 @@ class DomaSubgraphService {
             transferLock
             claimedBy
             tokens {
-              id
               tokenId
               tokenAddress
-              owner
+              ownerAddress
               chain {
-                chainId
+                networkId
                 name
-                rpcUrl
+                addressUrlTemplate
               }
             }
             isFractionalized
@@ -605,9 +647,9 @@ class DomaSubgraphService {
               address
               status
               chain {
-                chainId
+                networkId
                 name
-                rpcUrl
+                addressUrlTemplate
               }
             }
           }
@@ -627,8 +669,12 @@ class DomaSubgraphService {
       sortOrder: options.sortOrder || 'DESC',
       ownedBy: [userAddress],
       claimStatus: options.claimStatus || 'ALL',
-      sortBy: options.sortBy || null,
     };
+
+    // Only add optional parameters if they have valid values
+    if (options.sortBy) {
+      variables.sortBy = options.sortBy;
+    }
 
     try {
       const result = await this.client.query({
@@ -772,10 +818,10 @@ class DomaSubgraphService {
             offererAddress
             orderbook
             currency {
-              address
               symbol
               name
               decimals
+              usdExchangeRate
             }
             expiresAt
             createdAt
@@ -784,14 +830,14 @@ class DomaSubgraphService {
             registrar {
               ianaId
               name
-              url
+              websiteUrl
             }
             tokenId
             tokenAddress
             chain {
-              chainId
+              networkId
               name
-              rpcUrl
+              addressUrlTemplate
             }
           }
           activeOffers

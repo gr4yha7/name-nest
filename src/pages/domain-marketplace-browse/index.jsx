@@ -11,8 +11,10 @@ import CategoryChips from './components/CategoryChips';
 import SearchAutocomplete from './components/SearchAutocomplete';
 import DomainPreviewModal from './components/DomainPreviewModal';
 import SortDropdown from './components/SortDropdown';
+import { useGlobal } from 'context/global';
 
 const DomainMarketplaceBrowse = () => {
+  const { fetchedDomains, listings } = useGlobal();
   const location = useLocation();
   const navigate = useNavigate();
   
@@ -25,6 +27,9 @@ const DomainMarketplaceBrowse = () => {
   const [hasMore, setHasMore] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [sortBy, setSortBy] = useState('relevance');
+
+  console.log("fetchedDomains", fetchedDomains);
+  console.log("listings", listings);
   
   // Filter state
   const [filters, setFilters] = useState({
@@ -177,8 +182,8 @@ const DomainMarketplaceBrowse = () => {
     }
   ];
 
-  const featuredDomains = mockDomains?.slice(0, 4);
-  const [displayedDomains, setDisplayedDomains] = useState(mockDomains);
+  const featuredDomains = listings?.slice(0, 4);
+  const [displayedDomains, setDisplayedDomains] = useState(listings);
 
   const categoryOptions = [
     { value: 'technology', label: 'Technology', icon: 'Laptop', count: 1250 },

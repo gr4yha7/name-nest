@@ -4,13 +4,15 @@ import App from "./App";
 import "./styles/tailwind.css";
 import "./styles/index.css";
 import { Web3Provider } from "Web3Provider";
-
+import { GlobalProvider } from "context/global";
             
 const container = document.getElementById("root");
 const root = createRoot(container);
 
 root.render(
   <Web3Provider>
-    <App />
+    <GlobalProvider>
+      <App />
+    </GlobalProvider>
   </Web3Provider>
 );

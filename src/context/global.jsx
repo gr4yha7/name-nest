@@ -60,7 +60,7 @@ export const GlobalProvider = ({ children }) => {
             }
           },
           onAnyEvent: (event) => {
-            console.log('Doma event received:', event.type, event);
+            // console.log('Doma event received:', event.type, event);
           },
           onError: (error) => {
             console.error('Doma service error:', error);
@@ -101,6 +101,7 @@ export const GlobalProvider = ({ children }) => {
   // Value to be provided to the context
   const value = {
     listings,
+    isLoading,
     offers,
     listingsLoading,
     offersLoading,

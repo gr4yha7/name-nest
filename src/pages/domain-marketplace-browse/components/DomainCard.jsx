@@ -13,14 +13,6 @@ const DomainCard = ({ domain, onFavorite, onPreview, onContact }) => {
     onFavorite(domain?.id, !isFavorited);
   };
 
-  const formatPrice = (price) => {
-    if (price >= 1000000) {
-      return `$${(price / 1000000)?.toFixed(1)}M`;
-    } else if (price >= 1000) {
-      return `$${(price / 1000)?.toFixed(0)}K`;
-    }
-    return `$${price?.toLocaleString()}`;
-  };
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -91,7 +83,7 @@ const DomainCard = ({ domain, onFavorite, onPreview, onContact }) => {
           </div>
           {domain?.currency?.usdExchangeRate && (
           <div className="text-sm text-muted-foreground">
-            ${domain?.currency?.usdExchangeRate * formatUnits(domain?.price, domain?.currency?.decimals)}
+            ${Number(domain?.currency?.usdExchangeRate * formatUnits(domain?.price, domain?.currency?.decimals)).toFixed(2)}
           </div>
         )}
         </div>
@@ -101,18 +93,18 @@ const DomainCard = ({ domain, onFavorite, onPreview, onContact }) => {
       <div className="grid grid-cols-2 gap-3 mb-4 text-sm">
         <div className="flex items-center space-x-2">
           <Icon name="Calendar" size={14} className="text-muted-foreground" />
-          <span className="text-muted-foreground">Expires:</span>
+          <span className="text-muted-foreground">Sale Expires:</span>
           <span className="text-foreground font-medium">{formatDistance(parseISO(domain?.nameExpiresAt), new Date(), { addSuffix: true })}</span>
         </div>
         <div className="flex items-center space-x-2">
           <Icon name="BarChart3" size={14} className="text-muted-foreground" />
           <span className="text-muted-foreground">Token ID:</span>
-          <span className="text-foreground font-medium">{domain?.id}</span>
+          <span className="text-foreground font-medium">{domain?.tokenId.toString().slice(0, 3)}...{domain?.tokenId.toString().slice(-3)}</span>
         </div>
         <div className="flex items-center space-x-2">
           <Icon name="Hash" size={14} className="text-muted-foreground" />
-          <span className="text-muted-foreground">Registrar:</span>
-          <span className="text-foreground font-medium">{domain?.registrar?.name}</span>
+          <span className="text-muted-foreground">Length:</span>
+          <span className="text-foreground font-medium">{domain?.name?.length}</span>
         </div>
         <div className="flex items-center space-x-2">
           <Icon name="Tag" size={14} className="text-muted-foreground" />

@@ -2,48 +2,44 @@ import React from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import Icon from '../../../components/AppIcon';
 import Button from '../../../components/ui/Button';
+import { getChainNameAndCountArray } from 'utils/cn';
 
-const NetworkDistributionMap = ({ data, selectedNetwork, onNetworkSelect }) => {
+const NetworkDistributionMap = ({ data, selectedNetwork, onNetworkSelect, domains }) => {
   const networkColors = {
-    ethereum: '#627EEA',
-    polygon: '#8247E5',
-    solana: '#00FFA3'
+    "Sepolia Testnet": '#627EEA',
+    "Base Sepolia Testnet": '#00FFA3',
+    "Doma Testnet": '#8247E5'
   };
 
-  const chartData = data ? Object.entries(data)?.map(([network, info]) => ({
-    name: network,
-    value: info?.count,
-    ethValue: info?.value,
-    color: networkColors?.[network]
-  })) : [];
+  const chartData = domains ? getChainNameAndCountArray(domains) : [];
 
+  console.log("chart", chartData)
+
+  
   const networks = [
     {
-      id: 'ethereum',
-      name: 'Ethereum',
+      id: 'doma',
+      name: 'Doma Testnet',
+      icon: 'Sun',
+      count: domains?.filter((i) => i?.tokens[0]?.chain?.name === "Doma Testnet")?.length || 0,
+      gasPrice: '25 Gwei',
+      status: 'congested'
+    },
+    {
+      id: 'sepolia',
+      name: 'Sepolia Testnet',
       icon: 'Zap',
-      count: data?.ethereum?.count || 0,
-      value: data?.ethereum?.value || 0,
+      count: domains?.filter((i) => i?.tokens[0]?.chain?.name === "Sepolia Testnet")?.length || 0 || 0,
       gasPrice: '25 Gwei',
       status: 'healthy'
     },
     {
-      id: 'polygon',
-      name: 'Polygon',
+      id: 'baseSepolia',
+      name: 'Base Sepolia Testnet',
       icon: 'Triangle',
-      count: data?.polygon?.count || 0,
-      value: data?.polygon?.value || 0,
+      count: domains?.filter((i) => i?.tokens[0]?.chain?.name === "Base Sepolia Testnet")?.length || 0,
       gasPrice: '30 Gwei',
       status: 'healthy'
-    },
-    {
-      id: 'solana',
-      name: 'Solana',
-      icon: 'Sun',
-      count: data?.solana?.count || 0,
-      value: data?.solana?.value || 0,
-      gasPrice: '0.00025 SOL',
-      status: 'congested'
     }
   ];
 
@@ -117,14 +113,14 @@ const NetworkDistributionMap = ({ data, selectedNetwork, onNetworkSelect }) => {
                 <div className="flex items-center space-x-3">
                   <div
                     className="w-3 h-3 rounded-full"
-                    style={{ backgroundColor: networkColors?.[network?.id] }}
+                    style={{ backgroundColor: networkColors?.[network?.name] }}
                   />
                   <div>
                     <p className="font-medium text-foreground text-sm">
                       {network?.name}
                     </p>
                     <p className="text-xs text-muted-foreground">
-                      {network?.count} domains • {network?.value} ETH
+                      {network?.count} domains
                     </p>
                   </div>
                 </div>

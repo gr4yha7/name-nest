@@ -1,6 +1,9 @@
 import React from 'react';
 import Icon from '../../../components/AppIcon';
 import Button from '../../../components/ui/Button';
+import { formatUnits } from 'ethers';
+import { formatDistance, parseISO } from 'date-fns';
+import { formatEthereumAddress } from 'utils/cn';
 
 
 const DomainPreviewModal = ({ domain, isOpen, onClose, onContact }) => {
@@ -66,20 +69,22 @@ const DomainPreviewModal = ({ domain, isOpen, onClose, onContact }) => {
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
                   <div>
                     <div className="text-2xl font-bold text-foreground">
-                      {formatPrice(domain?.price)}
+                      {formatUnits(domain?.price, domain?.currency?.decimals)} {domain?.currency?.symbol}
                     </div>
-                    <div className="text-sm text-muted-foreground">Price</div>
+                    <div className="text-sm text-muted-foreground">
+                      USD - ${Number(domain?.currency?.usdExchangeRate * formatUnits (domain?.price, domain?.currency?.decimals)).toFixed(2)}
+                    </div>
                   </div>
                   <div>
-                    <div className="text-2xl font-bold text-foreground">{domain?.age}y</div>
-                    <div className="text-sm text-muted-foreground">Age</div>
+                    <div className="text-xl font-bold text-foreground">{formatDistance(parseISO(domain?.nameExpiresAt), new Date(), { addSuffix: true })}</div>
+                    <div className="text-sm text-muted-foreground">Expires</div>
                   </div>
                   <div>
-                    <div className="text-2xl font-bold text-foreground">{domain?.length}</div>
+                    <div className="text-xl font-bold text-foreground">{domain?.name?.length}</div>
                     <div className="text-sm text-muted-foreground">Length</div>
                   </div>
                   <div>
-                    <div className="text-2xl font-bold text-foreground">{domain?.tld}</div>
+                    <div className="text-xl font-bold text-foreground">{domain?.name?.split('.').pop()}</div>
                     <div className="text-sm text-muted-foreground">TLD</div>
                   </div>
                 </div>
@@ -114,7 +119,7 @@ const DomainPreviewModal = ({ domain, isOpen, onClose, onContact }) => {
 
               {/* Categories */}
               {domain?.categories && domain?.categories?.length > 0 && (
-                <div>
+                <div className="hidden">
                   <h3 className="text-lg font-semibold text-foreground mb-4">Categories</h3>
                   <div className="flex flex-wrap gap-2">
                     {domain?.categories?.map((category, index) => (
@@ -131,7 +136,7 @@ const DomainPreviewModal = ({ domain, isOpen, onClose, onContact }) => {
 
               {/* Price History */}
               <div>
-                <h3 className="text-lg font-semibold text-foreground mb-4">Price History</h3>
+                <h3 className="text-lg font-semibold text-foreground mb-4">Offers History</h3>
                 <div className="space-y-3">
                   {mockHistory?.map((item, index) => (
                     <div key={index} className="flex items-center justify-between p-3 bg-muted rounded-lg">
@@ -161,7 +166,7 @@ const DomainPreviewModal = ({ domain, isOpen, onClose, onContact }) => {
                     <Icon name="User" size={20} color="white" />
                   </div>
                   <div>
-                    <div className="font-medium text-foreground">{domain?.seller?.name}</div>
+                    <div className="font-medium text-foreground">{formatEthereumAddress(domain?.offererAddress)}</div>
                     <div className="flex items-center space-x-1">
                       {renderStars(domain?.seller?.rating)}
                       <span className="text-sm text-muted-foreground ml-1">
@@ -172,11 +177,11 @@ const DomainPreviewModal = ({ domain, isOpen, onClose, onContact }) => {
                 </div>
                 
                 <div className="space-y-2 text-sm">
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center hidden justify-between">
                     <span className="text-muted-foreground">Member since:</span>
                     <span className="text-foreground">2019</span>
                   </div>
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center hidden justify-between">
                     <span className="text-muted-foreground">Domains sold:</span>
                     <span className="text-foreground">47</span>
                   </div>

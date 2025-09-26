@@ -24,3 +24,52 @@ export function formatEthereumAddress(input) {
   // Truncate the address to show the first 5 and last 3 characters
   return `${address.slice(0, 5)}...${address.slice(-3)}`;
 }
+
+const networkColors = {
+  "Sepolia Testnet": '#627EEA',
+  "Base Sepolia Testnet": '#00FFA3',
+  "Doma Testnet": '#8247E5'
+};
+
+export function getChainNameAndCountArray(domains) {
+  // Create a map to store chain names and their counts
+  const chainCountMap = new Map();
+
+  // Iterate through the domains
+  domains.forEach(domain => {
+    const chainName = domain.tokens[0].chain.name;
+
+    // Update the count for the chain name
+    if (chainCountMap.has(chainName)) {
+      chainCountMap.set(chainName, chainCountMap.get(chainName) + 1);
+    } else {
+      chainCountMap.set(chainName, 1);
+    }
+  });
+
+  // Convert the map to an array of objects
+  const result = Array.from(chainCountMap).map(([name, value]) => ({
+    name,
+    color: networkColors[name] ?? networkColors["Doma Testnet"],
+    value,
+  }));
+
+  return result;
+}
+
+export function getTotalActiveOffersCount(domains) {
+  // Use reduce to sum up the activeOffersCount for all domains
+  const totalActiveOffersCount = domains.reduce((total, domain) => {
+    return total + (domain.activeOffersCount || 0); // Add the activeOffersCount (default to 0 if undefined)
+  }, 0);
+
+  return totalActiveOffersCount;
+}
+
+export function getDomainsWithActiveOffers(domains) {
+  // Filter domains where activeOffersCount > 0
+  const domainsWithActiveOffers = domains.filter(domain => domain.activeOffersCount > 0);
+
+  // Return the count of such domains
+  return domainsWithActiveOffers.length;
+}

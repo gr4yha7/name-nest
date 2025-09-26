@@ -112,7 +112,7 @@ class DomaPollService {
    * @param {Object} event - Event data
    */
   async processEvent(event) {
-    console.log('Processing event:', event.type, event);
+    // console.log('Processing event:', event.type, event);
 
     // Notify event handlers
     const handlers = this.eventHandlers.get(event.type) || [];

@@ -40,7 +40,7 @@ class DomaSubgraphService {
               keyFields: ['id'],
             },
             TokenModel: {
-              keyFields: ['id'],
+              keyFields: ['tokenId'],
             },
             PaginatedNamesResponse: {
               keyFields: false,
@@ -166,7 +166,7 @@ class DomaSubgraphService {
         fetchPolicy: 'cache-first',
       });
 
-      console.log('Domain listings:', result);
+      // console.log('Domain listings:', result);
       return result.data.listings;
     } catch (error) {
       console.error('Failed to fetch domain listings:', error);
@@ -652,6 +652,11 @@ class DomaSubgraphService {
                 addressUrlTemplate
               }
             }
+            highestOffer {
+              id
+              price
+            }
+            activeOffersCount
           }
           totalCount
           pageSize
@@ -667,7 +672,7 @@ class DomaSubgraphService {
       skip: options.skip || 0,
       take: options.take || 100,
       sortOrder: options.sortOrder || 'DESC',
-      ownedBy: [userAddress],
+      ownedBy: `eip155:1:${userAddress.toLowerCase()}`,
       claimStatus: options.claimStatus || 'ALL',
     };
 
@@ -679,11 +684,12 @@ class DomaSubgraphService {
     try {
       const result = await this.client.query({
         query,
-        variables,
-        fetchPolicy: 'cache-first',
+        variables
       });
 
-      return result.data.names;
+      console.log("result", result)
+
+      return result.data.names.items;
     } catch (error) {
       console.error('Failed to fetch user domains:', error);
       throw error;

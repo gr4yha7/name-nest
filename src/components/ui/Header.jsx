@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import Icon from '../AppIcon';
 import Button from './Button';
 import { useAccount, useConnect, useDisconnect } from 'wagmi';
@@ -16,9 +16,10 @@ const Header = () => {
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
   const location = useLocation();
 
-  const { address, isConnecting, isDisconnected} = useAccount();
+  const { address, isDisconnected} = useAccount();
   const { disconnect } = useDisconnect();
   const { connect } = useConnect();
+  const navigate = useNavigate();
 
   const navigationItems = [
     {
@@ -32,7 +33,7 @@ const Header = () => {
       path: '/domain-portfolio-dashboard',
       icon: 'Briefcase',
       tooltip: 'Manage your domain portfolio',
-      authRequired: true
+      authRequired: isDisconnected ? true : false
     },
     {
       label: 'Sell Domain',
@@ -128,9 +129,9 @@ const Header = () => {
             {navigationItems?.map((item) => (
               (!item?.authRequired || isWalletConnected) && (
                 <div key={item?.path} className="relative group">
-                  <a
-                    href={item?.path}
-                    className={`flex items-center space-x-2 px-4 py-2 rounded-md text-sm font-medium transition-standard relative ${
+                  <span
+                    onClick={()=>navigate(item?.path)}
+                    className={`flex cursor-pointer items-center space-x-2 px-4 py-2 rounded-md text-sm font-medium transition-standard relative ${
                       isActiveRoute(item?.path)
                         ? 'bg-primary text-primary-foreground'
                         : 'text-foreground hover:bg-muted hover:text-foreground'
@@ -143,7 +144,7 @@ const Header = () => {
                         {item?.notificationCount}
                       </span>
                     )}
-                  </a>
+                  </span>
                   {/* Tooltip */}
                   <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-popover text-popover-foreground text-xs rounded shadow-elevated opacity-0 group-hover:opacity-100 transition-standard pointer-events-none whitespace-nowrap">
                     {item?.tooltip}

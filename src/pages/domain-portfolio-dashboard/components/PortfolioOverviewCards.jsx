@@ -1,27 +1,28 @@
 import React from 'react';
 import Icon from '../../../components/AppIcon';
+import { getDomainsWithActiveOffers, getTotalActiveOffersCount } from 'utils/cn';
 
-const PortfolioOverviewCards = ({ data }) => {
+const PortfolioOverviewCards = ({ data, domains }) => {
   const cards = [
     {
       title: 'Total Domains',
-      value: data?.totalDomains || 0,
+      value: domains?.length || 0,
       icon: 'Globe',
       trend: '+12',
       trendLabel: 'This month',
       color: 'bg-blue-500'
     },
+    // {
+    //   title: 'Portfolio Value (ETH)',
+    //   value: `${data?.portfolioValueETH || 0} ETH`,
+    //   icon: 'TrendingUp',
+    //   trend: '+8.2%',
+    //   trendLabel: 'vs last month',
+    //   color: 'bg-green-500'
+    // },
     {
-      title: 'Portfolio Value (ETH)',
-      value: `${data?.portfolioValueETH || 0} ETH`,
-      icon: 'TrendingUp',
-      trend: '+8.2%',
-      trendLabel: 'vs last month',
-      color: 'bg-green-500'
-    },
-    {
-      title: 'Portfolio Value (USD)',
-      value: `$${(data?.portfolioValueUSD || 0)?.toLocaleString()}`,
+      title: 'Active Offers Count',
+      value: `${(getTotalActiveOffersCount(domains) || 0)?.toLocaleString()}`,
       icon: 'DollarSign',
       trend: '+15.3%',
       trendLabel: 'vs last month',
@@ -29,28 +30,28 @@ const PortfolioOverviewCards = ({ data }) => {
     },
     {
       title: 'Active Listings',
-      value: data?.activeListings || 0,
+      value: getDomainsWithActiveOffers(domains) || 0,
       icon: 'ShoppingCart',
       trend: '+5',
       trendLabel: 'This week',
       color: 'bg-orange-500'
     },
-    {
-      title: 'Recent Activity',
-      value: `${data?.recentSales || 0} sales`,
-      icon: 'Activity',
-      trend: '+3',
-      trendLabel: 'This week',
-      color: 'bg-red-500'
-    },
-    {
-      title: 'Monthly ROI',
-      value: `${data?.monthlyROI || 0}%`,
-      icon: 'Percent',
-      trend: '+2.1%',
-      trendLabel: 'vs last month',
-      color: 'bg-teal-500'
-    }
+    // {
+    //   title: 'Recent Activity',
+    //   value: `${data?.recentSales || 0} sales`,
+    //   icon: 'Activity',
+    //   trend: '+3',
+    //   trendLabel: 'This week',
+    //   color: 'bg-red-500'
+    // },
+    // {
+    //   title: 'Monthly ROI',
+    //   value: `${data?.monthlyROI || 0}%`,
+    //   icon: 'Percent',
+    //   trend: '+2.1%',
+    //   trendLabel: 'vs last month',
+    //   color: 'bg-teal-500'
+    // }
   ];
 
   return (

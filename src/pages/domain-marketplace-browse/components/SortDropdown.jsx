@@ -40,7 +40,7 @@ const SortDropdown = ({ value, onChange, resultCount }) => {
     <div className="flex items-center space-x-4">
       {/* Results Count */}
       <div className="text-sm text-muted-foreground">
-        {resultCount?.toLocaleString()} domains found
+        {resultCount?.toLocaleString()} domains fetched
       </div>
       {/* Sort Dropdown */}
       <div className="relative" ref={dropdownRef}>

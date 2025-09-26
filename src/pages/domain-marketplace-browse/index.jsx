@@ -24,12 +24,10 @@ const DomainMarketplaceBrowse = () => {
   const [selectedDomain, setSelectedDomain] = useState(null);
   const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(isLoadingGlobal);
-  const [hasMore, setHasMore] = useState(true);
+  const [hasMore, setHasMore] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [sortBy, setSortBy] = useState('relevance');
 
-  console.log("listings", listings);
-  console.log("isLoadingGlobal", isLoadingGlobal);
   
   // Filter state
   const [filters, setFilters] = useState({
@@ -45,146 +43,10 @@ const DomainMarketplaceBrowse = () => {
   
   const [activeCategories, setActiveCategories] = useState([]);
 
-  // Mock data
-  const mockDomains = [
-    {
-      id: 1,
-      name: 'techstartup.com',
-      price: 25000,
-      originalPrice: 30000,
-      age: 8,
-      length: 11,
-      tld: '.com',
-      traffic: '2.5K/mo',
-      status: 'available',
-      isVerified: true,
-      hasEscrow: true,
-      isFavorited: false,
-      categories: ['Technology', 'Business'],
-      seller: {
-        name: 'John Smith',
-        rating: 4.8,
-        reviews: 127,
-        isVerified: true
-      },
-      views: 1250,
-      listedDays: 15
-    },
-    {
-      id: 2,
-      name: 'financeapp.io',
-      price: 45000,
-      age: 5,
-      length: 10,
-      tld: '.io',
-      traffic: '5.2K/mo',
-      status: 'available',
-      isVerified: true,
-      hasEscrow: true,
-      isFavorited: true,
-      categories: ['Finance', 'Technology'],
-      seller: {
-        name: 'Sarah Johnson',
-        rating: 4.9,
-        reviews: 89,
-        isVerified: true
-      },
-      views: 2100,
-      listedDays: 8
-    },
-    {
-      id: 3,
-      name: 'healthtech.ai',
-      price: 75000,
-      age: 3,
-      length: 10,
-      tld: '.ai',
-      traffic: '8.1K/mo',
-      status: 'negotiating',
-      isVerified: true,
-      hasEscrow: true,
-      isFavorited: false,
-      categories: ['Health', 'Technology', 'AI'],
-      seller: {
-        name: 'Michael Chen',
-        rating: 4.7,
-        reviews: 156,
-        isVerified: true
-      },
-      views: 3200,
-      listedDays: 3
-    },
-    {
-      id: 4,
-      name: 'cryptoexchange.co',
-      price: 120000,
-      age: 6,
-      length: 14,
-      tld: '.co',
-      traffic: '12.5K/mo',
-      status: 'available',
-      isVerified: true,
-      hasEscrow: true,
-      isFavorited: false,
-      categories: ['Finance', 'Cryptocurrency'],
-      seller: {
-        name: 'Alex Rodriguez',
-        rating: 4.6,
-        reviews: 203,
-        isVerified: true
-      },
-      views: 4500,
-      listedDays: 22
-    },
-    {
-      id: 5,
-      name: 'ecommerce.net',
-      price: 35000,
-      age: 12,
-      length: 9,
-      tld: '.net',
-      traffic: '3.8K/mo',
-      status: 'available',
-      isVerified: false,
-      hasEscrow: false,
-      isFavorited: false,
-      categories: ['Business', 'E-commerce'],
-      seller: {
-        name: 'Emma Wilson',
-        rating: 4.4,
-        reviews: 67,
-        isVerified: false
-      },
-      views: 890,
-      listedDays: 45
-    },
-    {
-      id: 6,
-      name: 'blockchain.org',
-      price: 95000,
-      age: 7,
-      length: 10,
-      tld: '.org',
-      traffic: '15.2K/mo',
-      status: 'available',
-      isVerified: true,
-      hasEscrow: true,
-      isFavorited: true,
-      categories: ['Technology', 'Cryptocurrency'],
-      seller: {
-        name: 'David Kim',
-        rating: 4.9,
-        reviews: 178,
-        isVerified: true
-      },
-      views: 5600,
-      listedDays: 12
-    }
-  ];
-
+  
   const featuredDomains = listings?.slice(0, 4);
   const [displayedDomains, setDisplayedDomains] = useState(listings);
-
+console.log("dislayed", displayedDomains)
   const categoryOptions = [
     { value: 'technology', label: 'Technology', icon: 'Laptop', count: 1250 },
     { value: 'business', label: 'Business', icon: 'Briefcase', count: 890 },
@@ -197,13 +59,13 @@ const DomainMarketplaceBrowse = () => {
   ];
 
   // Initialize search from URL params
-  useEffect(() => {
-    const urlParams = new URLSearchParams(location.search);
-    const searchParam = urlParams?.get('search');
-    if (searchParam) {
-      setSearchQuery(searchParam);
-    }
-  }, [location?.search]);
+  // useEffect(() => {
+  //   const urlParams = new URLSearchParams(location.search);
+  //   const searchParam = urlParams?.get('search');
+  //   if (searchParam) {
+  //     setSearchQuery(searchParam);
+  //   }
+  // }, [location?.search]);
 
   // Handle search
   const handleSearch = useCallback((query) => {
@@ -233,13 +95,13 @@ const DomainMarketplaceBrowse = () => {
 
   // Handle domain actions
   const handleFavorite = (domainId, isFavorited) => {
-    setDisplayedDomains(prev => 
-      prev?.map(domain => 
-        domain?.id === domainId 
-          ? { ...domain, isFavorited } 
-          : domain
-      )
-    );
+    // setDisplayedDomains(prev => 
+    //   prev?.map(domain => 
+    //     domain?.id === domainId 
+    //       ? { ...domain, isFavorited } 
+    //       : domain
+    //   )
+    // );
   };
 
   const handlePreview = (domain) => {
@@ -258,18 +120,18 @@ const DomainMarketplaceBrowse = () => {
 
   // Infinite scroll handler
   const handleLoadMore = () => {
-    if (isLoading || !hasMore) return;
+    // if (isLoading || !hasMore) return;
     
-    //setIsLoading(true);
-    // Simulate API call
-    setTimeout(() => {
-      setCurrentPage(prev => prev + 1);
-      //setIsLoading(false);
-      // Simulate end of results after page 3
-      if (currentPage >= 2) {
-        setHasMore(false);
-      }
-    }, 1000);
+    // //setIsLoading(true);
+    // // Simulate API call
+    // setTimeout(() => {
+    //   setCurrentPage(prev => prev + 1);
+    //   //setIsLoading(false);
+    //   // Simulate end of results after page 3
+    //   if (currentPage >= 2) {
+    //     setHasMore(false);
+    //   }
+    // }, 1000);
   };
 
   // Scroll event listener for infinite scroll
@@ -370,7 +232,7 @@ const DomainMarketplaceBrowse = () => {
                   value={searchQuery}
                   onChange={setSearchQuery}
                   onSearch={handleSearch}
-                  placeholder="Search domains..."
+                  placeholder="Search more domains..."
                 />
               </div>
 

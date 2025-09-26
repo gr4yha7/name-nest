@@ -440,6 +440,141 @@ class DomaSubgraphService {
       query SearchDomains(
         $skip: Int
         $take: Int
+        $name: String!
+      ) {
+        names(
+          skip: $skip
+          take: $take
+          name: $name
+        ) {
+          items {
+            name
+            expiresAt
+            tokenizedAt
+            eoi
+            registrar {
+              ianaId
+              name
+              websiteUrl
+            }
+            nameservers {
+              ldhName
+            }
+            dsKeys {
+              keyTag
+              algorithm
+              digestType
+              digest
+            }
+            transferLock
+            claimedBy
+            tokens {
+              tokenId
+              tokenAddress
+              ownerAddress
+              chain {
+                networkId
+                name
+                addressUrlTemplate
+              }
+            }
+            isFractionalized
+            fractionalTokenInfo {
+              id
+              address
+              status
+              chain {
+                networkId
+                name
+                addressUrlTemplate
+              }
+            }
+            highestOffer {
+              id
+              price
+            }
+            activeOffersCount
+          }
+          totalCount
+          pageSize
+          currentPage
+          totalPages
+          hasPreviousPage
+          hasNextPage
+        }
+      }
+    `;
+
+    const variables = {
+      skip: filters.skip || 0,
+      take: filters.take || 20,
+      sortOrder: filters.sortOrder || 'DESC',
+      claimStatus: filters.claimStatus || 'ALL',
+    };
+
+    // Only add optional parameters if they have valid values
+    if (filters.ownedBy && filters.ownedBy.length > 0) {
+      variables.ownedBy = filters.ownedBy;
+    }
+    if (filters.name) {
+      variables.name = filters.name;
+    }
+    if (filters.networkIds && filters.networkIds.length > 0) {
+      variables.networkIds = filters.networkIds;
+    }
+    if (filters.registrarIanaIds && filters.registrarIanaIds.length > 0) {
+      variables.registrarIanaIds = filters.registrarIanaIds;
+    }
+    if (filters.tlds && filters.tlds.length > 0) {
+      variables.tlds = filters.tlds;
+    }
+    if (filters.sortBy) {
+      variables.sortBy = filters.sortBy;
+    }
+    if (filters.fractionalized !== null && filters.fractionalized !== undefined) {
+      variables.fractionalized = filters.fractionalized;
+    }
+    if (filters.listed !== null && filters.listed !== undefined) {
+      variables.listed = filters.listed;
+    }
+    if (filters.active !== null && filters.active !== undefined) {
+      variables.active = filters.active;
+    }
+    if (filters.priceRangeMin !== null && filters.priceRangeMin !== undefined) {
+      variables.priceRangeMin = filters.priceRangeMin;
+    }
+    if (filters.priceRangeMax !== null && filters.priceRangeMax !== undefined) {
+      variables.priceRangeMax = filters.priceRangeMax;
+    }
+    if (filters.priceRangeCurrency) {
+      variables.priceRangeCurrency = filters.priceRangeCurrency;
+    }
+
+    try {
+      const result = await this.client.query({
+        query,
+        variables,
+        fetchPolicy: 'cache-first',
+      });
+
+      return result.data.names.items;
+    } catch (error) {
+      console.error('Failed to search domains:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Search domains using the names query
+   * @param {Object} filters - Search filters
+   */
+  async searchDomainsCopy(filters = {}) {
+    this.ensureInitialized();
+
+    const query = gql`
+      query SearchDomains(
+        $skip: Int
+        $take: Int
         $sortOrder: SortOrderType
         $ownedBy: [AddressCAIP10!]
         $claimStatus: NamesQueryClaimStatus

@@ -1,15 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
+import { useAccount } from 'wagmi';
 import Icon from '../AppIcon';
 import Button from './Button';
+import WalletConnection from '../WalletConnection';
 
 const Header = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isSearchExpanded, setIsSearchExpanded] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [isWalletConnected, setIsWalletConnected] = useState(false);
   const [notificationCount, setNotificationCount] = useState(3);
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
+  const { isConnected: isWalletConnected } = useAccount();
   const location = useLocation();
 
   const navigationItems = [
@@ -56,6 +58,11 @@ const Header = () => {
       icon: 'Mail'
     },
     {
+      label: 'XMTP Test',
+      path: '/xmtp-messaging-test',
+      icon: 'MessageCircle'
+    },
+    {
       label: 'Orders',
       path: '/transaction-order-management',
       icon: 'ShoppingCart'
@@ -82,7 +89,7 @@ const Header = () => {
   }, []);
 
   const handleWalletConnect = () => {
-    setIsWalletConnected(!isWalletConnected);
+    // Wallet connection is now handled by WalletConnection component
   };
 
   const handleSearchSubmit = (e) => {
@@ -181,17 +188,9 @@ const Header = () => {
             </div>
 
             {/* Wallet Connection */}
-            <Button
-              variant={isWalletConnected ? "outline" : "default"}
-              size="sm"
-              onClick={handleWalletConnect}
-              className="hidden lg:flex"
-            >
-              <Icon name={isWalletConnected ? "Wallet" : "Wallet"} size={16} />
-              <span className="ml-2">
-                {isWalletConnected ? "0x1234...5678" : "Connect Wallet"}
-              </span>
-            </Button>
+            <div className="hidden lg:flex">
+              <WalletConnection />
+            </div>
 
             {/* Profile/Auth */}
             {isWalletConnected && (
@@ -306,16 +305,7 @@ const Header = () => {
 
               {/* Mobile Wallet Connection */}
               <div className="pt-4 border-t border-border">
-                <Button
-                  variant={isWalletConnected ? "outline" : "default"}
-                  fullWidth
-                  onClick={handleWalletConnect}
-                >
-                  <Icon name="Wallet" size={16} />
-                  <span className="ml-2">
-                    {isWalletConnected ? "Disconnect Wallet" : "Connect Wallet"}
-                  </span>
-                </Button>
+                <WalletConnection className="w-full" />
               </div>
             </div>
           </div>

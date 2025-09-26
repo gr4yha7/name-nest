@@ -18,11 +18,12 @@ class DomaXMTPService {
   }
 
   /**
-   * Create a signer from private key
-   * @param {string} privateKey - User's private key
+   * Create a signer from private key or wallet client
+   * @param {string} privateKey - User's private key (optional)
    * @param {string} address - User's wallet address
+   * @param {Object} walletClient - Wagmi wallet client (optional)
    */
-  createSigner(privateKey, address) {
+  createSigner(privateKey, address, walletClient = null) {
     return {
       type: 'EOA',
       getIdentifier: () => ({
@@ -30,41 +31,101 @@ class DomaXMTPService {
         identifierKind: 'Ethereum'
       }),
       signMessage: async (message) => {
-        // This would need to be implemented with the actual signing logic
-        // For now, we'll use the privateKey directly
-        const { ethers } = await import('ethers');
-        const wallet = new ethers.Wallet(privateKey);
-        const signature = await wallet.signMessage(message);
-        return ethers.getBytes(signature);
+        console.log('Signer signMessage called with:', { message, hasWalletClient: !!walletClient, hasPrivateKey: !!privateKey });
+        
+        if (walletClient) {
+          try {
+            // Use wagmi wallet client for signing
+            console.log('Using wallet client for signing...');
+            const signature = await walletClient.signMessage({ message });
+            console.log('Wallet client signature:', signature);
+            // Convert hex string to Uint8Array
+            const hex = signature.startsWith('0x') ? signature.slice(2) : signature;
+            return new Uint8Array(hex.match(/.{1,2}/g).map(byte => parseInt(byte, 16)));
+          } catch (error) {
+            console.error('Wallet client signing failed:', error);
+            throw error;
+          }
+        } else if (privateKey) {
+          try {
+            // Fallback to private key signing
+            console.log('Using private key for signing...');
+            const { ethers } = await import('ethers');
+            const wallet = new ethers.Wallet(privateKey);
+            const signature = await wallet.signMessage(message);
+            return ethers.getBytes(signature);
+          } catch (error) {
+            console.error('Private key signing failed:', error);
+            throw error;
+          }
+        } else {
+          throw new Error('Either privateKey or walletClient must be provided');
+        }
       }
     };
   }
 
   /**
    * Initialize XMTP client
-   * @param {string} privateKey - User's private key
+   * @param {string} privateKey - User's private key (optional)
    * @param {string} address - User's wallet address
+   * @param {Object} walletClient - Wagmi wallet client (optional)
    */
-  async initialize(privateKey = null, address = null) {
+  async initialize(privateKey = null, address = null, walletClient = null) {
     try {
-      const key = privateKey || config.xmtp.privateKey;
-      
-      if (!key) {
-        throw new Error('XMTP private key is required');
+      console.log('XMTP initialize called with:', {
+        hasPrivateKey: !!privateKey,
+        address,
+        hasWalletClient: !!walletClient,
+        configXmtpEnv: config.xmtp.env
+      });
+
+      // If no address provided, try to get from wallet client
+      if (!address && walletClient) {
+        address = walletClient.account.address;
+        console.log('Got address from wallet client:', address);
       }
 
       if (!address) {
         throw new Error('Wallet address is required');
       }
 
-      // Create signer
-      const signer = this.createSigner(key, address);
+      // Use private key if provided, otherwise rely on wallet client
+      const key = privateKey || config.xmtp.privateKey;
+      
+      if (!key && !walletClient) {
+        throw new Error('Either XMTP private key or wallet client is required');
+      }
 
+      console.log('Creating signer with:', { hasKey: !!key, address, hasWalletClient: !!walletClient });
+
+      // Create signer
+      const signer = this.createSigner(key, address, walletClient);
+
+      console.log('Creating XMTP client...');
       // Create XMTP client with proper options
+      try {
       this.client = await Client.create(signer, {
         env: config.xmtp.env || 'dev',
         appVersion: 'namenest/1.0.0', // Required by XMTP docs
       });
+        console.log('XMTP client created successfully');
+      } catch (clientError) {
+        console.error('Failed to create XMTP client with wallet client:', clientError);
+        
+        // If wallet client fails and we have a private key, try with private key
+        if (walletClient && key) {
+          console.log('Retrying with private key...');
+          const privateKeySigner = this.createSigner(key, address, null);
+          this.client = await Client.create(privateKeySigner, {
+            env: config.xmtp.env || 'dev',
+            appVersion: 'namenest/1.0.0',
+          });
+          console.log('XMTP client created successfully with private key');
+        } else {
+          throw clientError;
+        }
+      }
 
       this.isInitialized = true;
       console.log('XMTP client initialized successfully');
@@ -102,6 +163,24 @@ class DomaXMTPService {
       console.log('XMTP message listener started successfully');
     } catch (error) {
       console.error('Failed to start message listener:', error);
+    }
+  }
+
+  /**
+   * Accept an already-created XMTP client (e.g., built via useSignMessage) and wire it in
+   * @param {import('@xmtp/browser-sdk').Client} client - Initialized XMTP client
+   */
+  async setClient(client) {
+    if (!client) {
+      throw new Error('XMTP client is required');
+    }
+    this.client = client;
+    this.isInitialized = true;
+    try {
+      await this.startMessageListener();
+    } catch (err) {
+      // Non-fatal; streaming can be started later
+      console.error('Failed to start message listener on external client:', err);
     }
   }
 

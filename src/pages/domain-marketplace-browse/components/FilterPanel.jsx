@@ -178,7 +178,7 @@ const FilterPanel = ({ isOpen, onClose, filters, onFiltersChange, isMobile = fal
       </div>
 
       {/* Seller Rating */}
-      <div>
+      <div className="hidden">
         <label className="block text-sm font-medium text-foreground mb-3">
           Minimum Seller Rating
         </label>
@@ -199,7 +199,7 @@ const FilterPanel = ({ isOpen, onClose, filters, onFiltersChange, isMobile = fal
       </div>
 
       {/* Additional Options */}
-      <div className="space-y-3">
+      <div className="space-y-3 hidden">
         <Checkbox
           label="Escrow Available"
           checked={localFilters?.hasEscrow}

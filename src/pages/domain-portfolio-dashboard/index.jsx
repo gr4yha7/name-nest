@@ -8,12 +8,15 @@ import DomainManagementTable from './components/DomainManagementTable';
 import BulkManagementTools from './components/BulkManagementTools';
 import PortfolioAnalytics from './components/PortfolioAnalytics';
 import SmartContractIntegration from './components/SmartContractIntegration';
+import { useAccount, useConnect, useDisconnect } from 'wagmi';
+import { getNamesOwnedByAddress } from 'graphs/getAccountNames';
+import { domaSubgraphService } from 'services/doma';
 
 const DomainPortfolioDashboard = () => {
-  const [isWalletConnected, setIsWalletConnected] = useState(false);
   const [selectedNetwork, setSelectedNetwork] = useState('all');
   const [portfolioData, setPortfolioData] = useState(null);
-  const [selectedDomains, setSelectedDomains] = useState([]);
+  const [selectedDomains, setSelectedDomains] = useState([""]);
+  const [myDomains, setMyDomains] = useState([]);
   const [filterOptions, setFilterOptions] = useState({
     network: 'all',
     dateRange: '30d',
@@ -21,6 +24,10 @@ const DomainPortfolioDashboard = () => {
     status: 'all'
   });
   const [loading, setLoading] = useState(true);
+  const { address} = useAccount();
+  const { disconnect } = useDisconnect();
+  const { connect } = useConnect();
+
 
   // Mock portfolio data
   const mockPortfolioData = {
@@ -59,27 +66,28 @@ const DomainPortfolioDashboard = () => {
     ]
   };
 
-  useEffect(() => {
-    // Simulate data loading
-    const loadPortfolioData = async () => {
-      setLoading(true);
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      setPortfolioData(mockPortfolioData);
-      setLoading(false);
-    };
+  const loadPortfolioData = async () => {
+    setLoading(true);
+    domaSubgraphService.getUserDomains("0xd35095b3d9435e07d48671C38d54e71e2eB90E77").then((names) => {
+      setMyDomains(names)
+    });;
+    // Simulate API call
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    setPortfolioData(mockPortfolioData);
+    setLoading(false);
+  };
 
-    if (isWalletConnected) {
+  useEffect(() => {
+    if (address) {
       loadPortfolioData();
     }
-  }, [isWalletConnected]);
+  }, [address]);
 
   const handleWalletConnect = async () => {
-    try {
-      // Simulate wallet connection
-      setIsWalletConnected(true);
-    } catch (error) {
-      console.error('Wallet connection failed:', error);
+    if (!address) {
+      connect({ connector: injected() })
+    } else {
+      disconnect();
     }
   };
 
@@ -92,7 +100,7 @@ const DomainPortfolioDashboard = () => {
     setFilterOptions(prev => ({ ...prev, ...newFilters }));
   };
 
-  if (!isWalletConnected) {
+  if (!address) {
     return (
       <div className="min-h-screen bg-background">
         <Header />
@@ -137,38 +145,48 @@ const DomainPortfolioDashboard = () => {
             </p>
           </div>
           <div className="mt-4 lg:mt-0 flex items-center space-x-3">
-            <Button
+            {/* <Button
               variant="outline"
-              onClick={() => window.location.href = '/web3-wallet-integration-hub'}
-            >
+              >
               <Icon name="Settings" size={16} className="mr-2" />
               Wallet Settings
-            </Button>
-            <Button>
+              </Button> */}
+            <Button
+              onClick={() => window.open('https://testnet.d3.app/')}
+            >
               <Icon name="Plus" size={16} className="mr-2" />
               Add Domain
             </Button>
           </div>
         </div>
 
-        {loading ? (
+        {(loading && myDomains?.length === 0) && (
           <div className="flex items-center justify-center py-20">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
             <span className="ml-3 text-muted-foreground">Loading portfolio...</span>
           </div>
-        ) : (
+        )}
+        
+        {(!loading && myDomains?.length === 0) && (
+          <div className="flex items-center justify-center py-20">
+            <span className="ml-3 text-muted-foreground text-xl">No Domains Yet</span>
+          </div>
+        )}
+        
+        {(!loading && myDomains?.length > 0) && (
           <div className="space-y-6">
             {/* Portfolio Overview Cards */}
-            <PortfolioOverviewCards data={portfolioData} />
+            <PortfolioOverviewCards data={portfolioData} domains={myDomains} />
 
             {/* Network Distribution and Analytics Row */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <NetworkDistributionMap 
                 data={portfolioData?.networkDistribution} 
+                domains={myDomains} 
                 selectedNetwork={selectedNetwork}
                 onNetworkSelect={setSelectedNetwork}
               />
-              <PortfolioAnalytics data={portfolioData} />
+              <PortfolioAnalytics data={portfolioData} domains={myDomains} />
             </div>
 
             {/* Smart Contract Integration */}
@@ -182,7 +200,7 @@ const DomainPortfolioDashboard = () => {
 
             {/* Domain Management Table */}
             <DomainManagementTable
-              domains={portfolioData?.domains || []}
+              domains={myDomains || []}
               selectedDomains={selectedDomains}
               onSelectionChange={setSelectedDomains}
               filters={filterOptions}

@@ -11,8 +11,10 @@ import CategoryChips from './components/CategoryChips';
 import SearchAutocomplete from './components/SearchAutocomplete';
 import DomainPreviewModal from './components/DomainPreviewModal';
 import SortDropdown from './components/SortDropdown';
+import { useGlobal } from 'context/global';
 
 const DomainMarketplaceBrowse = () => {
+  const { listings, isLoading: isLoadingGlobal } = useGlobal();
   const location = useLocation();
   const navigate = useNavigate();
   
@@ -21,10 +23,13 @@ const DomainMarketplaceBrowse = () => {
   const [isFilterPanelOpen, setIsFilterPanelOpen] = useState(false);
   const [selectedDomain, setSelectedDomain] = useState(null);
   const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(isLoadingGlobal);
   const [hasMore, setHasMore] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [sortBy, setSortBy] = useState('relevance');
+
+  console.log("listings", listings);
+  console.log("isLoadingGlobal", isLoadingGlobal);
   
   // Filter state
   const [filters, setFilters] = useState({
@@ -177,8 +182,8 @@ const DomainMarketplaceBrowse = () => {
     }
   ];
 
-  const featuredDomains = mockDomains?.slice(0, 4);
-  const [displayedDomains, setDisplayedDomains] = useState(mockDomains);
+  const featuredDomains = listings?.slice(0, 4);
+  const [displayedDomains, setDisplayedDomains] = useState(listings);
 
   const categoryOptions = [
     { value: 'technology', label: 'Technology', icon: 'Laptop', count: 1250 },
@@ -255,11 +260,11 @@ const DomainMarketplaceBrowse = () => {
   const handleLoadMore = () => {
     if (isLoading || !hasMore) return;
     
-    setIsLoading(true);
+    //setIsLoading(true);
     // Simulate API call
     setTimeout(() => {
       setCurrentPage(prev => prev + 1);
-      setIsLoading(false);
+      //setIsLoading(false);
       // Simulate end of results after page 3
       if (currentPage >= 2) {
         setHasMore(false);
@@ -301,6 +306,8 @@ const DomainMarketplaceBrowse = () => {
         {/* Search Bar - Mobile */}
         <div className="lg:hidden mb-6">
           <SearchAutocomplete
+            onPreview={handlePreview}
+            domains={displayedDomains}
             value={searchQuery}
             onChange={setSearchQuery}
             onSearch={handleSearch}
@@ -358,6 +365,8 @@ const DomainMarketplaceBrowse = () => {
               {/* Desktop Search */}
               <div className="hidden lg:block flex-1 max-w-md">
                 <SearchAutocomplete
+                  onPreview={handlePreview}
+                  domains={displayedDomains}
                   value={searchQuery}
                   onChange={setSearchQuery}
                   onSearch={handleSearch}
@@ -375,7 +384,7 @@ const DomainMarketplaceBrowse = () => {
 
             {/* Domain Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-              {displayedDomains?.map((domain) => (
+              {displayedDomains?.length > 0 && displayedDomains?.map((domain) => (
                 <DomainCard
                   key={domain?.id}
                   domain={domain}

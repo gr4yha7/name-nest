@@ -84,7 +84,7 @@ const SmartContractIntegration = () => {
   };
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <div className="grid hidden grid-cols-1 lg:grid-cols-2 gap-6">
       {/* Smart Contract Status */}
       <div className="bg-card border border-border rounded-lg p-6">
         <div className="flex items-center justify-between mb-6">

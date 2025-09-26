@@ -30,13 +30,6 @@ const DomainManagementTable = ({
     { value: 'transfer', label: 'In Transfer' }
   ];
 
-  const performanceOptions = [
-    { value: 'all', label: 'All Performance' },
-    { value: 'positive', label: 'Positive ROI' },
-    { value: 'negative', label: 'Negative ROI' },
-    { value: 'break_even', label: 'Break Even' }
-  ];
-
   const getNetworkIcon = (network) => {
     const icons = {
       ethereum: 'Zap',
@@ -67,18 +60,25 @@ const DomainManagementTable = ({
 
   const handleSelectAll = (checked) => {
     if (checked) {
-      onSelectionChange?.(domains?.map(domain => domain?.id));
+      // Select all domains
+      const allDomainNames = domains.map(domain => domain?.name);
+      onSelectionChange?.(allDomainNames);
     } else {
+      // Deselect all domains
       onSelectionChange?.([]);
     }
   };
 
-  const handleSelectDomain = (domainId, checked) => {
-    if (checked) {
-      onSelectionChange?.([...selectedDomains, domainId]);
-    } else {
-      onSelectionChange?.(selectedDomains?.filter(id => id !== domainId));
-    }
+  const handleSelectDomain = (domainName) => {
+    onSelectionChange((prevSelectedDomains) => {
+      if (prevSelectedDomains.includes(domainName)) {
+        // If the domain is already selected, remove it
+        return prevSelectedDomains.filter((name) => name !== domainName);
+      } else {
+        // If the domain is not selected, add it
+        return [...prevSelectedDomains, domainName];
+      }
+    });
   };
 
   const sortedDomains = [...(domains || [])]?.sort((a, b) => {
@@ -116,13 +116,6 @@ const DomainManagementTable = ({
               placeholder="Filter by status"
               className="w-40"
             />
-            <Select
-              value={filters?.performance}
-              onValueChange={(value) => onFilterChange?.({ performance: value })}
-              options={performanceOptions}
-              placeholder="Filter by performance"
-              className="w-48"
-            />
           </div>
         </div>
       </div>
@@ -130,8 +123,9 @@ const DomainManagementTable = ({
         <table className="w-full">
           <thead className="bg-muted/50">
             <tr>
-              <th className="p-4 text-left">
-                <Checkbox
+              <th className="p- text-left hidden">
+                <input
+                  type='checkbox'
                   checked={selectedDomains?.length === domains?.length && domains?.length > 0}
                   onCheckedChange={handleSelectAll}
                 />
@@ -154,7 +148,7 @@ const DomainManagementTable = ({
                 <span className="text-sm font-medium text-foreground">Network</span>
               </th>
               <th
-                className="p-4 text-left cursor-pointer hover:bg-muted/70 transition-colors"
+                className="p-4 hidden text-left cursor-pointer hover:bg-muted/70 transition-colors"
                 onClick={() => handleSort('value')}
               >
                 <div className="flex items-center space-x-2">
@@ -167,25 +161,11 @@ const DomainManagementTable = ({
                   )}
                 </div>
               </th>
-              <th
-                className="p-4 text-left cursor-pointer hover:bg-muted/70 transition-colors"
-                onClick={() => handleSort('roi')}
-              >
-                <div className="flex items-center space-x-2">
-                  <span className="text-sm font-medium text-foreground">ROI</span>
-                  {sortField === 'roi' && (
-                    <Icon
-                      name={sortDirection === 'asc' ? 'ChevronUp' : 'ChevronDown'}
-                      size={14}
-                    />
-                  )}
-                </div>
+              <th className="p-4 text-left">
+                <span className="text-sm font-medium text-foreground">Active Offers</span>
               </th>
               <th className="p-4 text-left">
-                <span className="text-sm font-medium text-foreground">Status</span>
-              </th>
-              <th className="p-4 text-left">
-                <span className="text-sm font-medium text-foreground">Last Activity</span>
+                <span className="text-sm font-medium text-foreground">Expires</span>
               </th>
               <th className="p-4 text-left">
                 <span className="text-sm font-medium text-foreground">Actions</span>
@@ -193,26 +173,27 @@ const DomainManagementTable = ({
             </tr>
           </thead>
           <tbody>
-            {sortedDomains?.map((domain) => (
+            {sortedDomains?.map((domain, index) => (
               <tr
-                key={domain?.id}
+                key={index}
                 className="border-b border-border hover:bg-muted/30 transition-colors"
               >
-                <td className="p-4">
-                  <Checkbox
-                    checked={selectedDomains?.includes(domain?.id)}
-                    onCheckedChange={(checked) => handleSelectDomain(domain?.id, checked)}
-                  />
+                <td className="p-4 hidden">
                 </td>
                 <td className="p-4">
                   <div className="flex items-center space-x-3">
+                    <input
+                      type='checkbox'
+                      checked={selectedDomains?.includes(domain?.name)}
+                      onChange={(e) => handleSelectDomain(domain?.name, e.target.value)}
+                    />
                     <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center">
                       <Icon name="Globe" size={16} className="text-primary" />
                     </div>
                     <div>
                       <p className="font-medium text-foreground">{domain?.name}</p>
                       <p className="text-xs text-muted-foreground">
-                        Acquired {formatDistanceToNow(new Date(domain.acquired))} ago
+                        Tokenized {formatDistanceToNow(new Date(domain.tokenizedAt))} ago
                       </p>
                     </div>
                   </div>
@@ -221,36 +202,25 @@ const DomainManagementTable = ({
                   <div className="flex items-center space-x-2">
                     <Icon name={getNetworkIcon(domain?.network)} size={16} />
                     <span className="text-sm capitalize text-foreground">
-                      {domain?.network}
+                      {domain?.tokens[0]?.chain?.name}
                     </span>
                   </div>
                 </td>
-                <td className="p-4">
+                <td className="p-4 hidden">
                   <span className="text-sm font-medium text-foreground">
                     {domain?.value} ETH
                   </span>
                 </td>
                 <td className="p-4">
                   <span
-                    className={`text-sm font-medium ${
-                      domain?.roi >= 0 ? 'text-green-600' : 'text-red-600'
-                    }`}
+                    className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium capitalize`}
                   >
-                    {domain?.roi >= 0 ? '+' : ''}{domain?.roi}%
-                  </span>
-                </td>
-                <td className="p-4">
-                  <span
-                    className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium capitalize ${getStatusColor(
-                      domain?.status
-                    )}`}
-                  >
-                    {domain?.status}
+                    {domain?.activeOffersCount}
                   </span>
                 </td>
                 <td className="p-4">
                   <span className="text-sm text-muted-foreground">
-                    {formatDistanceToNow(new Date(domain.lastActivity))} ago
+                    {formatDistanceToNow(new Date(domain.expiresAt))}
                   </span>
                 </td>
                 <td className="p-4">

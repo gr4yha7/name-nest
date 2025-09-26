@@ -269,9 +269,9 @@ export function useUserDomains(userAddress) {
 
   // Auto-fetch when user address changes
   useEffect(() => {
-    if (userAddress) {
-      fetchDomains();
-    }
+    // if (userAddress) {
+    //   fetchDomains();
+    // }
   }, [userAddress, fetchDomains]);
 
   return {

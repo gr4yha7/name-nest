@@ -2,30 +2,17 @@ import React, { useState, useEffect, useRef } from 'react';
 import Icon from '../../../components/AppIcon';
 import Input from '../../../components/ui/Input';
 
-const SearchAutocomplete = ({ value, onChange, onSearch, placeholder = "Search domains..." }) => {
+const SearchAutocomplete = ({ value, onChange, onSearch, placeholder = "Search domains...", domains, onPreview }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [suggestions, setSuggestions] = useState([]);
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
   const inputRef = useRef(null);
   const dropdownRef = useRef(null);
 
-  // Mock suggestions data
-  const mockSuggestions = [
-    { type: 'domain', text: 'techstartup.com', category: 'Technology' },
-    { type: 'domain', text: 'financeapp.io', category: 'Finance' },
-    { type: 'domain', text: 'healthtech.ai', category: 'Health' },
-    { type: 'category', text: 'Technology domains', icon: 'Laptop' },
-    { type: 'category', text: 'Business domains', icon: 'Briefcase' },
-    { type: 'category', text: 'Finance domains', icon: 'DollarSign' },
-    { type: 'popular', text: 'blockchain', searches: '1.2k' },
-    { type: 'popular', text: 'crypto', searches: '890' },
-    { type: 'popular', text: 'ai', searches: '2.1k' }
-  ];
-
   useEffect(() => {
     if (value && value?.length > 1) {
-      const filtered = mockSuggestions?.filter(suggestion =>
-        suggestion?.text?.toLowerCase()?.includes(value?.toLowerCase())
+      const filtered = domains?.filter(suggestion =>
+        suggestion?.name?.toLowerCase()?.includes(value?.toLowerCase())
       );
       setSuggestions(filtered?.slice(0, 8));
       setIsOpen(true);
@@ -80,10 +67,11 @@ const SearchAutocomplete = ({ value, onChange, onSearch, placeholder = "Search d
   };
 
   const handleSuggestionClick = (suggestion) => {
-    onChange(suggestion?.text);
-    onSearch(suggestion?.text);
+    onChange(suggestion?.name);
+    onSearch(suggestion?.name);
     setIsOpen(false);
     setHighlightedIndex(-1);
+    onPreview(suggestion);
   };
 
   const getSuggestionIcon = (suggestion) => {
@@ -149,7 +137,7 @@ const SearchAutocomplete = ({ value, onChange, onSearch, placeholder = "Search d
               />
               <div className="flex-1 min-w-0">
                 <div className="text-sm font-medium text-foreground truncate">
-                  {suggestion?.text}
+                  {suggestion?.name}
                 </div>
                 {suggestion?.category && (
                   <div className="text-xs text-muted-foreground">

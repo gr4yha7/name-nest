@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import Header from '../../components/ui/Header';
 import Breadcrumb from '../../components/ui/Breadcrumb';
 import ConversationList from './components/ConversationList';
@@ -21,8 +21,12 @@ const RealTimeMessagingCenter = () => {
   const [searchResults, setSearchResults] = useState([]);
   const [isConnected, setIsConnected] = useState(true);
   const [typingUsers, setTypingUsers] = useState(new Set());
-
+// Access the state passed during navigation
+  const location = useLocation();
+  const { selectedDomain, action } = location.state || {};
   const currentUserId = 'current-user';
+  console.log("selectedDomain", selectedDomain);
+
 
   // Mock conversations data
   const mockConversations = [

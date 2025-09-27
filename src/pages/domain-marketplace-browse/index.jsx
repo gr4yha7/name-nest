@@ -45,8 +45,13 @@ const DomainMarketplaceBrowse = () => {
 
   
   const featuredDomains = listings?.slice(0, 4);
-  const [displayedDomains, setDisplayedDomains] = useState(listings);
-console.log("dislayed", displayedDomains)
+  const [displayedDomains, setDisplayedDomains] = useState(listings?.length > 0 ? listings : []);
+
+  useEffect(() => {
+    console.log("dislayed", listings)
+    setDisplayedDomains(listings)
+  }, [listings])
+  
   const categoryOptions = [
     { value: 'technology', label: 'Technology', icon: 'Laptop', count: 1250 },
     { value: 'business', label: 'Business', icon: 'Briefcase', count: 890 },
@@ -69,12 +74,9 @@ console.log("dislayed", displayedDomains)
 
   // Handle search
   const handleSearch = useCallback((query) => {
-    setSearchQuery(query);
-    setCurrentPage(1);
     // Update URL without navigation
-    const newUrl = query ? `${location?.pathname}?search=${encodeURIComponent(query)}` : location?.pathname;
-    window.history?.replaceState({}, '', newUrl);
-  }, [location?.pathname]);
+    navigate(`/domain-detail?domain_name=${query}`)
+  }, []);
 
   // Handle filter changes
   const handleFiltersChange = (newFilters) => {

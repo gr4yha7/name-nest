@@ -68,7 +68,7 @@ const SearchAutocomplete = ({ value, onChange, onSearch, placeholder = "Search m
 
   const handleSuggestionClick = (suggestion) => {
     onChange(suggestion?.name);
-    onSearch(suggestion?.name);
+    // onSearch(suggestion?.name);
     setIsOpen(false);
     setHighlightedIndex(-1);
     onPreview(suggestion);

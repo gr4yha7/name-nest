@@ -240,7 +240,7 @@ class DomaSubgraphService {
     const variables = {
       skip: filters.skip || 0,
       take: filters.take || 50,
-      sortOrder: filters.sortOrder || 'DESC',
+      sortOrder: filters.sortOrder || 'DESC'
     };
 
     // Only add optional parameters if they have valid values
@@ -261,8 +261,7 @@ class DomaSubgraphService {
         fetchPolicy: 'cache-first',
       });
 
-      console.log('Domain offers:', result);
-      return result.data.offers;
+      return result.data.offers.items;
     } catch (error) {
       console.error('Failed to fetch domain offers:', error);
       throw error;
@@ -441,11 +440,15 @@ class DomaSubgraphService {
         $skip: Int
         $take: Int
         $name: String!
+        $listed: Boolean
+        $active: Boolean
       ) {
         names(
           skip: $skip
           take: $take
           name: $name
+          listed: $listed
+          active: $active
         ) {
           items {
             name
@@ -477,21 +480,34 @@ class DomaSubgraphService {
                 name
                 addressUrlTemplate
               }
-            }
-            isFractionalized
-            fractionalTokenInfo {
-              id
-              address
-              status
-              chain {
-                networkId
-                name
-                addressUrlTemplate
+              listings {
+                price
+                offererAddress
+                orderbook
+                currency {
+                  name
+                  symbol
+                  decimals
+                  usdExchangeRate
+                }
+                createdAt
+                expiresAt
               }
             }
+            isFractionalized
             highestOffer {
               id
               price
+              offererAddress
+              orderbook
+              currency {
+                name
+                symbol
+                decimals
+                usdExchangeRate
+              }
+              createdAt
+              expiresAt
             }
             activeOffersCount
           }
@@ -508,6 +524,9 @@ class DomaSubgraphService {
     const variables = {
       skip: filters.skip || 0,
       take: filters.take || 20,
+      listed: true,
+      active: true,
+
       sortOrder: filters.sortOrder || 'DESC',
       claimStatus: filters.claimStatus || 'ALL',
     };

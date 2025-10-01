@@ -5,6 +5,45 @@ export function cn(...inputs) {
     return twMerge(clsx(inputs));
 }
 
+export const domaTestnet = {
+  id: 97476,
+  name: "Doma Testnet",
+  nativeCurrency: {
+    name: "Ethereum",
+    symbol: "ETH",
+    decimals: 18,
+  },
+  rpcUrls: {
+    default: {
+      http: ["https://rpc-testnet.doma.xyz"],
+    },
+    public: {
+      http: ["https://rpc-testnet.doma.xyz"],
+    },
+  },
+  blockExplorers: {
+    default: {
+      name: "Doma Explorer",
+      url: "https://explorer-testnet.doma.xyz",
+    },
+  },
+  testnet: true,
+}
+
+export const currencies = ['USDC', 'WETH', 'ETH'];
+
+export const calculateExpiryDate = (expiryUnit, expiryValue) => {
+  const date = new Date();
+  if (expiryUnit === 'day') {
+    date.setDate(date.getDate() + expiryValue);
+  } else if (expiryUnit === 'week') {
+    date.setDate(date.getDate() + (expiryValue * 7));
+  } else if (expiryUnit === 'month') {
+    date.setMonth(date.getMonth() + expiryValue);
+  }
+  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+};
+
 export function shortenAddress(address, chars = 4) {
     // Ensure the address is a valid hex string with '0x' prefix
     if (!address.startsWith('0x') || address.length < chars * 2 + 2) {

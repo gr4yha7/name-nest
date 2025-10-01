@@ -279,137 +279,64 @@ class DomaSubgraphService {
       query GetDomainDetails($name: String!) {
         name(name: $name) {
           name
-          expiresAt
-          tokenizedAt
-          eoi
-          registrar {
-            ianaId
-            name
-            websiteUrl
-          }
-          nameservers {
-            name
-            ipv4
-            ipv6
-          }
-          dsKeys {
-            keyTag
-            algorithm
-            digestType
-            digest
-          }
-          transferLock
-          claimedBy
-          tokens {
-            id
-            tokenId
-            tokenAddress
-            owner
-            chain {
-              networkId
+            expiresAt
+            tokenizedAt
+            eoi
+            registrar {
+              ianaId
               name
-              addressUrlTemplate
+              websiteUrl
             }
-          }
-          activities {
-            ... on NameClaimedActivity {
-              type
-              txHash
-              sld
-              tld
-              createdAt
-              claimedBy
+            nameservers {
+              ldhName
             }
-            ... on NameRenewedActivity {
-              type
-              txHash
-              sld
-              tld
-              createdAt
-              expiresAt
+            dsKeys {
+              keyTag
+              algorithm
+              digestType
+              digest
             }
-            ... on NameDetokenizedActivity {
-              type
-              txHash
-              sld
-              tld
-              createdAt
-              networkId
-            }
-            ... on NameTokenizedActivity {
-              type
-              txHash
-              sld
-              tld
-              createdAt
-              networkId
-            }
-            ... on NameClaimRequestedActivity {
-              type
-              txHash
-              sld
-              tld
-              createdAt
-            }
-            ... on NameClaimApprovedActivity {
-              type
-              txHash
-              sld
-              tld
-              createdAt
-            }
-            ... on NameClaimRejectedActivity {
-              type
-              txHash
-              sld
-              tld
-              createdAt
-            }
-          }
-          isFractionalized
-          fractionalTokenInfo {
-            id
-            address
-            fractionalizedAt
-            fractionalizedBy
-            boughtOutAt
-            boughtOutBy
-            buyoutPrice
-            status
-            poolAddress
-            launchpadAddress
-            vestingWalletAddress
-            chain {
-              networkId
-              name
-              addressUrlTemplate
-            }
-            params {
-              initialValuation
-              name
-              symbol
-              decimals
-              totalSupply
-              launchpadType
-              launchpadSupply
-              launchpadFeeBps
-              poolSupply
-              poolFeeBps
-              initialLaunchpadPrice
-              finalLaunchpadPrice
-              launchStartDate
-              launchEndDate
-              launchpadData
-              vestingCliffSeconds
-              vestingDurationSeconds
-              initialPoolPrice
+            transferLock
+            claimedBy
+            tokens {
               tokenId
+              tokenAddress
+              ownerAddress
+              chain {
+                networkId
+                name
+                addressUrlTemplate
+              }
+              listings {
+                price
+                offererAddress
+                orderbook
+                currency {
+                  name
+                  symbol
+                  decimals
+                  usdExchangeRate
+                }
+                createdAt
+                expiresAt
+              }
+            }
+            isFractionalized
+            highestOffer {
+              id
+              price
+              offererAddress
+              orderbook
+              currency {
+                name
+                symbol
+                decimals
+                usdExchangeRate
+              }
+              createdAt
               expiresAt
             }
-            fractionalizedTxHash
-            boughtOutTxHash
-            name
-          }
+            activeOffersCount
         }
       }
     `;
@@ -420,7 +347,6 @@ class DomaSubgraphService {
         variables: { name: domainName },
         fetchPolicy: 'cache-first',
       });
-
       return result.data.name;
     } catch (error) {
       console.error('Failed to fetch domain details:', error);

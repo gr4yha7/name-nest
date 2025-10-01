@@ -7,10 +7,13 @@ import {
   createDomaOrderbookClient, 
   OrderbookType, 
   DomaOrderbookError, 
-  DomaOrderbookErrorCode 
+  DomaOrderbookErrorCode, 
+  getDomaOrderbookClient
 } from '@doma-protocol/orderbook-sdk';
 import { viemToEthersSigner } from '@doma-protocol/orderbook-sdk';
 import config from './config.js';
+import { domaTestnet } from 'utils/cn.js';
+import { baseSepolia, sepolia, shibariumTestnet } from 'viem/chains';
 
 class DomaOrderbookService {
   constructor() {
@@ -29,9 +32,17 @@ class DomaOrderbookService {
       const clientConfig = {
         apiClientOptions: {
           baseUrl: config.endpoints.orderbook,
-          apiKey: config.api.key,
+          defaultHeaders: {
+            "Api-Key": config.api.key,
+          },
         },
-        ...options,
+        source: "domainLine",
+        chains: [
+          domaTestnet,
+          baseSepolia,
+          sepolia,
+          shibariumTestnet
+        ]
       };
 
       this.client = createDomaOrderbookClient(clientConfig);
@@ -57,19 +68,22 @@ class DomaOrderbookService {
     try {
       // Convert price to wei if needed
       const priceInWei = this.convertToWei(listingData.price, listingData.currency);
+      const client = getDomaOrderbookClient();
 
-      const result = await this.client.createListing({
+      const result = await client.createListing({
+        signer,
+        chainId,
         params: {
+          orderbook: OrderbookType.DOMA,
+          source: "",
           items: [{
             contract: listingData.contractAddress,
             tokenId: listingData.tokenId,
             price: priceInWei,
+            duration: 3 * 24 * 60 * 60 * 1000,
+            currencyContractAddress: null 
           }],
-          orderbook: OrderbookType.DOMA,
-          marketplaceFees: listingData.marketplaceFees, // Optional, will be fetched automatically if not provided
         },
-        signer,
-        chainId,
         onProgress: onProgress || ((step, progress) => {
           console.log(`Creating listing: ${step} (${progress}%)`);
         }),

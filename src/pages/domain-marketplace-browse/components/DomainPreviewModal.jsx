@@ -4,7 +4,7 @@ import Button from '../../../components/ui/Button';
 import { formatUnits } from 'ethers';
 import { formatDistance, parseISO } from 'date-fns';
 import { formatEthereumAddress, shortenAddress } from 'utils/cn';
-import { ListOrderedIcon, LucideAnchor, LucideCurrency, PersonStanding, RemoveFormattingIcon, Timer, TimerIcon } from 'lucide-react';
+import { BadgeDollarSign, ListOrderedIcon, LucideAnchor, LucideCurrency, PersonStanding, RemoveFormattingIcon, Timer, TimerIcon } from 'lucide-react';
 import { domaSubgraphService } from 'services/doma';
 import { useNavigate } from 'react-router-dom';
 
@@ -101,7 +101,7 @@ const DomainPreviewModal = ({ domain, isOpen, onClose, onContact }) => {
                     <h3 className="text-lg font-semibold text-foreground mb-4">Highest Offer</h3>
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                       <div className="bg-card border border-border rounded-lg p-4 text-center">
-                        <LucideCurrency name="Users" size={16} className="text-primary mx-auto mb-2" />
+                        <BadgeDollarSign name="Users" size={16} className="text-primary mx-auto mb-2" />
                         <div className="text-md font-bold text-foreground">{formatUnits(fullDomainDetails?.highestOffer?.price, fullDomainDetails?.highestOffer?.currency?.decimals) ?? 0} {fullDomainDetails?.highestOffer.currency.symbol}</div>
                         <div className="text-sm text-muted-foreground">Price</div>
                       </div>
@@ -200,11 +200,11 @@ const DomainPreviewModal = ({ domain, isOpen, onClose, onContact }) => {
                     <Icon name="MessageSquare" size={16} />
                     <span className="ml-2">Contact Seller</span>
                   </Button>
-                  <Button onClick={() => navigate("/domain-detail-negotiation")} variant="outline" className="w-full">
-                    <Icon name="Heart" size={16} />
-                    <span className="ml-2">Get Domain</span>
+                  <Button onClick={() => navigate(`/domain-detail-negotiation?domain=${fullDomainDetails?.name}`)} variant="outline" className="w-full">
+                    <Icon name="BadgeDollarSign" size={16} />
+                    <span className="ml-2">Purchase Domain</span>
                   </Button>
-                  <Button variant="outline" className="w-full">
+                  <Button variant="outline" className="w-full hidden">
                     <Icon name="Share" size={16} />
                     <span className="ml-2">Share Domain</span>
                   </Button>

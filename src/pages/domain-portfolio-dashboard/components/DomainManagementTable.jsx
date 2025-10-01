@@ -25,6 +25,7 @@ const DomainManagementTable = ({
   const [sortField, setSortField] = useState('name');
   const [sortDirection, setSortDirection] = useState('asc');
   const [showListingModal, setShowListingModal] = useState(false);
+  const [showCancelListingModal, setShowCancelListingModal] = useState(false);
   const [selectedDomain, setSelectedDomain] = useState(null);
   const [listingPrice, setListingPrice] = useState(null);
   const [isLoading, setIsLoading] = useState(null);
@@ -100,8 +101,16 @@ const DomainManagementTable = ({
   };
 
   const handleListing = (domain) => {
+    if (domain?.tokens[0]?.listings?.length > 0) {
+      return;
+    }
     setSelectedDomain(domain);
     setShowListingModal(true);
+  };
+
+  const handleCancelListingProcess = (domain) => {
+    setSelectedDomain(domain);
+    setShowCancelListingModal(true);
   };
 
   const handleListingOrder = async () => {
@@ -137,8 +146,8 @@ const DomainManagementTable = ({
         console.log("Progress update:", currentStep, currentProgress);
       }
     ); 
-    console.log("result", result)
       setIsLoading(false);
+      setShowListingModal(false);
       toast.success("Domain Listed on MarketPlace")
     } catch (error) {
       console.log(error)
@@ -146,22 +155,17 @@ const DomainManagementTable = ({
     }
   };
 
-  const handleCancelListing = async (orderId) => {
-
-
+  const handleCancelListing = async () => {
     if (!walletClient) return;
-
+    const listingId = selectedDomain?.tokens[0]?.listings[selectedDomain?.tokens[0]?.listings?.length - 1]?.externalId;
     // Convert Viem wallet client to Ethers signer
     const signer = viemToEthersSigner(walletClient, 'eip155:97476');
-    const currencyAddress = currencies.find(
-      (c) => c.symbol === currency
-    )?.contractAddress;
 
     try {
       setIsLoading(true);
       const chainId = 'eip155:97476';
       const result = await domaOrderbookService.cancelListing(
-      orderId,
+        listingId,
       signer, 
       chainId,
       (currentStep, currentProgress) => {
@@ -170,55 +174,17 @@ const DomainManagementTable = ({
         console.log("Progress update:", currentStep, currentProgress);
       }
     ); 
-    console.log("result", result)
       setIsLoading(false);
-      toast.success("Domain Listing Cancelled on MarketPlace")
+      if (result) {
+        toast.success("Domain Listing Cancelled on MarketPlace")
+        setShowCancelListingModal(false);
+      }
     } catch (error) {
+      toast.error("error", error)
       console.log(error)
       setIsLoading(false);
     }
   };
-
-  // const handleListingOrder = useCallback(async () => {
-  //   try {
-  //     console.log("Creating listing with:", { selectedDomain, listingPrice });
-  //     setIsLoading(true);
-  //     if (!selectedDomain) return;
-  //     if (!listingPrice) return;
-  //     const currencyName = currencies.find(
-  //       (c) => c.symbol === currency
-  //     )?.symbol;
-  //     console.log("Currency Name:", currencyName);
-  //     if (!currencyName) return;
-  //     const networkId = SUPPORTED_CHAINS.find(
-  //       (c) => c.name === "Doma Testnet"
-  //     )?.id;
-  //     const currencyAddress = currencies.find(
-  //       (c) => c.symbol === currency
-  //     )?.contractAddress;
-  //     console.log("Network ID:", networkId);
-  //     await createListing(
-  //       selectedDomain["tokens"]?.[0]?.tokenAddress || "",
-  //       selectedDomain["tokens"]?.[0]?.tokenId || "",
-  //       currencyAddress,
-  //       listingPrice,
-  //       1 * 24 * 60 * 60 * 1000,
-  //       networkId,
-  //       () => {
-  //         toast.success("Listing created successfully!");
-  //         setSelectedDomain(null);
-  //         setListPrice(null)
-  //         setShowListingModal(false);
-  //       }
-  //     );
-  //     console.log("Listing created successfully");
-  //     setIsLoading(false);
-  //   } catch (error) {
-  //     console.log(error)
-  //     setIsLoading(false);
-  //     toast.error("Failed to create listing");
-  //   }
-  // }, [selectedDomain, listingPrice, createListing]);
 
 
   const handleSelectDomain = (domainName) => {
@@ -317,7 +283,7 @@ const DomainManagementTable = ({
                 <span className="text-sm font-medium text-foreground">Active Offers</span>
               </th>
               <th className="p-4 text-left">
-                <span className="text-sm font-medium text-foreground">Expires</span>
+                <span className="text-sm font-medium text-foreground">Expires In</span>
               </th>
               <th className="p-4 text-left">
                 <span className="text-sm font-medium text-foreground">Actions</span>
@@ -381,7 +347,7 @@ const DomainManagementTable = ({
                       <span>{domain?.tokens[0]?.listings?.length > 0 ? "Listed" : "List"}</span>
                     </div>
                     {domain?.tokens[0]?.listings?.length > 0 &&
-                    <div onClick={() => handleCancelListing(domain?.tokens[0]?.listings[2]?.id)} className='bg-red-400 cursor-pointer text-white text-xs py-1 rounded-md px-2'>
+                    <div onClick={() => handleCancelListingProcess(domain)} className='bg-red-400 cursor-pointer text-white text-xs py-1 rounded-md px-2'>
                       <span>Cancel Listing</span>
                     </div>
                     }
@@ -399,43 +365,205 @@ const DomainManagementTable = ({
         </div>
       )}
 
-      {/* {showListingModal && (
+      {showCancelListingModal && (
         <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-card border border-border rounded-lg shadow-modal w-full max-w-lg">
             <div className="flex items-center justify-between p-6 border-b border-border">
               
               <div className='grid'>
-                <span className="text-lg font-semibold text-foreground">List "{selectedDomain?.name}" for sale.</span>
-                <span className="text-xs font-semibold mt-2 text-foreground text-gray-500">Allow buyers to instantly purchase and transfer this domain within a timeframe for a quicker sale.</span>
+                <span className="text-lg font-semibold text-foreground">Remove "{selectedDomain?.name}" from marketplace.</span>
+                <span className="text-xs font-semibold mt-2 text-foreground text-red-500">Are you sure you want to remove this domain from marketplace?</span>
               </div>
             </div>
             
             <div className="p-6 space-y-4">
+              <div className="flex space-x-3 w-full">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="w-full bg-gray-500 hover:bg-gray-600 text-white"
+                    onClick={() => setShowCancelListingModal(false)}
+                  >
+                    Cancel
+                  </Button>
 
-              <div>
-                <label>Pricing</label>
-                <input
-                  label="Listing Amount"
-                  type="number"
-                  placeholder="Enter your list price"
-                  value={listingPrice}
-                  className='flex h-10 w-full rounded-md border border- mt-2 focus:border-0 bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50'
-                  onChange={(e) => setListingPrice(e?.target?.value)}
-                />
-              </div>
-              <div>
-                <label>Pricing</label>
-                <input
-                  label="Listing Amount"
-                  type="number"
-                  placeholder="Enter your list price"
-                  value={listingPrice}
-                  className='flex h-10 w-full rounded-md border border- mt-2 focus:border-0 bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50'
-                  onChange={(e) => setListingPrice(e?.target?.value)}
-                />
+                  <Button disabled={isLoading} className="w-full disabled:cursor-not-allowed h-10 hover:bg-blue-900" onClick={() => handleCancelListing()} type="submit">
+                  {isLoading ? "Processing" : "Proceed"}
+                  </Button>
+                </div>
+              
+            </div>
+          </div>
+        </div>
+      )}
+      {showListingModal && (
+        <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-card mt-8 border border-border rounded-xl shadow-modal w-full max-w-lg">
+         
+              {/* Header */}
+              <div className="sticky top-0 bg-white border-b border-gray-00 p-6 flex items-start justify-between">
+                <div>
+                  <h2 className="text-black text-sm mb-2">List directly on Doma Marketplace for sale</h2>
+                  <h1 className="text-gray-500 text-3xl font-semibold">{selectedDomain?.name}</h1>
+                  <p className="text-black mt-3 leading-relaxed">
+                    Allow buyers to instantly purchase and transfer this domain within a timeframe for a quicker sale.
+                  </p>
+                </div>
+                <button 
+                  onClick={() => setShowListingModal(false)}
+                  className="text-gray-400 hover:text-black transition-colors p-2"
+                >
+                  <X className="w-6 h-6" />
+                </button>
               </div>
 
-              {isLoading && (
+              {/* Content */}
+              <div className="p-6 space-y-8 overflow-scrollable">
+                {/* Expiry Section */}
+                <div>
+                  <h3 className="text-black text-xl mb-4">Expiry of sale</h3>
+                  
+                  {/* Expiry Dropdown Button */}
+                  <div className="relative">
+                    <button
+                      onClick={() => setShowExpiryDropdown(!showExpiryDropdown)}
+                      className="w-full text-black bg-white border border-gray-800 rounded-xl p-4 flex items-center justify-between hover:border-gray-700 transition-colors"
+                    >
+                      <div className="flex items-center space-x-3">
+                        <svg className="w-5 h-5 text-black" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                          <line x1="16" y1="2" x2="16" y2="6" />
+                          <line x1="8" y1="2" x2="8" y2="6" />
+                          <line x1="3" y1="10" x2="21" y2="10" />
+                        </svg>
+                        <span className="text-black">In {expiryValue} {expiryUnit}{expiryValue !== 1 ? 's' : ''} ({calculateExpiryDate(expiryUnit, expiryValue)})</span>
+                      </div>
+                      <ChevronUp className="w-5 h-5 text-gray-400" />
+                    </button>
+
+                    {/* Expiry Dropdown Content */}
+                    {showExpiryDropdown && (
+                      <div className="mt-4 bg-gray-500 rounded-xl p-8">
+                        <p className="text-center text-white mb-6">Expires in</p>
+                        
+                        {/* Number Selector */}
+                        <div className="flex items-center justify-center mb-8">
+                          <div className="bg-white rounded-2xl p-2 flex items-center space-x-8">
+                            <button
+                              onClick={decrementExpiry}
+                              className="text-gray-800 hover:text-white transition-colors p-2"
+                            >
+                              <ChevronDown className="w-6 h-6" />
+                            </button>
+                            <span className="text-black text-5xl font-light min-w-[80px] text-center">{expiryValue}</span>
+                            <button
+                              onClick={incrementExpiry}
+                              className="text-gray-800 hover:text-white transition-colors p-2"
+                            >
+                              <ChevronUp className="w-6 h-6" />
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Time Unit Selector */}
+                        <div className="flex gap-3 justify-center">
+                          {['day', 'week', 'month'].map((unit) => (
+                            <button
+                              key={unit}
+                              onClick={() => setExpiryUnit(unit)}
+                              className={`px-8 py-3 rounded-xl font-medium transition-colors ${
+                                expiryUnit === unit
+                                  ? 'bg-gray-600 text-white'
+                                  : 'bg-white text-gray-400 hover:text-gray-600'
+                              }`}
+                            >
+                              {unit}
+                            </button>
+                          ))}
+                        </div>
+
+                      </div>
+                    )}
+                        <p className="text-gray-500 text-sm mt-6">
+                          Listing will expire if not filled by this date.
+                        </p>
+                  </div>
+                </div>
+
+                {/* Pricing Section */}
+                <div>
+                  <h3 className="text-black text-xl mb-6">Pricing</h3>
+
+                  {/* List Price */}
+                  <div className="bg-white border border-gray-800 rounded-xl p-6 mb-4">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <h4 className="text-black text-lg mb-1">List price</h4>
+                        <p className="text-gray-500 text-sm">The cost of the domain, before fees are deducted</p>
+                      </div>
+                      <div className="flex items-center space-x-2 ml-4">
+                        <input
+                          type="number"
+                          value={listingPrice}
+                          onChange={(e) => setListingPrice(e.target.value)}
+                          className="bg-transparent text-black px-4 py-[6px] rounded-xl text-2xl text-right w-32 outline-none"
+                          placeholder="0"
+                        />
+                        <div className="relative">
+                          <button
+                            onClick={() => setShowCurrencyDropdown(!showCurrencyDropdown)}
+                            className="flex items-center space-x-2 bg-[#1a1a1a] px-4 py-3 rounded-xl hover:bg-[#252525] transition-colors"
+                          >
+                            <span className="text-white font-medium">{currency}</span>
+                            <ChevronDown className="w-4 h-4 text-gray-400" />
+                          </button>
+
+                          {/* Currency Dropdown */}
+                          {showCurrencyDropdown && (
+                            <div className="absolute right-0 top-full mt-2 bg-[#1a1a1a] border border-gray-800 rounded-xl overflow-hidden min-w-[120px] z-10">
+                              {currencies.map((curr) => (
+                                <button
+                                  key={curr}
+                                  onClick={() => {
+                                    setCurrency(curr.symbol);
+                                    setShowCurrencyDropdown(false);
+                                  }}
+                                  className={`w-full px-4 py-3 text-left transition-colors ${
+                                    currency === curr.symbol
+                                      ? 'bg-blue-600 text-white'
+                                      : 'text-gray-300 hover:bg-[#252525]'
+                                  }`}
+                                >
+                                  {curr?.symbol}
+                                  {currency === curr.symbol && (
+                                    <span className="float-right">✓</span>
+                                  )}
+                                </button>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Fees */}
+                  <div className="bg-white border border-gray-800 rounded-xl p-6">
+                    <h4 className="text-black text-lg mb-3">Fees</h4>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex items-center justify-between text-gray-400">
+                        <span>domain</span>
+                        <span>0.5%</span>
+                      </div>
+                      <div className="flex items-center justify-between text-gray-400">
+                        <span>royalty</span>
+                        <span>2.5%</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {isLoading && (
                 <>
                   <div className="flex items-center justify-between text-xs text-muted-foreground">
                     <span>Creating listing...</span>
@@ -449,26 +577,26 @@ const DomainManagementTable = ({
                   </div>
                 </>
               )}
-              
-              <div className="flex space-x-3 w-full">
+
+                {/* List Button */}
+                <div className="flex space-x-3 w-full">
                   <Button
                     type="button"
                     variant="outline"
-                    className="w-full bg-gray-500 hover:bg-gray-600 text-white"
+                    className="w-full h-12 bg-gray-500 hover:bg-gray-600 text-white"
                     onClick={() => setShowListingModal(false)}
                   >
                     Cancel
                   </Button>
 
-                  <Button className="w-full hover:bg-blue-900" onClick={() => handleListingOrder()} type="submit">
-                    List Domain
+                  <Button disabled={isLoading} className="w-full disabled:cursor-not-allowed h-12 hover:bg-blue-900" onClick={() => handleListingOrder()} type="submit">
+                  {isLoading ? "Listing" : "List Domain"}
                   </Button>
                 </div>
-              
+              </div>
             </div>
           </div>
-        </div>
-      )} */}
+      )}
       {showListingModal && (
         <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-card mt-8 border border-border rounded-xl shadow-modal w-full max-w-lg">

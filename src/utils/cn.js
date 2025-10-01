@@ -140,10 +140,45 @@ export function getTotalActiveOffersCount(domains) {
   return totalActiveOffersCount;
 }
 
+export function getPortfolioValueInUSD(domains) {
+  // Sum up the USD value of all listings across all domains
+  const totalPortfolioValueInUSD = domains.reduce((total, domain) => {
+    // Check if domain has tokens and listings
+    if (domain.tokens && domain.tokens.length > 0) {
+      const domainValue = domain.tokens.reduce((tokenTotal, token) => {
+        if (token.listings && token.listings.length > 0) {
+          // Sum up all listings for this token
+          const tokenValue = token.listings.reduce((listingTotal, listing) => {
+            if (listing.currency && listing.currency.usdExchangeRate) {
+              const usdValue = listing.currency.usdExchangeRate;
+              return usdValue;
+            }
+            return listingTotal;
+          }, 0);
+          return tokenTotal + tokenValue;
+        }
+        return tokenTotal;
+      }, 0);
+      return total + domainValue;
+    }
+    return total;
+  }, 0);
+
+  return totalPortfolioValueInUSD;
+}
+
 export function getDomainsWithActiveOffers(domains) {
   // Filter domains where activeOffersCount > 0
   const domainsWithActiveOffers = domains.filter(domain => domain.activeOffersCount > 0);
 
   // Return the count of such domains
   return domainsWithActiveOffers.length;
+}
+
+export function getListedDomainsCount(domains) {
+  // Filter domains where activeOffersCount > 0
+  const domainsWithListings = domains.filter(domain => domain.tokens[0].listings.length > 0);
+
+  // Return the count of such domains
+  return domainsWithListings.length;
 }

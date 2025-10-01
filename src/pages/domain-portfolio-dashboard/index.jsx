@@ -15,7 +15,7 @@ import { domaSubgraphService } from 'services/doma';
 const DomainPortfolioDashboard = () => {
   const [selectedNetwork, setSelectedNetwork] = useState('all');
   const [portfolioData, setPortfolioData] = useState(null);
-  const [selectedDomains, setSelectedDomains] = useState([""]);
+  const [selectedDomains, setSelectedDomains] = useState([]);
   const [myDomains, setMyDomains] = useState([]);
   const [filterOptions, setFilterOptions] = useState({
     network: 'all',
@@ -179,14 +179,14 @@ const DomainPortfolioDashboard = () => {
             <PortfolioOverviewCards data={portfolioData} domains={myDomains} />
 
             {/* Network Distribution and Analytics Row */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="gap-6">
               <NetworkDistributionMap 
                 data={portfolioData?.networkDistribution} 
                 domains={myDomains} 
                 selectedNetwork={selectedNetwork}
                 onNetworkSelect={setSelectedNetwork}
               />
-              <PortfolioAnalytics data={portfolioData} domains={myDomains} />
+              {/* <PortfolioAnalytics data={portfolioData} domains={myDomains} /> */}
             </div>
 
             {/* Smart Contract Integration */}

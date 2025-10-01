@@ -6,13 +6,14 @@ import { formatDistance, parseISO } from 'date-fns';
 import { formatEthereumAddress, shortenAddress } from 'utils/cn';
 import { ListOrderedIcon, LucideAnchor, LucideCurrency, PersonStanding, RemoveFormattingIcon, Timer, TimerIcon } from 'lucide-react';
 import { domaSubgraphService } from 'services/doma';
+import { useNavigate } from 'react-router-dom';
 
 
 const DomainPreviewModal = ({ domain, isOpen, onClose, onContact }) => {
   if (!isOpen || !domain) return null;
   const [domainOffers, setDomainOffers] = useState(null);
   const [fullDomainDetails, setFullDomainDetails] = useState(null);
-
+  const navigate = useNavigate();
 
   const renderStars = (rating) => {
     return Array.from({ length: 5 }, (_, i) => (
@@ -199,9 +200,9 @@ const DomainPreviewModal = ({ domain, isOpen, onClose, onContact }) => {
                     <Icon name="MessageSquare" size={16} />
                     <span className="ml-2">Contact Seller</span>
                   </Button>
-                  <Button variant="outline" className="w-full hidden">
+                  <Button onClick={() => navigate("/domain-detail-negotiation")} variant="outline" className="w-full">
                     <Icon name="Heart" size={16} />
-                    <span className="ml-2">Add to Watchlist</span>
+                    <span className="ml-2">Get Domain</span>
                   </Button>
                   <Button variant="outline" className="w-full">
                     <Icon name="Share" size={16} />

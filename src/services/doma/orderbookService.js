@@ -12,8 +12,9 @@ import {
 } from '@doma-protocol/orderbook-sdk';
 import { viemToEthersSigner } from '@doma-protocol/orderbook-sdk';
 import config from './config.js';
-import { domaTestnet } from 'utils/cn.js';
+import { currencies, domaTestnet } from 'utils/cn.js';
 import { baseSepolia, sepolia, shibariumTestnet } from 'viem/chains';
+import { parseUnits } from 'viem';
 
 class DomaOrderbookService {
   constructor() {
@@ -62,12 +63,12 @@ class DomaOrderbookService {
    * @param {string} chainId - Chain ID (e.g., 'eip155:1')
    * @param {Function} onProgress - Progress callback
    */
-  async createListing(listingData, signer, chainId, onProgress = null) {
+  async createListing(listingData, signer, chainId, currencyAddress, currency, onProgress = null) {
     this.ensureInitialized();
 
     try {
       // Convert price to wei if needed
-      const priceInWei = this.convertToWei(listingData.price, listingData.currency);
+      const currencyDetails = currencies.find((c) => c.symbol === currency);
       const client = getDomaOrderbookClient();
 
       const result = await client.createListing({
@@ -75,13 +76,13 @@ class DomaOrderbookService {
         chainId,
         params: {
           orderbook: OrderbookType.DOMA,
-          source: "",
+          source: "domainLine",
           items: [{
             contract: listingData.contractAddress,
             tokenId: listingData.tokenId,
-            price: priceInWei,
+            price: parseUnits(listingData?.price, currencyDetails?.decimals),
             duration: 3 * 24 * 60 * 60 * 1000,
-            currencyContractAddress: null 
+            currencyContractAddress: currencyAddress
           }],
         },
         onProgress: onProgress || ((step, progress) => {

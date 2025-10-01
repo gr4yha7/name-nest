@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { formatDistanceToNow } from 'date-fns';
 import Icon from '../../../components/AppIcon';
 import Button from '../../../components/ui/Button';
@@ -10,9 +10,9 @@ import toast from 'react-hot-toast';
 import { ethers } from 'ethers';
 import { domaOrderbookService } from 'services/doma';
 import { useEthersSigner } from 'hooks/UseEthersSigner';
-import { useWalletClient } from 'wagmi';
+import { useSwitchChain, useWalletClient } from 'wagmi';
 import { OrderbookType, viemToEthersSigner } from '@doma-protocol/orderbook-sdk';
-import { calculateExpiryDate, currencies } from 'utils/cn';
+import { calculateExpiryDate, currencies, SUPPORTED_CHAINS } from 'utils/cn';
 import { ChevronDown, ChevronUp, X } from 'lucide-react';
 
 const DomainManagementTable = ({
@@ -42,6 +42,8 @@ const DomainManagementTable = ({
 
 
   const { data: walletClient } = useWalletClient();
+  const { switchChainAsync } = useSwitchChain();
+
 
   const networkOptions = [
     { value: 'all', label: 'All Networks' },
@@ -112,8 +114,10 @@ const DomainManagementTable = ({
     if (!walletClient) return;
 
     // Convert Viem wallet client to Ethers signer
-    const signer = viemToEthersSigner(walletClient, 'eip155:1');
-
+    const signer = viemToEthersSigner(walletClient, 'eip155:97476');
+    const currencyAddress = currencies.find(
+      (c) => c.symbol === currency
+    )?.contractAddress;
 
     try {
       setIsLoading(true);
@@ -122,10 +126,11 @@ const DomainManagementTable = ({
         contractAddress: selectedDomain["tokens"]?.[0]?.tokenAddress,
         tokenId: selectedDomain["tokens"]?.[0]?.tokenId,
         price: listingPrice,
-        currency: 18
       },
       signer, 
       chainId,
+      currencyAddress,
+      currency,
       (currentStep, currentProgress) => {
         // This is the progress callback
         setProgress(currentProgress);
@@ -140,6 +145,81 @@ const DomainManagementTable = ({
       setIsLoading(false);
     }
   };
+
+  const handleCancelListing = async (orderId) => {
+
+
+    if (!walletClient) return;
+
+    // Convert Viem wallet client to Ethers signer
+    const signer = viemToEthersSigner(walletClient, 'eip155:97476');
+    const currencyAddress = currencies.find(
+      (c) => c.symbol === currency
+    )?.contractAddress;
+
+    try {
+      setIsLoading(true);
+      const chainId = 'eip155:97476';
+      const result = await domaOrderbookService.cancelListing(
+      orderId,
+      signer, 
+      chainId,
+      (currentStep, currentProgress) => {
+        // This is the progress callback
+        setProgress(currentProgress);
+        console.log("Progress update:", currentStep, currentProgress);
+      }
+    ); 
+    console.log("result", result)
+      setIsLoading(false);
+      toast.success("Domain Listing Cancelled on MarketPlace")
+    } catch (error) {
+      console.log(error)
+      setIsLoading(false);
+    }
+  };
+
+  // const handleListingOrder = useCallback(async () => {
+  //   try {
+  //     console.log("Creating listing with:", { selectedDomain, listingPrice });
+  //     setIsLoading(true);
+  //     if (!selectedDomain) return;
+  //     if (!listingPrice) return;
+  //     const currencyName = currencies.find(
+  //       (c) => c.symbol === currency
+  //     )?.symbol;
+  //     console.log("Currency Name:", currencyName);
+  //     if (!currencyName) return;
+  //     const networkId = SUPPORTED_CHAINS.find(
+  //       (c) => c.name === "Doma Testnet"
+  //     )?.id;
+  //     const currencyAddress = currencies.find(
+  //       (c) => c.symbol === currency
+  //     )?.contractAddress;
+  //     console.log("Network ID:", networkId);
+  //     await createListing(
+  //       selectedDomain["tokens"]?.[0]?.tokenAddress || "",
+  //       selectedDomain["tokens"]?.[0]?.tokenId || "",
+  //       currencyAddress,
+  //       listingPrice,
+  //       1 * 24 * 60 * 60 * 1000,
+  //       networkId,
+  //       () => {
+  //         toast.success("Listing created successfully!");
+  //         setSelectedDomain(null);
+  //         setListPrice(null)
+  //         setShowListingModal(false);
+  //       }
+  //     );
+  //     console.log("Listing created successfully");
+  //     setIsLoading(false);
+  //   } catch (error) {
+  //     console.log(error)
+  //     setIsLoading(false);
+  //     toast.error("Failed to create listing");
+  //   }
+  // }, [selectedDomain, listingPrice, createListing]);
+
 
   const handleSelectDomain = (domainName) => {
     onSelectionChange((prevSelectedDomains) => {
@@ -297,15 +377,14 @@ const DomainManagementTable = ({
                 </td>
                 <td className="p-4">
                   <div className="flex items-center space-x-2">
-                    {/* <Button variant="ghost" size="sm">
-                      <Icon name="Edit" size={14} />
-                    </Button> */}
-                    <div onClick={() => handleListing(domain)} className='bg-green-400 cursor-pointer text-white text-xs py-1 rounded-md px-2'>
-                      <span>List</span>
+                    <div onClick={() => handleListing(domain)} className={`${domain?.tokens[0]?.listings?.length > 0 ? "bg-gray-400 cursor-not-allowed" : "bg-green-400 cursor-pointer"} text-white text-xs py-1 rounded-md px-2`}>
+                      <span>{domain?.tokens[0]?.listings?.length > 0 ? "Listed" : "List"}</span>
                     </div>
-                    {/* <Button variant="ghost" size="sm">
-                      <Icon name="MoreVertical" size={14} />
-                    </Button> */}
+                    {domain?.tokens[0]?.listings?.length > 0 &&
+                    <div onClick={() => handleCancelListing(domain?.tokens[0]?.listings[2]?.id)} className='bg-red-400 cursor-pointer text-white text-xs py-1 rounded-md px-2'>
+                      <span>Cancel Listing</span>
+                    </div>
+                    }
                   </div>
                 </td>
               </tr>
@@ -519,17 +598,17 @@ const DomainManagementTable = ({
                                 <button
                                   key={curr}
                                   onClick={() => {
-                                    setCurrency(curr);
+                                    setCurrency(curr.symbol);
                                     setShowCurrencyDropdown(false);
                                   }}
                                   className={`w-full px-4 py-3 text-left transition-colors ${
-                                    currency === curr
+                                    currency === curr.symbol
                                       ? 'bg-blue-600 text-white'
                                       : 'text-gray-300 hover:bg-[#252525]'
                                   }`}
                                 >
-                                  {curr}
-                                  {currency === curr && (
+                                  {curr?.symbol}
+                                  {currency === curr.symbol && (
                                     <span className="float-right">✓</span>
                                   )}
                                 </button>
@@ -556,6 +635,21 @@ const DomainManagementTable = ({
                     </div>
                   </div>
                 </div>
+
+                {isLoading && (
+                <>
+                  <div className="flex items-center justify-between text-xs text-muted-foreground">
+                    <span>Creating listing...</span>
+                    <span>{Math.round(progress)}%</span>
+                  </div>
+                  <div className="h-2 w-full bg-muted rounded">
+                    <div
+                      className="h-2 bg-primary rounded transition-all"
+                      style={{ width: `${Math.min(Math.max(progress, 0), 100)}%` }}
+                    />
+                  </div>
+                </>
+              )}
 
                 {/* List Button */}
                 <div className="flex space-x-3 w-full">

@@ -1,5 +1,6 @@
 import { clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
+import { baseSepolia, curtis, sepolia, shibariumTestnet } from "viem/chains";
 
 export function cn(...inputs) {
     return twMerge(clsx(inputs));
@@ -30,7 +31,41 @@ export const domaTestnet = {
   testnet: true,
 }
 
-export const currencies = ['USDC', 'WETH', 'ETH'];
+export const SUPPORTED_CHAINS = [
+  domaTestnet,
+  baseSepolia,
+  curtis,
+  sepolia,
+  shibariumTestnet,
+];
+
+export const currencies = [
+  {
+      "contractAddress": "0x2f3463756C59387D6Cd55b034100caf7ECfc757b",
+      "name": "USDC",
+      "symbol": "USDC",
+      "decimals": 6,
+      "type": "ALL",
+      "nativeWrapper": false
+  },
+  {
+      "contractAddress": "0x6f898cd313dcEe4D28A87F675BD93C471868B0Ac",
+      "name": "WETH",
+      "symbol": "WETH",
+      "decimals": 18,
+      "type": "ALL",
+      "nativeWrapper": false
+  },
+  {
+      "contractAddress": null,
+      "name": "Ethereum",
+      "symbol": "ETH",
+      "decimals": 18,
+      "type": "LISTING_ONLY",
+      "nativeWrapper": false
+  }
+];
+
 
 export const calculateExpiryDate = (expiryUnit, expiryValue) => {
   const date = new Date();

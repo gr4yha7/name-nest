@@ -308,6 +308,8 @@ class DomaSubgraphService {
                 addressUrlTemplate
               }
               listings {
+                id
+                externalId
                 price
                 offererAddress
                 orderbook
@@ -407,6 +409,8 @@ class DomaSubgraphService {
                 addressUrlTemplate
               }
               listings {
+                id
+                externalId
                 price
                 offererAddress
                 orderbook
@@ -720,6 +724,21 @@ class DomaSubgraphService {
                 name
                 addressUrlTemplate
               }
+              listings {
+                id
+                externalId
+                price
+                offererAddress
+                orderbook
+                currency {
+                  name
+                  symbol
+                  decimals
+                  usdExchangeRate
+                }
+                createdAt
+                expiresAt
+                }
             }
             isFractionalized
             fractionalTokenInfo {

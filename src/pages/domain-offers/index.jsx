@@ -86,7 +86,7 @@ const DomainOffers = () => {
           </div>
         )}
 
-      {domainOffers?.length > 0 && (
+      {!loading && domainOffers?.length > 0 && (
         <>
         <main className="container mx-auto px-4 py-6">
             <Breadcrumb customItems={breadcrumbItems} />

@@ -12,8 +12,8 @@ const Header = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isSearchExpanded, setIsSearchExpanded] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [isWalletConnected, setIsWalletConnected] = useState(false);
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
+  const { isConnected: isWalletConnected } = useAccount();
   const location = useLocation();
   
   const { address, isDisconnected} = useAccount();
@@ -52,12 +52,12 @@ const Header = () => {
       tooltip: 'Manage your domain portfolio',
       authRequired: isDisconnected ? true : false
     },
-    {
-      label: 'Sell Domain',
-      path: '/domain-listing-creation',
-      icon: 'Plus',
-      tooltip: 'Create new domain listing'
-    },
+    // {
+    //   label: 'Sell Domain',
+    //   path: '/domain-listing-creation',
+    //   icon: 'Plus',
+    //   tooltip: 'Create new domain listing'
+    // },
     {
       label: 'My Deals',
       path: '/domain-offers',
@@ -80,6 +80,11 @@ const Header = () => {
       label: 'Messages',
       path: '/real-time-messaging-center',
       icon: 'Mail'
+    },
+    {
+      label: 'XMTP Test',
+      path: '/xmtp-messaging-test',
+      icon: 'MessageCircle'
     },
     {
       label: 'Orders',
@@ -327,16 +332,7 @@ const Header = () => {
 
               {/* Mobile Wallet Connection */}
               <div className="pt-4 border-t border-border">
-                <Button
-                  variant={isWalletConnected ? "outline" : "default"}
-                  fullWidth
-                  onClick={handleWalletConnect}
-                >
-                  <Icon name="Wallet" size={16} />
-                  <span className="ml-2">
-                    {isWalletConnected ? "Disconnect Wallet" : "Connect Wallet"}
-                  </span>
-                </Button>
+                <WalletConnection className="w-full" />
               </div>
             </div>
           </div>

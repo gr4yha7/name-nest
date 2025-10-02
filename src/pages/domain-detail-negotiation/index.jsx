@@ -18,6 +18,7 @@ import Input from 'components/ui/Input';
 import { formatUnits } from 'ethers';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import { calculateExpiryDate, currencies, inFromNowSeconds } from 'utils/cn';
+import { ConnectKitButton } from 'connectkit';
 
 const DomainDetailNegotiation = () => {
   const [isMessagingOpen, setIsMessagingOpen] = useState(false);
@@ -27,11 +28,11 @@ const DomainDetailNegotiation = () => {
   const [domainOffers, setDomainOffers] = useState(null);
   const [buyDomainModal, setBuyDomainModal] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [progress, setProgress] = useState(false);
   const [offerAmount, setOfferAmount] = useState('');
   const [offerMessage, setOfferMessage] = useState('');
   const location = useLocation();
   const [showOfferForm, setShowOfferForm] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   const [expiryValue, setExpiryValue] = useState(1);
   const [expiryUnit, setExpiryUnit] = useState('day');
@@ -42,6 +43,8 @@ const DomainDetailNegotiation = () => {
   const incrementExpiry = () => setExpiryValue(prev => prev + 1);
   const decrementExpiry = () => setExpiryValue(prev => Math.max(1, prev - 1));
   const { data: walletClient } = useWalletClient();
+
+  const { address } = useAccount();
 
   // Mock domain data
   const domain = {
@@ -180,7 +183,7 @@ const DomainDetailNegotiation = () => {
     }
   };
 
-  const fetchDomainDetails = (searchTokenIdParam, searchDomainParam) => {
+  const fetchDomainDetails = async (searchTokenIdParam, searchDomainParam) => {
     domaSubgraphService.getTokenActivities(searchTokenIdParam).then((activities) => {
       console.log("activities",activities)
       setActivities(activities)
@@ -193,6 +196,9 @@ const DomainDetailNegotiation = () => {
         })
       })
     });
+
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    setLoading(false);
   };
   
   useEffect(() => {
@@ -287,164 +293,196 @@ const DomainDetailNegotiation = () => {
     }
   };
 
+  if (!address) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Header />
+        <main className="container mx-auto px-4 py-8">
+          <div className="max-w-2xl mx-auto text-center">
+            <div className="bg-card border border-border rounded-lg p-8">
+              <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6">
+                <Icon name="Wallet" size={32} className="text-primary" />
+              </div>
+              <h2 className="text-2xl font-bold text-foreground mb-4">
+                Connect Your Wallet
+              </h2>
+              <p className="text-muted-foreground mb-8">
+                Connect your Web3 wallet to access your domain deals.
+              </p>
+              <ConnectKitButton/>
+            </div>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background">
       <Header />
 
-      {domainDetails ? (
-        <>
-      <main className="container mx-auto px-4 py-6">
-        <Breadcrumb customItems={breadcrumbItems} />
-        
-        {/* Domain Hero Section */}
-        <DomainHero
-          domain={domainDetails}
-          onMakeOffer={() => handleMakeOffer()}
-          onBuyNow={handleBuyNow}
-          onContactSeller={handleContactSeller}
-          onToggleFavorite={handleToggleFavorite}
-        />
-
-        {/* Landing Page Preview */}
-        <div className="mb-6">
-          <LandingPagePreview domain={domain} />
+      {(loading) && (
+        <div className="flex items-center justify-center py-20">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            <span className="ml-3 text-muted-foreground">Loading Domain Details, Activities and Offers...</span>
         </div>
+        )}
 
-        {/* Main Content Layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Left Column - Domain Information */}
-          <div className="lg:col-span-2 space-y-6">
-            <DomainTabs domain={domain} domainD={domainDetails} activities={activities} offers={domainOffers} />
+        {(!loading && domainDetails?.tokens.length === 0) && (
+          <div className="flex items-center justify-center py-20">
+            <span className="ml-3 text-muted-foreground">No Information for this Domain</span>
           </div>
+        )}
 
-          {/* Right Column - Sidebar */}
-          <div className="space-y-6">
-            {/* Desktop Offer Management */}
+
+      {!loading && domainDetails?.tokens.length > 0 && (
+        <>
+          <main className="container mx-auto px-4 py-6">
+            <Breadcrumb customItems={breadcrumbItems} />
+            
+            {/* Domain Hero Section */}
+            <DomainHero
+              domain={domainDetails}
+              onMakeOffer={() => handleMakeOffer()}
+              onBuyNow={handleBuyNow}
+              onContactSeller={handleContactSeller}
+              onToggleFavorite={handleToggleFavorite}
+            />
+
+            {/* Landing Page Preview */}
+            <div className="mb-6">
+              <LandingPagePreview domain={domain} />
+            </div>
+
+            {/* Main Content Layout */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* Left Column - Domain Information */}
+              <div className="lg:col-span-2 space-y-6">
+                <DomainTabs domain={domain} domainD={domainDetails} activities={activities} offers={domainOffers} />
+              </div>
+
+              {/* Right Column - Sidebar */}
+              <div className="space-y-6">
+                {/* Desktop Offer Management */}
+                {domainDetails["tokens"][0]?.listings?.length > 0 &&
+                <div className="hidden lg:block">
+                  <OfferManagement domain={domainDetails} offers={domainOffers} onMakeOffer={handleMakeOffer} walletClient={walletClient} fetchDomainDetails={fetchDomainDetails} />
+                </div>
+                }
+
+                {/* Social Proof */}
+                <SocialProof />
+
+                {/* Share Actions */}
+                <div className="bg-card border border-border rounded-lg shadow-card p-6">
+                  <h3 className="text-lg font-semibold text-foreground mb-4">Share This Domain</h3>
+                  <div className="flex space-x-2">
+                    <Button variant="outline" size="sm" onClick={handleShare}>
+                      <Icon name="Share2" size={16} />
+                    </Button>
+                    <Button variant="outline" size="sm">
+                      <Icon name="Twitter" size={16} />
+                    </Button>
+                    <Button variant="outline" size="sm">
+                      <Icon name="Linkedin" size={16} />
+                    </Button>
+                    <Button variant="outline" size="sm">
+                      <Icon name="Mail" size={16} />
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Mobile Offer Management */}
             {domainDetails["tokens"][0]?.listings?.length > 0 &&
-            <div className="hidden lg:block">
-              <OfferManagement domain={domainDetails} offers={domainOffers} onMakeOffer={handleMakeOffer} walletClient={walletClient} fetchDomainDetails={fetchDomainDetails} />
+            <div className="lg:hidden mt-6">
+              <OfferManagement domain={domainDetails} offers={domainOffers} setOffer={setShowOfferForm} />
             </div>
             }
-
-            {/* Social Proof */}
-            <SocialProof />
-
-            {/* Share Actions */}
-            <div className="bg-card border border-border rounded-lg shadow-card p-6">
-              <h3 className="text-lg font-semibold text-foreground mb-4">Share This Domain</h3>
-              <div className="flex space-x-2">
-                <Button variant="outline" size="sm" onClick={handleShare}>
-                  <Icon name="Share2" size={16} />
+          </main>
+          {/* Mobile Sticky Action Bar */}
+          <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-card border-t border-border p-4 z-40">
+            <div className="flex space-x-3">
+              <Button
+                variant="outline"
+                fullWidth
+                onClick={handleContactSeller}
+                iconName="MessageCircle"
+                iconPosition="left"
+              >
+                Message
+              </Button>
+              <Button
+                variant="default"
+                fullWidth
+                onClick={() => setShowMobileActions(true)}
+                iconName="DollarSign"
+                iconPosition="left"
+              >
+                Make Offer
+              </Button>
+            </div>
+          </div>
+          {/* Mobile Actions Modal */}
+          {showMobileActions && (
+            <div className="lg:hidden fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-end">
+              <div className="w-full bg-card border-t border-border rounded-t-lg p-6 space-y-4">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-semibold text-foreground">Quick Actions</h3>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setShowMobileActions(false)}
+                  >
+                    <Icon name="X" size={16} />
+                  </Button>
+                </div>
+                <Button
+                  variant="default"
+                  fullWidth
+                  onClick={handleBuyNow}
+                  iconName="ShoppingCart"
+                  iconPosition="left"
+                >
+                  Buy Now - ${domain?.currentPrice?.toLocaleString()}
                 </Button>
-                <Button variant="outline" size="sm">
-                  <Icon name="Twitter" size={16} />
+                <Button
+                  variant="outline"
+                  fullWidth
+                  onClick={() => {
+                    setShowMobileActions(false);
+                    handleMakeOffer();
+                  }}
+                  iconName="DollarSign"
+                  iconPosition="left"
+                >
+                  Make Offer
                 </Button>
-                <Button variant="outline" size="sm">
-                  <Icon name="Linkedin" size={16} />
-                </Button>
-                <Button variant="outline" size="sm">
-                  <Icon name="Mail" size={16} />
+                <Button
+                  variant="ghost"
+                  fullWidth
+                  onClick={() => {
+                    setShowMobileActions(false);
+                    handleContactSeller();
+                  }}
+                  iconName="MessageCircle"
+                  iconPosition="left"
+                >
+                  Contact Seller
                 </Button>
               </div>
             </div>
-          </div>
-        </div>
-
-        {/* Mobile Offer Management */}
-        {domainDetails["tokens"][0]?.listings?.length > 0 &&
-        <div className="lg:hidden mt-6">
-          <OfferManagement domain={domainDetails} offers={domainOffers} setOffer={setShowOfferForm} />
-        </div>
-        }
-      </main>
-      {/* Mobile Sticky Action Bar */}
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-card border-t border-border p-4 z-40">
-        <div className="flex space-x-3">
-          <Button
-            variant="outline"
-            fullWidth
-            onClick={handleContactSeller}
-            iconName="MessageCircle"
-            iconPosition="left"
-          >
-            Message
-          </Button>
-          <Button
-            variant="default"
-            fullWidth
-            onClick={() => setShowMobileActions(true)}
-            iconName="DollarSign"
-            iconPosition="left"
-          >
-            Make Offer
-          </Button>
-        </div>
-      </div>
-      {/* Mobile Actions Modal */}
-      {showMobileActions && (
-        <div className="lg:hidden fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-end">
-          <div className="w-full bg-card border-t border-border rounded-t-lg p-6 space-y-4">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-foreground">Quick Actions</h3>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setShowMobileActions(false)}
-              >
-                <Icon name="X" size={16} />
-              </Button>
-            </div>
-            <Button
-              variant="default"
-              fullWidth
-              onClick={handleBuyNow}
-              iconName="ShoppingCart"
-              iconPosition="left"
-            >
-              Buy Now - ${domain?.currentPrice?.toLocaleString()}
-            </Button>
-            <Button
-              variant="outline"
-              fullWidth
-              onClick={() => {
-                setShowMobileActions(false);
-                handleMakeOffer();
-              }}
-              iconName="DollarSign"
-              iconPosition="left"
-            >
-              Make Offer
-            </Button>
-            <Button
-              variant="ghost"
-              fullWidth
-              onClick={() => {
-                setShowMobileActions(false);
-                handleContactSeller();
-              }}
-              iconName="MessageCircle"
-              iconPosition="left"
-            >
-              Contact Seller
-            </Button>
-          </div>
-        </div>
-      )}
-      {/* Messaging Panel */}
-      <MessagingPanel
-        domain={domain}
-        isOpen={isMessagingOpen}
-        onClose={() => setIsMessagingOpen(false)}
-      />
-      {/* Add bottom padding for mobile sticky bar */}
-      <div className="lg:hidden h-20"></div>
-      </>
-      ) : (
-        <div className="container mx-auto px-4 py-6">
-          <div className="flex justify-center items-center h-screen">
-            <div className="text-lg font-semibold text-foreground">Loading Domain Details, Activities and Offers...</div>
-          </div>
-        </div>
+          )}
+          {/* Messaging Panel */}
+          <MessagingPanel
+            domain={domain}
+            isOpen={isMessagingOpen}
+            onClose={() => setIsMessagingOpen(false)}
+          />
+          {/* Add bottom padding for mobile sticky bar */}
+          <div className="lg:hidden h-20"></div>
+        </>
       )}
 
       {buyDomainModal && (

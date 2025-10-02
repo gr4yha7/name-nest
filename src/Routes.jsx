@@ -14,6 +14,8 @@ import Web3WalletIntegrationHub from './pages/web3-wallet-integration-hub';
 import DecentralizedDomainRegistry from './pages/decentralized-domain-registry';
 import DomaIntegrationExample from './examples/DomaIntegrationExample';
 import DomainOffers from "pages/domain-offers";
+import XMTPMessagingTest from './pages/xmtp-messaging-test';
+import DomainSalesPage from './pages/domain-sales';
 
 const Routes = () => {
   return (
@@ -34,6 +36,8 @@ const Routes = () => {
         <Route path="/domain-portfolio-dashboard" element={<DomainPortfolioDashboard />} />
         <Route path="/web3-wallet-integration-hub" element={<Web3WalletIntegrationHub />} />
         <Route path="/decentralized-domain-registry" element={<DecentralizedDomainRegistry />} />
+        <Route path="/xmtp-messaging-test" element={<XMTPMessagingTest />} />
+        <Route path="/domain/:name" element={<DomainSalesPage />} />
         <Route path="*" element={<NotFound />} />
       </RouterRoutes>
       </ErrorBoundary>

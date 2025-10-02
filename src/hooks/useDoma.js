@@ -14,7 +14,7 @@ import {
   domaPollService,
   domaOrderbookService,
   domaSubgraphService,
-  domaXMTPService,
+  // domaXMTPService,
 } from '../services/doma/index.js';
 
 /**
@@ -112,7 +112,7 @@ export function useDoma(options = {}) {
       poll: domaPollService,
       orderbook: domaOrderbookService,
       subgraph: domaSubgraphService,
-      xmtp: domaXMTPService,
+      // xmtp: domaXMTPService,
     },
   };
 }

@@ -10,9 +10,10 @@ import toast from 'react-hot-toast';
 import { viemToEthersSigner } from '@doma-protocol/orderbook-sdk';
 import { domaOrderbookService } from 'services/doma';
 
-const OfferManagement = ({ domain, offers, onMakeOffer, walletClient }) => {
+const OfferManagement = ({ domain, offers, onMakeOffer, walletClient, fetchDomainDetails }) => {
   const { address} = useAccount();
   const [showCancelOfferModal, setShowCancelOfferModal] = useState(false);
+  const [showAcceptOfferModal, setShowAcceptOfferModal] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedOffer, setSelectedOffer] = useState(null);
 
@@ -59,36 +60,39 @@ const OfferManagement = ({ domain, offers, onMakeOffer, walletClient }) => {
       }
   };
 
+  const handleAcceptOffer = (e) => {
+    e?.preventDefault();
 
-  const getStatusColor = (status) => {
-    switch (status) {
-      case 'accepted':
-        return 'text-success bg-success/10';
-      case 'declined':
-        return 'text-error bg-error/10';
-      case 'countered':
-        return 'text-warning bg-warning/10';
-      case 'pending':
-        return 'text-primary bg-primary/10';
-      default:
-        return 'text-muted-foreground bg-muted';
-    }
+      if (!walletClient) return;
+
+      const signer = viemToEthersSigner(walletClient, domain?.tokens[0]?.chain?.networkId);
+      
+      try {
+        setIsLoading(true);
+        const chainId = domain?.tokens[0]?.chain?.networkId;
+        domaOrderbookService.acceptOffer(  
+        selectedOffer?.externalId,
+        signer, 
+        chainId
+      ).then((result) => {
+          if (result?.status === "success") {
+            const urlParams = new URLSearchParams(location.search);
+            const searchTokenIdParam = urlParams?.get('token_id');
+            const searchDomainParam = urlParams?.get('domain');
+            fetchDomainDetails(searchTokenIdParam,searchDomainParam)
+            setIsLoading(false);
+            setShowCancelOfferModal(false);
+          } else {
+            setIsLoading(false);
+          }
+        })
+      } catch (error) {
+        console.log(error)
+        toast.error(error)
+        setIsLoading(false);
+      }
   };
 
-  const getStatusIcon = (status) => {
-    switch (status) {
-      case 'accepted':
-        return 'CheckCircle';
-      case 'declined':
-        return 'XCircle';
-      case 'countered':
-        return 'ArrowRightLeft';
-      case 'pending':
-        return 'Clock';
-      default:
-        return 'Circle';
-    }
-  };
 
   return (
     <div className="bg-card border border-border rounded-lg shadow-card">
@@ -164,7 +168,7 @@ const OfferManagement = ({ domain, offers, onMakeOffer, walletClient }) => {
                 {address && (
                 <div className="flex space-x-2 mt-3">
                   {address.toLowerCase() === formatJustEthereumAddress(domain?.tokens[0]?.ownerAddress).toLowerCase() && (
-                    <Button variant="default" size="sm">
+                    <Button onClick={() => {setSelectedOffer(offer);setShowAcceptOfferModal(true)}} variant="default" size="sm">
                       Accept Offer
                     </Button>
                   )}
@@ -237,6 +241,37 @@ const OfferManagement = ({ domain, offers, onMakeOffer, walletClient }) => {
                   </Button>
 
                   <Button disabled={isLoading} className="w-full disabled:cursor-not-allowed h-10 hover:bg-blue-900" onClick={() => handleCancelOffer()} type="submit">
+                  {isLoading ? "Processing" : "Proceed"}
+                  </Button>
+                </div>
+              
+            </div>
+          </div>
+        </div>
+      )}
+      {showAcceptOfferModal && (
+        <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-card border border-border rounded-lg shadow-modal w-full max-w-lg">
+            <div className="flex items-center justify-between p-6 border-b border-border">
+              
+              <div className='grid'>
+                <span className="text-lg font-semibold text-foreground">Accept Domain offer</span>
+                <span className="text-xs font-semibold mt-2 text-foreground text-red-500">Are you sure you want to accept this offer?</span>
+              </div>
+            </div>
+            
+            <div className="p-6 space-y-4">
+              <div className="flex space-x-3 w-full">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="w-full bg-gray-500 hover:bg-gray-600 text-white"
+                    onClick={() => setShowAcceptOfferModal(false)}
+                  >
+                    Cancel
+                  </Button>
+
+                  <Button disabled={isLoading} className="w-full disabled:cursor-not-allowed h-10 hover:bg-blue-900" onClick={() => handleAcceptOffer()} type="submit">
                   {isLoading ? "Processing" : "Proceed"}
                   </Button>
                 </div>

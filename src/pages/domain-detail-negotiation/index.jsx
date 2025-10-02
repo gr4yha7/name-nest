@@ -322,7 +322,7 @@ const DomainDetailNegotiation = () => {
             {/* Desktop Offer Management */}
             {domainDetails["tokens"][0]?.listings?.length > 0 &&
             <div className="hidden lg:block">
-              <OfferManagement domain={domainDetails} offers={domainOffers} onMakeOffer={handleMakeOffer} walletClient={walletClient} />
+              <OfferManagement domain={domainDetails} offers={domainOffers} onMakeOffer={handleMakeOffer} walletClient={walletClient} fetchDomainDetails={fetchDomainDetails} />
             </div>
             }
 

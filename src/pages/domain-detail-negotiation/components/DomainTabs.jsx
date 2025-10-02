@@ -43,6 +43,8 @@ const DomainTabs = ({ domain, domainD, activities }) => {
         return 'Token Purcased';
       case 'OFFER_CANCELLED':
         return 'Offer Cancelled';
+      case 'OWNER_CHANGED':
+        return 'Owner Changed';
       case 'FRACTIONALIZED':
         return 'Token Fractionalized';
   }

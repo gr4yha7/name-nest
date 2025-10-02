@@ -189,7 +189,7 @@ class DomaOrderbookService {
       this.invalidateOrder(offerId);
       
       console.log('Accepted offer:', offerId);
-      return result;
+      return normalizeBigInt(result);
     } catch (error) {
       this.handleOrderbookError(error);
       throw error;

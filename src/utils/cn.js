@@ -110,6 +110,13 @@ export function formatEthereumAddress(input) {
   // Truncate the address to show the first 5 and last 3 characters
   return `${address.slice(0, 5)}...${address.slice(-3)}`;
 }
+export function formatJustEthereumAddress(input) {
+  // Extract the Ethereum address (assuming it's the last part after the last colon)
+  const address = input.split(":").pop();
+
+  // Truncate the address to show the first 5 and last 3 characters
+  return `${address}`;
+}
 
 const networkColors = {
   "Sepolia Testnet": '#627EEA',

@@ -4,12 +4,17 @@ import Button from '../../../components/ui/Button';
 import Input from '../../../components/ui/Input';
 import { formatUnits } from 'ethers';
 import { formatDistance, parseISO } from 'date-fns';
-import { formatEthereumAddress, shortenAddress } from 'utils/cn';
+import { currencies, formatEthereumAddress, formatJustEthereumAddress, shortenAddress } from 'utils/cn';
 import { useAccount } from 'wagmi';
 import toast from 'react-hot-toast';
+import { viemToEthersSigner } from '@doma-protocol/orderbook-sdk';
+import { domaOrderbookService } from 'services/doma';
 
-const OfferManagement = ({ domain, offers, onMakeOffer }) => {
+const OfferManagement = ({ domain, offers, onMakeOffer, walletClient }) => {
   const { address} = useAccount();
+  const [showCancelOfferModal, setShowCancelOfferModal] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [selectedOffer, setSelectedOffer] = useState(null);
 
 
   const formatPrice = (price) => {
@@ -21,13 +26,37 @@ const OfferManagement = ({ domain, offers, onMakeOffer }) => {
     })?.format(price);
   };
 
-  const formatDate = (date) => {
-    return new Intl.DateTimeFormat('en-US', {
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    })?.format(date);
+  const handleCancelOffer = (e) => {
+    e?.preventDefault();
+
+      if (!walletClient) return;
+
+      const signer = viemToEthersSigner(walletClient, domain?.tokens[0]?.chain?.networkId);
+      
+      try {
+        setIsLoading(true);
+        const chainId = domain?.tokens[0]?.chain?.networkId;
+        domaOrderbookService.cancelOffer(  
+        selectedOffer?.externalId,
+        signer, 
+        chainId
+      ).then((result) => {
+          if (result?.status === "success") {
+            const urlParams = new URLSearchParams(location.search);
+            const searchTokenIdParam = urlParams?.get('token_id');
+            const searchDomainParam = urlParams?.get('domain');
+            fetchDomainDetails(searchTokenIdParam,searchDomainParam)
+            setIsLoading(false);
+            setShowCancelOfferModal(false);
+          } else {
+            setIsLoading(false);
+          }
+        })
+      } catch (error) {
+        console.log(error)
+        toast.error(error)
+        setIsLoading(false);
+      }
   };
 
 
@@ -114,14 +143,17 @@ const OfferManagement = ({ domain, offers, onMakeOffer }) => {
                       <Icon name="User" size={16} color="white" />
                     </div>
                     <div>
-                      <div className="font-medium text-foreground">{address ? (formatEthereumAddress(offer?.offererAddress).toLowerCase() === address.toLowerCase() && "Your Offer") : shortenAddress(formatEthereumAddress(offer?.offererAddress)) + " Offer"}</div>
-                      <div className="text-sm text-muted-foreground">{formatDistance(parseISO(offer?.createdAt), new Date(), { addSuffix: true })}</div>
+                      <div className="font-medium text-foreground">{address ? (formatJustEthereumAddress(offer?.offererAddress).toLowerCase() === address.toLowerCase() && "Your Offer") : shortenAddress(formatJustEthereumAddress(offer?.offererAddress)) + " Offer"}</div>
+                      <div className="text-sm text-muted-foreground">Created {formatDistance(parseISO(offer?.createdAt), new Date(), { addSuffix: true })}</div>
+                  <div className="text-sm text-muted-foreground">Expires {formatDistance(parseISO(offer?.expiresAt), new Date(), { addSuffix: true })}</div>
                     </div>
                   </div>
+
+
                 </div>
                 
                 <div className="mb-3">
-                  <div className="text-2xl font-bold text-foreground mb-1">
+                  <div className="text-md font-bold text-foreground mb-1">
                     {formatUnits(offer?.price, offer?.currency?.decimals)} {offer?.currency?.symbol}
                   </div>
                   {offer?.message && (
@@ -131,13 +163,13 @@ const OfferManagement = ({ domain, offers, onMakeOffer }) => {
 
                 {address && (
                 <div className="flex space-x-2 mt-3">
-                  {domain?.tokens[0]?.ownerAddress.toLowerCase() === address.toLowerCase() && (
+                  {address.toLowerCase() === formatJustEthereumAddress(domain?.tokens[0]?.ownerAddress).toLowerCase() && (
                     <Button variant="default" size="sm">
                       Accept Offer
                     </Button>
                   )}
-                  {formatEthereumAddress(offer?.offererAddress).toLowerCase() === address.toLowerCase() && (
-                  <Button variant="outline" size="sm">
+                  {formatJustEthereumAddress(offer?.offererAddress).toLowerCase() === address.toLowerCase() && (
+                  <Button onClick={() => {setSelectedOffer(offer);setShowCancelOfferModal(true)}} variant="outline" className="bg-red-500 hover:bg-red-600 cursor-pointer text-white" size="sm">
                     Cancel Offer
                   </Button>
                   )}
@@ -181,6 +213,38 @@ const OfferManagement = ({ domain, offers, onMakeOffer }) => {
           </div>
         )}
       </div>
+
+      {showCancelOfferModal && (
+        <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-card border border-border rounded-lg shadow-modal w-full max-w-lg">
+            <div className="flex items-center justify-between p-6 border-b border-border">
+              
+              <div className='grid'>
+                <span className="text-lg font-semibold text-foreground">Cancel Domain offer</span>
+                <span className="text-xs font-semibold mt-2 text-foreground text-red-500">Are you sure you want to cancel this offer?</span>
+              </div>
+            </div>
+            
+            <div className="p-6 space-y-4">
+              <div className="flex space-x-3 w-full">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="w-full bg-gray-500 hover:bg-gray-600 text-white"
+                    onClick={() => setShowCancelOfferModal(false)}
+                  >
+                    Cancel
+                  </Button>
+
+                  <Button disabled={isLoading} className="w-full disabled:cursor-not-allowed h-10 hover:bg-blue-900" onClick={() => handleCancelOffer()} type="submit">
+                  {isLoading ? "Processing" : "Proceed"}
+                  </Button>
+                </div>
+              
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

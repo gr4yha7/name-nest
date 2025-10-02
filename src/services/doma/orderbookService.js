@@ -17,6 +17,19 @@ import { baseSepolia, sepolia, shibariumTestnet } from 'viem/chains';
 import { formatUnits, parseUnits } from 'viem';
 import toast from 'react-hot-toast';
 
+ 
+// Convert all BigInt values in an object/array to string recursively
+function normalizeBigInt(value) {
+  if (typeof value === 'bigint') return value.toString();
+  if (Array.isArray(value)) return value.map(normalizeBigInt);
+  if (value && typeof value === 'object') {
+    const out = {};
+    for (const k of Object.keys(value)) out[k] = normalizeBigInt(value[k]);
+    return out;
+  }
+  return value;
+}
+
 class DomaOrderbookService {
   constructor() {
     this.client = null;
@@ -111,9 +124,6 @@ class DomaOrderbookService {
    */
   async createOffer(offerData, signer, chainId, currency, onProgress = null) {
     this.ensureInitialized();
-    console.log(offerData)
-    console.log(chainId)
-    console.log(currency)
     
     try {
       const currencyDetails = currencies.find((c) => c.symbol === currency);
@@ -149,7 +159,7 @@ class DomaOrderbookService {
       return result.orders[0];
     } catch (error) {
       this.handleOrderbookError(error);
-      return 0;
+      throw error;
     }
   }
 
@@ -278,7 +288,7 @@ class DomaOrderbookService {
       this.invalidateOrder(orderId);
       
       console.log('Cancelled offer:', orderId);
-      return result;
+      return normalizeBigInt(result);
     } catch (error) {
       this.handleOrderbookError(error);
       throw error;

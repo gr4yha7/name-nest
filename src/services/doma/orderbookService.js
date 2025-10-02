@@ -14,7 +14,7 @@ import { viemToEthersSigner } from '@doma-protocol/orderbook-sdk';
 import config from './config.js';
 import { currencies, domaTestnet } from 'utils/cn.js';
 import { baseSepolia, sepolia, shibariumTestnet } from 'viem/chains';
-import { parseUnits } from 'viem';
+import { formatUnits, parseUnits } from 'viem';
 import toast from 'react-hot-toast';
 
 class DomaOrderbookService {
@@ -82,7 +82,7 @@ class DomaOrderbookService {
             contract: listingData.contractAddress,
             tokenId: listingData.tokenId,
             price: parseUnits(listingData?.price, currencyDetails?.decimals),
-            duration: 3 * 24 * 60 * 60 * 1000,
+            duration: listingData?.expiryDate || Math.floor(Date.now() / 1000) + 86400, // 24 hours default,
             currencyContractAddress: currencyAddress
           }],
         },
@@ -109,39 +109,47 @@ class DomaOrderbookService {
    * @param {string} chainId - Chain ID (e.g., 'eip155:1')
    * @param {Function} onProgress - Progress callback
    */
-  async createOffer(offerData, signer, chainId, onProgress = null) {
+  async createOffer(offerData, signer, chainId, currency, onProgress = null) {
     this.ensureInitialized();
-
+    console.log(offerData)
+    console.log(chainId)
+    console.log(currency)
+    
     try {
-      // Convert price to wei if needed
-      const priceInWei = this.convertToWei(offerData.price, offerData.currency);
+      const currencyDetails = currencies.find((c) => c.symbol === currency);
+      console.log(parseUnits(offerData?.price, currencyDetails?.decimals))
 
       const result = await this.client.createOffer({
+        signer,
+        chainId,
         params: {
+          orderbook: OrderbookType.DOMA,
+          source: "domainLine",
           items: [{
             contract: offerData.contractAddress,
             tokenId: offerData.tokenId,
-            currencyContractAddress: offerData.currencyContractAddress || '0x0000000000000000000000000000000000000000', // ETH
-            price: priceInWei,
+            currencyContractAddress: offerData.currencyContractAddress,
+            price: parseUnits(offerData?.price, currencyDetails?.decimals).toString(),
           }],
-          orderbook: OrderbookType.DOMA,
           expirationTime: offerData.expirationTime || Math.floor(Date.now() / 1000) + 86400, // 24 hours default
         },
-        signer,
-        chainId,
-        onProgress: onProgress || ((step, progress) => {
-          console.log(`Creating offer: ${step} (${progress}%)`);
+        onProgress:((progress) => {
+          console.log("progress", progress)
+          const isAllComplete = progress.every((p) => p.status === "complete");
+          if (isAllComplete) {
+            toast.success("Offer created successfully!");
+          }
         }),
       });
 
       // Cache the offer
-      this.cacheOrder(result.orderId, result);
+      this.cacheOrder(result.orders[0]?.orderId, result);
       
-      console.log('Created offer:', result.orderId);
-      return result;
+      console.log('Created offer:', result);
+      return result.orders[0];
     } catch (error) {
       this.handleOrderbookError(error);
-      throw error;
+      return 0;
     }
   }
 
@@ -188,7 +196,6 @@ class DomaOrderbookService {
    */
   async buyListing(orderId, signer, chainId, onProgress = null) {
     this.ensureInitialized();
-console.log("chainId", chainId)
     try {
       const result = await this.client.buyListing({
         params: {

@@ -136,7 +136,7 @@ const DomainTabs = ({ domain, domainD, activities }) => {
                   <span className="font-medium text-foreground">{returnActivityName(event)}</span>
                   <span className="text-sm text-muted-foreground">{formatDistance(parseISO(event?.createdAt), new Date(), { addSuffix: true })}</span>
                 </div>
-                <div className="text-sm text-muted-foreground">{event?.reason ?? event?.type === "MINTED" ? shortenAddress(event?.owner) : shortenAddress(event?.buyer ?? event?.transferredTo)}</div>
+                <div className="text-sm text-muted-foreground">{event?.reason ? event?.reason : event?.type === "MINTED" ? shortenAddress(event?.owner) : event?.txHash ? shortenAddress(event?.buyer ?? event?.transferredTo) : event?.orderId.slice(0,6)}</div>
                 {event?.payment && (
                   <div className="text-sm font-semibold text-success mt-1">{formatUnits(event?.payment?.price, (event?.payment?.currencySymbol === "USDC" ? 6 : 18))} {event?.payment?.currencySymbol}</div>
                 )}
@@ -223,28 +223,6 @@ const DomainTabs = ({ domain, domainD, activities }) => {
         </div>
       </div>
 
-      {/* Market Insights */}
-      <div className='hidden'>
-        <h4 className="text-lg font-semibold text-foreground mb-4">Market Insights</h4>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="bg-muted rounded-lg p-4">
-            <div className="flex items-center space-x-2 mb-2">
-              <Icon name="TrendingUp" size={16} color="var(--color-success)" />
-              <span className="font-medium text-foreground">Market Trend</span>
-            </div>
-            <div className="text-lg font-semibold text-success">{domain?.marketInsights?.trend}</div>
-            <div className="text-sm text-muted-foreground">{domain?.marketInsights?.trendDescription}</div>
-          </div>
-          <div className="bg-muted rounded-lg p-4">
-            <div className="flex items-center space-x-2 mb-2">
-              <Icon name="Target" size={16} color="var(--color-primary)" />
-              <span className="font-medium text-foreground">Investment Score</span>
-            </div>
-            <div className="text-lg font-semibold text-foreground">{domain?.marketInsights?.investmentScore}/10</div>
-            <div className="text-sm text-muted-foreground">{domain?.marketInsights?.scoreDescription}</div>
-          </div>
-        </div>
-      </div>
     </div>
   );
 

@@ -34,10 +34,10 @@ const DomainManagementTable = ({
 
   const [expiryValue, setExpiryValue] = useState(1);
   const [expiryUnit, setExpiryUnit] = useState('day');
+  const [showExpiryDropdown, setShowExpiryDropdown] = useState(false);
   const [listPrice, setListPrice] = useState('100');
   const [currency, setCurrency] = useState('WETH');
   const [showCurrencyDropdown, setShowCurrencyDropdown] = useState(false);
-  const [showExpiryDropdown, setShowExpiryDropdown] = useState(false);
   
   const incrementExpiry = () => setExpiryValue(prev => prev + 1);
   const decrementExpiry = () => setExpiryValue(prev => Math.max(1, prev - 1));

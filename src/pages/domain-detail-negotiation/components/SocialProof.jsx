@@ -1,7 +1,7 @@
 import React from 'react';
 import Icon from '../../../components/AppIcon';
 
-const SocialProof = ({ domain }) => {
+const SocialProof = () => {
   const trustBadges = [
     {
       icon: 'Shield',

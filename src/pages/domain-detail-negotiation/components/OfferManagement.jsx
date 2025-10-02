@@ -9,10 +9,6 @@ import { useAccount } from 'wagmi';
 import toast from 'react-hot-toast';
 
 const OfferManagement = ({ domain, offers, onMakeOffer }) => {
-  const [showOfferForm, setShowOfferForm] = useState(false);
-  const [offerAmount, setOfferAmount] = useState('');
-  const [offerMessage, setOfferMessage] = useState('');
-  const [paymentTerms, setPaymentTerms] = useState('full');
   const { address} = useAccount();
 
 
@@ -34,22 +30,6 @@ const OfferManagement = ({ domain, offers, onMakeOffer }) => {
     })?.format(date);
   };
 
-  const handleSubmitOffer = (e) => {
-    e?.preventDefault();
-    if (!offerAmount || parseFloat(offerAmount) <= 0) return;
-
-    const newOffer = {
-      amount: parseFloat(offerAmount),
-      message: offerMessage,
-      paymentTerms: paymentTerms
-    };
-
-    onMakeOffer(newOffer);
-    setShowOfferForm(false);
-    setOfferAmount('');
-    setOfferMessage('');
-    setPaymentTerms('full');
-  };
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -84,93 +64,40 @@ const OfferManagement = ({ domain, offers, onMakeOffer }) => {
   return (
     <div className="bg-card border border-border rounded-lg shadow-card">
       {/* Header */}
+
+      {address?.toLowerCase !== formatEthereumAddress(domain["tokens"][0]?.ownerAddress).toLowerCase() &&
       <div className="flex items-center justify-between p-6 border-b border-border">
         <h3 className="text-lg font-semibold text-foreground">Offer Management</h3>
         <Button
           variant="default"
-          onClick={() => address ? setShowOfferForm(true) : toast.error("Please connect your wallet to make an offer")}
+          onClick={() => address ? onMakeOffer(true) : toast.error("Please connect your wallet to make an offer")}
           iconName="Plus"
           iconPosition="left"
-        >
+          >
           Make Offer
         </Button>
       </div>
-      {/* Offer Form Modal */}
-      {showOfferForm && (
-        <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-card border border-border rounded-lg shadow-modal w-full max-w-md">
-            <div className="flex items-center justify-between p-6 border-b border-border">
-              <h4 className="text-lg font-semibold text-foreground">Make an Offer</h4>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setShowOfferForm(false)}
-              >
-                <Icon name="X" size={16} />
-              </Button>
-            </div>
-            
-            <form onSubmit={handleSubmitOffer} className="p-6 space-y-4">
-              <Input
-                label="Offer Amount"
-                type="number"
-                placeholder="Enter your offer amount"
-                value={offerAmount}
-                onChange={(e) => setOfferAmount(e?.target?.value)}
-                required
-                min="1"
-                step="1"
-              />
-              
-              <div>
-                <label className="block text-sm font-medium text-foreground mb-2">
-                  Message to Seller
-                </label>
-                <textarea
-                  value={offerMessage}
-                  onChange={(e) => setOfferMessage(e?.target?.value)}
-                  placeholder="Add a personal message to strengthen your offer..."
-                  rows={4}
-                  className="w-full px-3 py-2 border border-border rounded-md bg-input text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent resize-none"
-                />
-              </div>
-              
-              <div className="flex items-center justify-between pt-4">
-                <div className="text-sm text-muted-foreground">
-                  Current asking price: {formatUnits(domain?.tokens[0]?.listings[0]?.price, domain?.tokens[0]?.listings[0]?.currency?.decimals)} {domain?.tokens[0]?.listings[0]?.currency?.symbol}
-                </div>
-                <div className="flex space-x-3">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => setShowOfferForm(false)}
-                  >
-                    Cancel
-                  </Button>
-                  <Button type="submit">
-                    Submit Offer
-                  </Button>
-                </div>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+        }
+      
       {/* Offer History */}
       <div className="p-6">
         {offers?.length === 0 ? (
           <div className="text-center py-8">
-            <Icon name="MessageSquare" size={48} className="mx-auto text-muted-foreground mb-4" />
-            <h4 className="text-lg font-medium text-foreground mb-2">No offers yet</h4>
-            <p className="text-muted-foreground mb-4">Be the first to make an offer on this domain</p>
-            <Button
-              variant="default"
-              onClick={() => address ? setShowOfferForm(true) : toast.error("Please connect your wallet to make an offer")}
-              iconName="Plus"
-              iconPosition="left"
-            >
-              Make First Offer
-            </Button>
+          {address?.toLowerCase !== formatEthereumAddress(domain["tokens"][0]?.ownerAddress).toLowerCase() &&
+            <div>
+              <Icon name="MessageSquare" size={48} className="mx-auto text-muted-foreground mb-4" />
+              <h4 className="text-lg font-medium text-foreground mb-2">No offers yet</h4>
+              <p className="text-muted-foreground mb-4">Be the first to make an offer on this domain</p>
+              <Button
+                variant="default"
+                onClick={() => address ? onMakeOffer(true) : toast.error("Please connect your wallet to make an offer")}
+                iconName="Plus"
+                iconPosition="left"
+              >
+                Make First Offer
+              </Button>
+            </div>
+            }
           </div>
         ) : (
           <div className="space-y-4">

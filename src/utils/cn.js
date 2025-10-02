@@ -79,6 +79,18 @@ export const calculateExpiryDate = (expiryUnit, expiryValue) => {
   return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 };
 
+export function inFromNowSeconds(count, unit) {
+  const units = {
+    day: 24 * 60 * 60,
+    week: 7 * 24 * 60 * 60,
+    month: 30 * 24 * 60 * 60, // approx. month
+  };
+  const key = unit.toLowerCase().replace(/s$/, ''); // normalize plural
+  const sec = units[key];
+  if (!sec) throw new Error(`Unsupported unit: ${unit}`);
+  return Math.floor(Date.now() / 1000) + count * sec;
+}
+
 export function shortenAddress(address, chars = 4) {
     // Ensure the address is a valid hex string with '0x' prefix
     if (!address.startsWith('0x') || address.length < chars * 2 + 2) {

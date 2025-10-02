@@ -14,7 +14,10 @@ import { domaOrderbookService, domaSubgraphService } from 'services/doma';
 import { useAccount, useWalletClient } from 'wagmi';
 import { viemToEthersSigner } from '@doma-protocol/orderbook-sdk';
 import toast from 'react-hot-toast';
-import { formatEthereumAddress } from 'utils/cn';
+import Input from 'components/ui/Input';
+import { formatUnits } from 'ethers';
+import { ChevronDown, ChevronUp } from 'lucide-react';
+import { calculateExpiryDate, currencies, inFromNowSeconds } from 'utils/cn';
 
 const DomainDetailNegotiation = () => {
   const [isMessagingOpen, setIsMessagingOpen] = useState(false);
@@ -25,9 +28,19 @@ const DomainDetailNegotiation = () => {
   const [buyDomainModal, setBuyDomainModal] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [progress, setProgress] = useState(false);
+  const [offerAmount, setOfferAmount] = useState('');
+  const [offerMessage, setOfferMessage] = useState('');
   const location = useLocation();
-  const { address} = useAccount();
+  const [showOfferForm, setShowOfferForm] = useState(false);
 
+  const [expiryValue, setExpiryValue] = useState(1);
+  const [expiryUnit, setExpiryUnit] = useState('day');
+  const [showExpiryDropdown, setShowExpiryDropdown] = useState(false);
+  const [currency, setCurrency] = useState('WETH');
+  const [showCurrencyDropdown, setShowCurrencyDropdown] = useState(false);
+
+  const incrementExpiry = () => setExpiryValue(prev => prev + 1);
+  const decrementExpiry = () => setExpiryValue(prev => Math.max(1, prev - 1));
   const { data: walletClient } = useWalletClient();
 
   // Mock domain data
@@ -125,7 +138,7 @@ const DomainDetailNegotiation = () => {
   const breadcrumbItems = [
     { label: 'Home', path: '/' },
     { label: 'Marketplace', path: '/domain-marketplace-browse' },
-    { label: domain?.name, path: location?.pathname, isLast: true }
+    { label: domainDetails?.name, path: location?.pathname, isLast: true }
   ];
 
   useEffect(() => {
@@ -166,12 +179,8 @@ const DomainDetailNegotiation = () => {
       setIsLoading(false);
     }
   };
-  
-  useEffect(() => {
-    const urlParams = new URLSearchParams(location.search);
-    const searchTokenIdParam = urlParams?.get('token_id');
-    const searchDomainParam = urlParams?.get('domain');
 
+  const fetchDomainDetails = (searchTokenIdParam, searchDomainParam) => {
     domaSubgraphService.getTokenActivities(searchTokenIdParam).then((activities) => {
       console.log("activities",activities)
       setActivities(activities)
@@ -184,12 +193,71 @@ const DomainDetailNegotiation = () => {
         })
       })
     });
+  };
+  
+  useEffect(() => {
+    const urlParams = new URLSearchParams(location.search);
+    const searchTokenIdParam = urlParams?.get('token_id');
+    const searchDomainParam = urlParams?.get('domain');
+
+    fetchDomainDetails(searchTokenIdParam,searchDomainParam)
 
   }, [location?.search]);
 
-  const handleMakeOffer = (offerData) => {
-    console.log('Making offer:', offerData);
-    // Handle offer submission logic here
+  const handleMakeOffer = () => {
+    setShowOfferForm(true);
+  };
+
+  const handleSubmitOffer = (e) => {
+    e?.preventDefault();
+    if (!offerAmount || Number(offerAmount) <= 0)
+      {
+        toast.error("Please Enter Offer Amount")
+        return;
+      }
+
+      if (!walletClient) return;
+
+      const signer = viemToEthersSigner(walletClient, domainDetails?.tokens[0]?.chain?.networkId);
+      const currencyAddress = currencies.find(
+        (c) => c.symbol === currency
+      )?.contractAddress;
+      
+      try {
+        setIsLoading(true);
+        const chainId = domainDetails?.tokens[0]?.chain?.networkId;
+        domaOrderbookService.createOffer({
+          contractAddress: domainDetails["tokens"]?.[0]?.tokenAddress,
+          tokenId: domainDetails["tokens"]?.[0]?.tokenId,
+          currencyContractAddress: currencyAddress,
+          price: offerAmount,
+          expirationDate: inFromNowSeconds(expiryValue, expiryUnit)
+        },
+        signer, 
+        chainId,
+        currency
+      ).then((result) => {
+          if (result?.orderId) {
+            setIsLoading(false);
+            setShowOfferForm(false);
+            setOfferAmount('');
+            setOfferMessage('');
+            const urlParams = new URLSearchParams(location.search);
+            const searchTokenIdParam = urlParams?.get('token_id');
+            const searchDomainParam = urlParams?.get('domain');
+        
+            fetchDomainDetails(searchTokenIdParam,searchDomainParam)
+          } else {
+            setIsLoading(false);
+          }
+        })
+      } catch (error) {
+        console.log(error)
+        toast.error(error)
+        setIsLoading(false);
+        setOfferAmount('');
+        setOfferMessage('');
+      }
   };
 
   const handleBuyNow = () => {
@@ -259,7 +327,7 @@ const DomainDetailNegotiation = () => {
             }
 
             {/* Social Proof */}
-            <SocialProof domain={domain} />
+            <SocialProof />
 
             {/* Share Actions */}
             <div className="bg-card border border-border rounded-lg shadow-card p-6">
@@ -283,9 +351,11 @@ const DomainDetailNegotiation = () => {
         </div>
 
         {/* Mobile Offer Management */}
+        {domainDetails["tokens"][0]?.listings?.length > 0 &&
         <div className="lg:hidden mt-6">
-          <OfferManagement domain={domain} onMakeOffer={handleMakeOffer} />
+          <OfferManagement domain={domainDetails} offers={domainOffers} setOffer={setShowOfferForm} />
         </div>
+        }
       </main>
       {/* Mobile Sticky Action Bar */}
       <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-card border-t border-border p-4 z-40">
@@ -407,6 +477,177 @@ const DomainDetailNegotiation = () => {
             </div>
           </div>
         </div>
+      )}
+      {showOfferForm && (
+        <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-card border border-border rounded-lg shadow-modal w-full max-w-md pb-6">
+            <div className="flex items-center justify-between p-6 border-b border-border">
+              <h4 className="text-lg font-semibold text-foreground">Make an Offer</h4>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowOfferForm(false)}
+              >
+                <Icon name="X" size={16} />
+              </Button>
+            </div>
+            
+            <div className="flex items-center w-full space-x-2 p-6 space-y-4">
+              <Input
+                label="Offer Amount"
+                type="number"
+                placeholder="Enter your offer amount"
+                value={offerAmount}
+                onChange={(e) => setOfferAmount(e?.target?.value)}
+                required
+                className="w-full"
+                min="1"
+                step="1"
+              />
+              <div className="relative">
+                <button
+                  onClick={() => setShowCurrencyDropdown(!showCurrencyDropdown)}
+                  className="flex items-center mt-2 space-x-2 bg-gray-500 px-4 py-2 rounded-xl hover:bg-[#252525] transition-colors"
+                >
+                  <span className="text-white font-medium">{currency}</span>
+                  <ChevronDown className="w-4 h-4 text-gray-400" />
+                </button>
+                {/* Currency Dropdown */}
+                {showCurrencyDropdown && (
+                  <div className="absolute right-0 top-full mt- bg-white border border-gray-800 rounded-xl overflow-hidden min-w-[120px] z-10">
+                    {currencies?.filter((item) => item?.contractAddress !== null).map((curr) => (
+                      <button
+                        key={curr}
+                        onClick={() => {
+                          setCurrency(curr.symbol);
+                          setShowCurrencyDropdown(false);
+                        }}
+                        className={`w-full px-4 py-3 text-left transition-colors ${
+                          currency === curr.symbol
+                            ? 'bg-blue-600 text-white'
+                            : 'text-gray-300 hover:bg-blue-600'
+                        }`}
+                      >
+                        {curr?.symbol}
+                        {currency === curr.symbol && (
+                          <span className="float-right">✓</span>
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+            </div>
+
+              {/* Expiry Section */}
+            <div className='px-6'>
+                  <h3 className="text-black text-sm mb-4">Expiration date</h3>
+                  
+                  {/* Expiry Dropdown Button */}
+                  <div className="relative">
+                    <button
+                      onClick={() => setShowExpiryDropdown(!showExpiryDropdown)}
+                      className="w-full text-black bg-white border border-gray-800 rounded-xl p-4 flex items-center justify-between hover:border-gray-700 transition-colors"
+                    >
+                      <div className="flex items-center space-x-3">
+                        <svg className="w-5 h-5 text-black" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                          <line x1="16" y1="2" x2="16" y2="6" />
+                          <line x1="8" y1="2" x2="8" y2="6" />
+                          <line x1="3" y1="10" x2="21" y2="10" />
+                        </svg>
+                        <span className="text-black">In {expiryValue} {expiryUnit}{expiryValue !== 1 ? 's' : ''} ({calculateExpiryDate(expiryUnit, expiryValue)})</span>
+                      </div>
+                      <ChevronUp className="w-5 h-5 text-gray-400" />
+                    </button>
+
+                    {/* Expiry Dropdown Content */}
+                    {showExpiryDropdown && (
+                      <div className="mt-4 bg-gray-500 rounded-xl p-8">
+                        <p className="text-center text-white mb-6">Expires in</p>
+                        
+                        {/* Number Selector */}
+                        <div className="flex items-center justify-center mb-8">
+                          <div className="bg-white rounded-2xl p-2 flex items-center space-x-8">
+                            <button
+                              onClick={decrementExpiry}
+                              className="text-gray-800 hover:text-white transition-colors p-2"
+                            >
+                              <ChevronDown className="w-6 h-6" />
+                            </button>
+                            <span className="text-black text-5xl font-light min-w-[80px] text-center">{expiryValue}</span>
+                            <button
+                              onClick={incrementExpiry}
+                              className="text-gray-800 hover:text-white transition-colors p-2"
+                            >
+                              <ChevronUp className="w-6 h-6" />
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Time Unit Selector */}
+                        <div className="flex gap-3 justify-center">
+                          {['day', 'week', 'month'].map((unit) => (
+                            <button
+                              key={unit}
+                              onClick={() => setExpiryUnit(unit)}
+                              className={`px-8 py-3 rounded-xl font-medium transition-colors ${
+                                expiryUnit === unit
+                                  ? 'bg-gray-600 text-white'
+                                  : 'bg-white text-gray-400 hover:text-gray-600'
+                              }`}
+                            >
+                              {unit}
+                            </button>
+                          ))}
+                        </div>
+
+                      </div>
+                    )}
+                        <p className="text-gray-500 text-sm mt-3">
+                          Offer will expire if not accepted by this date.
+                        </p>
+                  </div>
+            </div>
+
+              
+            <div className='px-6 pt-6'>
+                <label className="block text-sm font-medium text-foreground mb-2">
+                  Message to Seller
+                </label>
+                <textarea
+                  value={offerMessage}
+                  onChange={(e) => setOfferMessage(e?.target?.value)}
+                  placeholder="Add a personal message to strengthen your offer..."
+                  rows={4}
+                  className="w-full px-3 py-2 border border-border rounded-md bg-input text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent resize-none"
+                />
+            </div>
+              
+            <div className="flex items-center justify-between pt-4 px-6">
+                <div className="text-sm text-muted-foreground">
+                  Current asking price: {formatUnits(domainDetails?.tokens[0]?.listings[0]?.price, domainDetails?.tokens[0]?.listings[0]?.currency?.decimals)} {domainDetails?.tokens[0]?.listings[0]?.currency?.symbol}
+                </div>
+                <div className="flex space-x-3">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setShowOfferForm(false)}
+                  >
+                    Cancel
+                  </Button>
+                  <Button 
+                  className="disabled:cursor-not-allowed"
+                  disabled={isLoading}
+                  onClick={handleSubmitOffer} type="submit">
+                  {isLoading ? "Processing" : "Submit Offer"}
+                  </Button>
+                </div>
+            </div>
+            
+            </div>
+          </div>
       )}
     </div>
   );

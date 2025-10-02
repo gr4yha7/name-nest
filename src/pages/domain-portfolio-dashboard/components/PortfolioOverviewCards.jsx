@@ -1,6 +1,6 @@
 import React from 'react';
 import Icon from '../../../components/AppIcon';
-import { getDomainsWithActiveOffers, getTotalActiveOffersCount } from 'utils/cn';
+import { getDomainsWithActiveOffers, getListedDomainsCount, getPortfolioValueInUSD, getTotalActiveOffersCount } from 'utils/cn';
 
 const PortfolioOverviewCards = ({ data, domains }) => {
   const cards = [
@@ -12,14 +12,14 @@ const PortfolioOverviewCards = ({ data, domains }) => {
       trendLabel: 'This month',
       color: 'bg-blue-500'
     },
-    // {
-    //   title: 'Portfolio Value (ETH)',
-    //   value: `${data?.portfolioValueETH || 0} ETH`,
-    //   icon: 'TrendingUp',
-    //   trend: '+8.2%',
-    //   trendLabel: 'vs last month',
-    //   color: 'bg-green-500'
-    // },
+    {
+      title: 'Portfolio Value (USDC)',
+      value: `${Number(getPortfolioValueInUSD(domains)).toFixed(2) || 0} USDC`,
+      icon: 'TrendingUp',
+      trend: '+8.2%',
+      trendLabel: 'vs last month',
+      color: 'bg-green-500'
+    },
     {
       title: 'Active Offers Count',
       value: `${(getTotalActiveOffersCount(domains) || 0)?.toLocaleString()}`,
@@ -30,7 +30,7 @@ const PortfolioOverviewCards = ({ data, domains }) => {
     },
     {
       title: 'Active Listings',
-      value: getDomainsWithActiveOffers(domains) || 0,
+      value: getListedDomainsCount(domains) || 0,
       icon: 'ShoppingCart',
       trend: '+5',
       trendLabel: 'This week',

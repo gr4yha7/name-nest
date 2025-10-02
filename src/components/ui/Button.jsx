@@ -129,9 +129,9 @@ const Button = React.forwardRef(({
 
             const clonedChild = React.cloneElement(child, {
                 className: cn(
+                    child?.props?.className,
                     buttonVariants({ variant, size, className }),
-                    fullWidth && "w-full",
-                    child?.props?.className
+                    fullWidth && "w-full"
                 ),
                 disabled: disabled || loading || child?.props?.disabled,
                 children: content,

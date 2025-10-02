@@ -245,10 +245,101 @@ class DomaSubgraphService {
 
     // Only add optional parameters if they have valid values
     if (filters.tokenId) {
-      variables.tokenId = filters.tokenId;
+      variables.tokenId = filters.tokenId ?? "";
     }
-    if (filters.offeredBy && filters.offeredBy.length > 0) {
-      variables.offeredBy = filters.offeredBy;
+    if (filters.offeredBy) {
+      variables.offeredBy = `eip155:1:${filters.offeredBy.toLowerCase()}`;
+    }
+    if (filters.status) {
+      variables.status = filters.status;
+    }
+
+    try {
+      const result = await this.client.query({
+        query,
+        variables,
+        fetchPolicy: 'cache-first',
+      });
+console.log("result?.data",result)
+      return result.data.offers.items;
+    } catch (error) {
+      console.error('Failed to fetch domain offers:', error);
+      throw error;
+    }
+  }
+
+  async getDomainDeals(filters = {}) {
+    this.ensureInitialized();
+    const query = gql`
+      query GetDomainOffers(
+        $skip: Int
+        $take: Int
+        $sortOrder: SortOrderType
+        $tokenId: String
+        $offeredBy: [AddressCAIP10!]
+        $status: OfferStatus
+      ) {
+        offers(
+          skip: $skip
+          take: $take
+          sortOrder: $sortOrder
+          tokenId: $tokenId
+          offeredBy: $offeredBy
+          status: $status
+        ) {
+          items {
+            id
+            externalId
+            price
+            offererAddress
+            orderbook
+            currency {
+              symbol
+              name
+              decimals
+              usdExchangeRate
+            }
+            expiresAt
+            createdAt
+            name
+            nameExpiresAt
+            registrar {
+              ianaId
+              name
+              websiteUrl
+            }
+            tokenId
+            tokenAddress
+            chain {
+              networkId
+              name
+              addressUrlTemplate
+            }
+          }
+          totalCount
+          pageSize
+          currentPage
+          totalPages
+          hasPreviousPage
+          hasNextPage
+        }
+      }
+    `;
+
+    const variables = {
+      skip: filters.skip || 0,
+      take: filters.take || 50,
+      tokenId: filters?.tokenId || "",
+      offeredBy: `eip155:1:${filters.offeredBy.toLowerCase()}`,
+      sortOrder: filters.sortOrder || 'DESC'
+    };
+
+    // Only add optional parameters if they have valid values
+    if (filters.tokenId) {
+      variables.tokenId = filters.tokenId ?? "";
+    }
+    if (filters.offeredBy) {
+      variables.offeredBy = `eip155:1:${filters.offeredBy.toLowerCase()}`;
     }
     if (filters.status) {
       variables.status = filters.status;

@@ -124,32 +124,155 @@ const DomainTabs = ({ domain, domainD, activities }) => {
   const renderHistory = () => (
     <div className="space-y-6">
       {/* Ownership Timeline */}
-      <div>
-        <h4 className="text-lg font-semibold text-foreground mb-4">Activities Timeline</h4>
-        {activities?.items?.length > 0 ? (
-        <div className="space-y-4">
-          {activities?.items?.map((event, index) => (
-            <div key={index} className="flex items-start space-x-4 p-4 bg-muted rounded-lg">
-              <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center flex-shrink-0">
-                <Icon name={event?.type === 'sale' ? 'DollarSign' : 'User'} size={16} color="white" />
-              </div>
-              <div className="flex-1">
-                <div className="flex items-center justify-between mb-1">
-                  <span className="font-medium text-foreground">{returnActivityName(event)}</span>
-                  <span className="text-sm text-muted-foreground">{formatDistance(parseISO(event?.createdAt), new Date(), { addSuffix: true })}</span>
-                </div>
-                <div className="text-sm text-muted-foreground">{event?.reason ? event?.reason : event?.type === "MINTED" ? shortenAddress(event?.owner) : event?.txHash ? shortenAddress(event?.buyer ?? event?.transferredTo) : event?.orderId.slice(0,6)}</div>
-                {event?.payment && (
-                  <div className="text-sm font-semibold text-success mt-1">{formatUnits(event?.payment?.price, (event?.payment?.currencySymbol === "USDC" ? 6 : 18))} {event?.payment?.currencySymbol}</div>
-                )}
-              </div>
+      <div className="bg-card border border-border rounded-lg overflow-hidden">
+          <div className="p-6 border-b border-border">
+            <span className="text-lg font-semibold text-foreground">
+              Activity Timeline ({activities?.items?.length || 0})
+            </span>
+          </div>
+          
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-muted/50">
+                <tr>
+                  <th className="p-4 text-left">
+                    <span className="text-sm font-medium text-foreground">Type</span>
+                  </th>
+                  <th className="p-4 text-left">
+                    <span className="text-sm font-medium text-foreground">Domain</span>
+                  </th>
+                  <th className="p-4 text-left">
+                    <span className="text-sm font-medium text-foreground">Details</span>
+                  </th>
+                  <th className="p-4 text-left">
+                    <span className="text-sm font-medium text-foreground">Amount</span>
+                  </th>
+                  <th className="p-4 text-left">
+                    <span className="text-sm font-medium text-foreground">Transaction</span>
+                  </th>
+                  <th className="p-4 text-left">
+                    <span className="text-sm font-medium text-foreground">Time</span>
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {activities?.items?.map((event, index) => {
+                  const getActivityIcon = (type) => {
+                    switch (type) {
+                      case 'PURCHASED': return 'DollarSign';
+                      case 'TRANSFERRED': return 'ArrowRightLeft';
+                      case 'OFFER_CANCELLED': return 'X';
+                      case 'LISTING_CANCELLED': return 'X';
+                      case 'MINTED': return 'Plus';
+                      default: return 'Activity';
+                    }
+                  };
+
+                  const getActivityColor = (type) => {
+                    switch (type) {
+                      case 'PURCHASED': return 'text-success';
+                      case 'TRANSFERRED': return 'text-primary';
+                      case 'OFFER_CANCELLED': return 'text-warning';
+                      case 'LISTING_CANCELLED': return 'text-warning';
+                      case 'MINTED': return 'text-info';
+                      default: return 'text-muted-foreground';
+                    }
+                  };
+
+                  return (
+                    <tr
+                      key={index}
+                      className="border-b border-border hover:bg-muted/30 transition-colors"
+                    >
+                      <td className="p-4">
+                        <div className="flex items-center space-x-3">
+                          <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center">
+                            <Icon name={getActivityIcon(event.type)} size={16} className={getActivityColor(event.type)} />
+                          </div>
+                          <div>
+                            <div className="font-medium text-foreground">{returnActivityName(event)}</div>
+                            <div className="text-xs text-muted-foreground">{event.chain.name}</div>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="p-4">
+                        <div>
+                          <div className="font-medium text-foreground">{event.name}</div>
+                          <div className="text-xs text-muted-foreground">Token ID: {event.tokenId.slice(0, 8)}...</div>
+                        </div>
+                      </td>
+                      <td className="p-4">
+                        <div className="text-sm text-muted-foreground">
+                          {event.reason && (
+                            <div>Reason: {event.reason.replace('_', ' ').toLowerCase()}</div>
+                          )}
+                          {event.buyer && (
+                            <div>Buyer: {shortenAddress(event.buyer)}</div>
+                          )}
+                          {event.seller && (
+                            <div>Seller: {shortenAddress(event.seller)}</div>
+                          )}
+                          {event.transferredTo && (
+                            <div>To: {shortenAddress(event.transferredTo)}</div>
+                          )}
+                          {event.transferredFrom && (
+                            <div>From: {shortenAddress(event.transferredFrom)}</div>
+                          )}
+                          {event.owner && (
+                            <div>Owner: {shortenAddress(event.owner)}</div>
+                          )}
+                        </div>
+                      </td>
+                      <td className="p-4">
+                        {event.payment ? (
+                          <div>
+                            <div className="font-medium text-foreground">
+                              {formatUnits(event.payment.price, (event.payment.currencySymbol === "USDC" ? 6 : 18))} {event.payment.currencySymbol}
+                            </div>
+                            <div className="text-xs text-muted-foreground">
+                              ${event.payment.usdValue?.toFixed(2)}
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="text-sm text-muted-foreground">-</div>
+                        )}
+                      </td>
+                      <td className="p-4">
+                        {event.txHash ? (
+                          <div className="flex items-center space-x-2">
+                            <Icon name="ExternalLink" size={14} className="text-muted-foreground" />
+                            <a
+                              href={`${event.chain.addressUrlTemplate?.replace(':address', event.txHash)}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-sm text-primary hover:underline"
+                            >
+                              {shortenAddress(event.txHash)}
+                            </a>
+                          </div>
+                        ) : (
+                          <div className="text-sm text-muted-foreground">-</div>
+                        )}
+                      </td>
+                      <td className="p-4">
+                        <div className="text-sm text-muted-foreground">
+                          {formatDistance(parseISO(event.createdAt), new Date(), { addSuffix: true })}
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+          
+          {(!activities?.items || activities.items.length === 0) && (
+            <div className="p-8 text-center">
+              <Icon name="Inbox" size={48} className="text-muted-foreground mx-auto mb-4" />
+              <p className="text-muted-foreground">No activity found</p>
             </div>
-          ))}
+          )}
         </div>
-        ) : (
-          <div className="text-sm text-muted-foreground">No activities found</div>
-        )}
-      </div>
 
       {/* Price History */}
       <div>

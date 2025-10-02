@@ -67,11 +67,9 @@ const DomainPortfolioDashboard = () => {
   };
 
   const loadPortfolioData = async () => {
-    setLoading(true);
     domaSubgraphService.getUserDomains(address).then((names) => {
       setMyDomains(names)
     });
-    // Simulate API call
     await new Promise(resolve => setTimeout(resolve, 1500));
     setPortfolioData(mockPortfolioData);
     setLoading(false);

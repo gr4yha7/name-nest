@@ -15,6 +15,7 @@ import config from './config.js';
 import { currencies, domaTestnet } from 'utils/cn.js';
 import { baseSepolia, sepolia, shibariumTestnet } from 'viem/chains';
 import { parseUnits } from 'viem';
+import toast from 'react-hot-toast';
 
 class DomaOrderbookService {
   constructor() {
@@ -185,14 +186,13 @@ class DomaOrderbookService {
    * @param {string} chainId - Chain ID (e.g., 'eip155:1')
    * @param {Function} onProgress - Progress callback
    */
-  async buyListing(orderId, fulfillerAddress, signer, chainId, onProgress = null) {
+  async buyListing(orderId, signer, chainId, onProgress = null) {
     this.ensureInitialized();
-
+console.log("chainId", chainId)
     try {
       const result = await this.client.buyListing({
         params: {
-          orderId,
-          fulFillerAddress: fulfillerAddress,
+          orderId
         },
         signer,
         chainId,
@@ -205,10 +205,10 @@ class DomaOrderbookService {
       this.invalidateOrder(orderId);
       
       console.log('Bought listing:', orderId);
-      return result;
+      return orderId;
     } catch (error) {
       this.handleOrderbookError(error);
-      throw error;
+      return error;
     }
   }
 
@@ -376,36 +376,47 @@ class DomaOrderbookService {
       switch (error.code) {
         case DomaOrderbookErrorCode.SIGNER_NOT_PROVIDED:
           console.error('Please connect your wallet');
+          toast.error(error?.message)
           break;
         case DomaOrderbookErrorCode.FETCH_FEES_FAILED:
           console.error('Failed to fetch marketplace fees');
+          toast.error(error?.message)
           break;
         case DomaOrderbookErrorCode.CLIENT_NOT_INITIALIZED:
           console.error('SDK not initialized');
+          toast.error(error?.message)
           break;
         case DomaOrderbookErrorCode.INSUFFICIENT_FUNDS:
           console.error('Insufficient funds for transaction');
+          toast.error(error?.message)
           break;
         case DomaOrderbookErrorCode.ORDER_NOT_FOUND:
           console.error('Order not found');
+          toast.error(error?.message)
           break;
         case DomaOrderbookErrorCode.ORDER_EXPIRED:
           console.error('Order has expired');
+          toast.error(error?.message)
           break;
         case DomaOrderbookErrorCode.ORDER_ALREADY_FULFILLED:
           console.error('Order already fulfilled');
+          toast.error(error?.message)
           break;
         case DomaOrderbookErrorCode.ORDER_CANCELLED:
           console.error('Order has been cancelled');
+          toast.error(error?.message)
           break;
         case DomaOrderbookErrorCode.INVALID_SIGNATURE:
           console.error('Invalid signature');
+          toast.error(error?.message)
           break;
         case DomaOrderbookErrorCode.NETWORK_ERROR:
           console.error('Network error occurred');
+          toast.error(error?.message)
           break;
         default:
           console.error('Unknown Doma Orderbook error:', error.message);
+          toast.error(error?.message)
       }
     } else {
       console.error('Non-Doma Orderbook error:', error.message);

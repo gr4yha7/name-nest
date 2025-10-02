@@ -2,44 +2,19 @@ import React, { useState } from 'react';
 import Icon from '../../../components/AppIcon';
 import Button from '../../../components/ui/Button';
 import Input from '../../../components/ui/Input';
+import { formatUnits } from 'ethers';
+import { formatDistance, parseISO } from 'date-fns';
+import { formatEthereumAddress, shortenAddress } from 'utils/cn';
+import { useAccount } from 'wagmi';
+import toast from 'react-hot-toast';
 
-const OfferManagement = ({ domain, onMakeOffer }) => {
+const OfferManagement = ({ domain, offers, onMakeOffer }) => {
   const [showOfferForm, setShowOfferForm] = useState(false);
   const [offerAmount, setOfferAmount] = useState('');
   const [offerMessage, setOfferMessage] = useState('');
   const [paymentTerms, setPaymentTerms] = useState('full');
+  const { address} = useAccount();
 
-  // Mock offer history
-  const offerHistory = [
-    {
-      id: 1,
-      type: 'offer',
-      amount: 8500,
-      status: 'countered',
-      message: 'I\'m interested in purchasing this domain for my new startup. Would you consider this offer?',
-      timestamp: new Date(Date.now() - 86400000 * 2),
-      counterAmount: 9200,
-      counterMessage: 'Thanks for your interest! Given the domain\'s performance, I can offer it for $9,200. This includes transfer assistance and 30 days support.'
-    },
-    {
-      id: 2,
-      type: 'offer',
-      amount: 7800,
-      status: 'declined',
-      message: 'This is my budget for the domain acquisition.',
-      timestamp: new Date(Date.now() - 86400000 * 5),
-      declineMessage: 'I appreciate your offer, but it\'s below my minimum acceptable price for this premium domain.'
-    },
-    {
-      id: 3,
-      type: 'offer',
-      amount: 9000,
-      status: 'pending',
-      message: 'I can meet you halfway. This is a fair offer considering current market conditions.',
-      timestamp: new Date(Date.now() - 3600000 * 6),
-      isLatest: true
-    }
-  ];
 
   const formatPrice = (price) => {
     return new Intl.NumberFormat('en-US', {
@@ -113,7 +88,7 @@ const OfferManagement = ({ domain, onMakeOffer }) => {
         <h3 className="text-lg font-semibold text-foreground">Offer Management</h3>
         <Button
           variant="default"
-          onClick={() => setShowOfferForm(true)}
+          onClick={() => address ? setShowOfferForm(true) : toast.error("Please connect your wallet to make an offer")}
           iconName="Plus"
           iconPosition="left"
         >
@@ -149,36 +124,6 @@ const OfferManagement = ({ domain, onMakeOffer }) => {
               
               <div>
                 <label className="block text-sm font-medium text-foreground mb-2">
-                  Payment Terms
-                </label>
-                <div className="space-y-2">
-                  <label className="flex items-center space-x-2">
-                    <input
-                      type="radio"
-                      name="paymentTerms"
-                      value="full"
-                      checked={paymentTerms === 'full'}
-                      onChange={(e) => setPaymentTerms(e?.target?.value)}
-                      className="text-primary"
-                    />
-                    <span className="text-sm text-foreground">Full payment upfront</span>
-                  </label>
-                  <label className="flex items-center space-x-2">
-                    <input
-                      type="radio"
-                      name="paymentTerms"
-                      value="installments"
-                      checked={paymentTerms === 'installments'}
-                      onChange={(e) => setPaymentTerms(e?.target?.value)}
-                      className="text-primary"
-                    />
-                    <span className="text-sm text-foreground">Payment in installments</span>
-                  </label>
-                </div>
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-foreground mb-2">
                   Message to Seller
                 </label>
                 <textarea
@@ -192,7 +137,7 @@ const OfferManagement = ({ domain, onMakeOffer }) => {
               
               <div className="flex items-center justify-between pt-4">
                 <div className="text-sm text-muted-foreground">
-                  Current asking price: {formatPrice(domain?.currentPrice)}
+                  Current asking price: {formatUnits(domain?.tokens[0]?.listings[0]?.price, domain?.tokens[0]?.listings[0]?.currency?.decimals)} {domain?.tokens[0]?.listings[0]?.currency?.symbol}
                 </div>
                 <div className="flex space-x-3">
                   <Button
@@ -213,14 +158,14 @@ const OfferManagement = ({ domain, onMakeOffer }) => {
       )}
       {/* Offer History */}
       <div className="p-6">
-        {offerHistory?.length === 0 ? (
+        {offers?.length === 0 ? (
           <div className="text-center py-8">
             <Icon name="MessageSquare" size={48} className="mx-auto text-muted-foreground mb-4" />
             <h4 className="text-lg font-medium text-foreground mb-2">No offers yet</h4>
             <p className="text-muted-foreground mb-4">Be the first to make an offer on this domain</p>
             <Button
               variant="default"
-              onClick={() => setShowOfferForm(true)}
+              onClick={() => address ? setShowOfferForm(true) : toast.error("Please connect your wallet to make an offer")}
               iconName="Plus"
               iconPosition="left"
             >
@@ -229,11 +174,11 @@ const OfferManagement = ({ domain, onMakeOffer }) => {
           </div>
         ) : (
           <div className="space-y-4">
-            {offerHistory?.map((offer) => (
+            {offers?.map((offer) => (
               <div
                 key={offer?.id}
                 className={`border border-border rounded-lg p-4 ${
-                  offer?.isLatest ? 'ring-2 ring-primary/20 bg-primary/5' : 'bg-muted/30'
+                  offer?.[offers?.length - 1]?.id === offer?.id ? 'ring-2 ring-primary/20 bg-primary/5' : 'bg-muted/30'
                 }`}
               >
                 <div className="flex items-start justify-between mb-3">
@@ -242,26 +187,35 @@ const OfferManagement = ({ domain, onMakeOffer }) => {
                       <Icon name="User" size={16} color="white" />
                     </div>
                     <div>
-                      <div className="font-medium text-foreground">Your Offer</div>
-                      <div className="text-sm text-muted-foreground">{formatDate(offer?.timestamp)}</div>
+                      <div className="font-medium text-foreground">{address ? (formatEthereumAddress(offer?.offererAddress).toLowerCase() === address.toLowerCase() && "Your Offer") : shortenAddress(formatEthereumAddress(offer?.offererAddress)) + " Offer"}</div>
+                      <div className="text-sm text-muted-foreground">{formatDistance(parseISO(offer?.createdAt), new Date(), { addSuffix: true })}</div>
                     </div>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(offer?.status)}`}>
-                      <Icon name={getStatusIcon(offer?.status)} size={12} className="inline mr-1" />
-                      {offer?.status?.charAt(0)?.toUpperCase() + offer?.status?.slice(1)}
-                    </span>
                   </div>
                 </div>
                 
                 <div className="mb-3">
                   <div className="text-2xl font-bold text-foreground mb-1">
-                    {formatPrice(offer?.amount)}
+                    {formatUnits(offer?.price, offer?.currency?.decimals)} {offer?.currency?.symbol}
                   </div>
                   {offer?.message && (
                     <p className="text-sm text-muted-foreground">{offer?.message}</p>
                   )}
                 </div>
+
+                {address && (
+                <div className="flex space-x-2 mt-3">
+                  {domain?.tokens[0]?.ownerAddress.toLowerCase() === address.toLowerCase() && (
+                    <Button variant="default" size="sm">
+                      Accept Offer
+                    </Button>
+                  )}
+                  {formatEthereumAddress(offer?.offererAddress).toLowerCase() === address.toLowerCase() && (
+                  <Button variant="outline" size="sm">
+                    Cancel Offer
+                  </Button>
+                  )}
+                </div>
+                )}
                 
                 {/* Counter Offer */}
                 {offer?.status === 'countered' && (

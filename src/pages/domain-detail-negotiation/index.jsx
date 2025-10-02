@@ -10,11 +10,25 @@ import DomainTabs from './components/DomainTabs';
 import MessagingPanel from './components/MessagingPanel';
 import OfferManagement from './components/OfferManagement';
 import SocialProof from './components/SocialProof';
+import { domaOrderbookService, domaSubgraphService } from 'services/doma';
+import { useAccount, useWalletClient } from 'wagmi';
+import { viemToEthersSigner } from '@doma-protocol/orderbook-sdk';
+import toast from 'react-hot-toast';
+import { formatEthereumAddress } from 'utils/cn';
 
 const DomainDetailNegotiation = () => {
   const [isMessagingOpen, setIsMessagingOpen] = useState(false);
   const [showMobileActions, setShowMobileActions] = useState(false);
+  const [activities, setActivities] = useState(null);
+  const [domainDetails, setDomainDetails] = useState(null);
+  const [domainOffers, setDomainOffers] = useState(null);
+  const [buyDomainModal, setBuyDomainModal] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [progress, setProgress] = useState(false);
   const location = useLocation();
+  const { address} = useAccount();
+
+  const { data: walletClient } = useWalletClient();
 
   // Mock domain data
   const domain = {
@@ -107,6 +121,7 @@ const DomainDetailNegotiation = () => {
     }
   };
 
+
   const breadcrumbItems = [
     { label: 'Home', path: '/' },
     { label: 'Marketplace', path: '/domain-marketplace-browse' },
@@ -118,14 +133,67 @@ const DomainDetailNegotiation = () => {
     window.scrollTo(0, 0);
   }, []);
 
+  const handleDirectDomainPurchase = async () => {
+    if (!walletClient) return;
+
+    // Convert Viem wallet client to Ethers signer
+    const signer = viemToEthersSigner(walletClient, domainDetails?.tokens[0]?.chain?.networkId);
+
+    try {
+      setIsLoading(true);
+      const chainId = domainDetails?.tokens[0]?.chain?.networkId;
+      const result = domaOrderbookService.buyListing(
+      domainDetails["tokens"][0]?.listings[domainDetails["tokens"][0]?.listings?.length - 1]?.externalId,
+      signer, 
+      chainId,
+      (currentStep, currentProgress) => {
+        // This is the progress callback
+        // setProgress(currentProgress);
+        console.log("Progress update:", currentStep, currentProgress);
+      }
+    ).then((result) => {
+        if (result) {
+          setIsLoading(false);
+          setBuyDomainModal(false);
+          toast.success("Listing Purchased suucesfully")
+        } else {
+          setIsLoading(false);
+        }
+      })
+    } catch (error) {
+      console.log(error)
+      toast.error(error)
+      setIsLoading(false);
+    }
+  };
+  
+  useEffect(() => {
+    const urlParams = new URLSearchParams(location.search);
+    const searchTokenIdParam = urlParams?.get('token_id');
+    const searchDomainParam = urlParams?.get('domain');
+
+    domaSubgraphService.getTokenActivities(searchTokenIdParam).then((activities) => {
+      console.log("activities",activities)
+      setActivities(activities)
+      domaSubgraphService.getDomainOffers({"tokenId":searchTokenIdParam}).then((offers) => {
+        console.log("offers",offers)
+        setDomainOffers(offers)
+        domaSubgraphService.getDomainDetails(searchDomainParam).then((details) => {
+          console.log("details",details)
+          setDomainDetails(details)
+        })
+      })
+    });
+
+  }, [location?.search]);
+
   const handleMakeOffer = (offerData) => {
     console.log('Making offer:', offerData);
     // Handle offer submission logic here
   };
 
   const handleBuyNow = () => {
-    console.log('Buy now clicked');
-    // Handle buy now logic here
+    setBuyDomainModal(true);
   };
 
   const handleContactSeller = () => {
@@ -154,12 +222,15 @@ const DomainDetailNegotiation = () => {
   return (
     <div className="min-h-screen bg-background">
       <Header />
+
+      {domainDetails ? (
+        <>
       <main className="container mx-auto px-4 py-6">
         <Breadcrumb customItems={breadcrumbItems} />
         
         {/* Domain Hero Section */}
         <DomainHero
-          domain={domain}
+          domain={domainDetails}
           onMakeOffer={() => handleMakeOffer()}
           onBuyNow={handleBuyNow}
           onContactSeller={handleContactSeller}
@@ -175,15 +246,17 @@ const DomainDetailNegotiation = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Left Column - Domain Information */}
           <div className="lg:col-span-2 space-y-6">
-            <DomainTabs domain={domain} />
+            <DomainTabs domain={domain} domainD={domainDetails} activities={activities} offers={domainOffers} />
           </div>
 
           {/* Right Column - Sidebar */}
           <div className="space-y-6">
             {/* Desktop Offer Management */}
+            {domainDetails["tokens"][0]?.listings?.length > 0 &&
             <div className="hidden lg:block">
-              <OfferManagement domain={domain} onMakeOffer={handleMakeOffer} />
+              <OfferManagement domain={domainDetails} offers={domainOffers} onMakeOffer={handleMakeOffer} />
             </div>
+            }
 
             {/* Social Proof */}
             <SocialProof domain={domain} />
@@ -295,6 +368,46 @@ const DomainDetailNegotiation = () => {
       />
       {/* Add bottom padding for mobile sticky bar */}
       <div className="lg:hidden h-20"></div>
+      </>
+      ) : (
+        <div className="container mx-auto px-4 py-6">
+          <div className="flex justify-center items-center h-screen">
+            <div className="text-lg font-semibold text-foreground">Loading Domain Details, Activities and Offers...</div>
+          </div>
+        </div>
+      )}
+
+      {buyDomainModal && (
+        <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-card border border-border rounded-lg shadow-modal w-full max-w-lg">
+            <div className="flex items-center justify-between p-6 border-b border-border">
+              
+              <div className='grid'>
+                <span className="text-lg font-semibold text-foreground">Buy "{domainDetails?.name}" from marketplace.</span>
+                <span className="text-xs font-semibold mt-2 text-foreground text-red-500">Are you sure you want to purchase this domain by paying the asking price?</span>
+              </div>
+            </div>
+            
+            <div className="p-6 space-y-4">
+              <div className="flex space-x-3 w-full">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="w-full bg-gray-500 hover:bg-gray-600 text-white"
+                    onClick={() => setBuyDomainModal(false)}
+                  >
+                    Cancel
+                  </Button>
+
+                  <Button disabled={isLoading} className="w-full disabled:cursor-not-allowed cursor-pointer h-10 hover:bg-blue-900" onClick={() => handleDirectDomainPurchase()} type="submit">
+                  {isLoading ? "Processing" : "Confirm and Pay"}
+                  </Button>
+                </div>
+              
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

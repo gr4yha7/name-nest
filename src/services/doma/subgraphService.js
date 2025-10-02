@@ -905,6 +905,237 @@ class DomaSubgraphService {
     }
   }
 
+  async getTokenActivities(tokenId, options = {}) {
+    this.ensureInitialized();
+
+    const query = gql`query GetTokenActivities(
+        $skip: Int
+        $take: Int
+        $tokenId: String!
+        $sortOrder: SortOrderType
+      ) {
+        tokenActivities(
+          skip: $skip
+          take: $take
+          tokenId: $tokenId
+          sortOrder: $sortOrder
+        ) {
+        __typename
+        items {
+        ... on TokenBoughtOutActivity {
+        id
+        type
+        networkId
+        txHash
+        finalized
+        tokenId
+        name
+        createdAt
+        chain {
+          name
+          networkId
+          addressUrlTemplate
+        }
+        buyoutPrice
+        }
+
+        ... on TokenTransferredActivity {
+        id
+        type
+        networkId
+        txHash
+        finalized
+        tokenId
+        name
+        createdAt
+        chain {
+          name
+          networkId
+          addressUrlTemplate
+        }
+          transferredTo
+          transferredFrom
+        }
+      
+      ... on TokenFractionalizedActivity {
+        id
+        type
+        networkId
+        txHash
+        finalized
+        tokenId
+        name
+        createdAt
+        chain {
+          name
+          networkId
+          addressUrlTemplate
+        }
+      }
+      
+      ... on TokenListedActivity {
+        id
+        type
+        networkId
+        txHash
+        finalized
+        tokenId
+        name
+        createdAt
+        chain {
+          name
+          networkId
+          addressUrlTemplate
+        }
+        orderId
+        startsAt
+        expiresAt
+        seller
+        listingBuyer: buyer
+        payment {
+          price
+          tokenAddress
+          currencySymbol
+          usdValue
+        }
+      }
+      
+      ... on TokenListingCancelledActivity {
+        id
+        type
+        networkId
+        txHash
+        finalized
+        tokenId
+        name
+        createdAt
+        chain {
+          name
+          networkId
+          addressUrlTemplate
+        }
+        reason
+        orderId
+        orderbook
+      }
+      
+      ... on TokenMintedActivity {
+        id
+        type
+        networkId
+        txHash
+        finalized
+        tokenId
+        name
+        createdAt
+        chain {
+          name
+          networkId
+          addressUrlTemplate
+        }
+        owner
+      }
+
+      ... on TokenOfferReceivedActivity {
+        id
+        type
+        networkId
+        txHash
+        finalized
+        tokenId
+        name
+        createdAt
+        chain {
+          name
+          networkId
+          addressUrlTemplate
+        }
+        orderId
+        expiresAt
+        buyer
+        seller
+        payment {
+          price
+          tokenAddress
+          currencySymbol
+          usdValue
+        }
+        orderbook
+      }
+
+      ... on TokenOfferCancelledActivity {
+        id
+        type
+        networkId
+        txHash
+        finalized
+        tokenId
+        name
+        createdAt
+        chain {
+          name
+          networkId
+          addressUrlTemplate
+        }
+        reason
+        orderId
+        orderbook
+      }
+      ... on TokenPurchasedActivity {
+        id
+        type
+        networkId
+        txHash
+        finalized
+        tokenId
+        name
+        createdAt
+        chain {
+          name
+          networkId
+          addressUrlTemplate
+        }
+        orderId
+        seller
+        buyer
+        payment {
+          price
+          tokenAddress
+          currencySymbol
+          usdValue
+        }
+        orderbook
+      }
+      }
+      totalCount
+      pageSize
+      currentPage
+      totalPages
+      hasPreviousPage
+      hasNextPage
+    }
+  }`;
+
+    const variables = {
+      skip: options.skip || 0,
+      take: options.take || 50,
+      sortOrder: options.sortOrder || 'DESC',
+      tokenId: tokenId,
+    };
+
+    try {
+      const result = await this.client.query({
+        query,
+        variables,
+        fetchPolicy: 'cache-first',
+      });
+      return result.data.tokenActivities;
+    } catch (error) {
+      console.error('Failed to fetch name activities:', error);
+      throw error;
+    }
+  }
+
   /**
    * Get name statistics
    * @param {string} tokenId - Token ID

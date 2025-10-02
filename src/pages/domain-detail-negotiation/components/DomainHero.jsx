@@ -2,23 +2,22 @@ import React, { useState } from 'react';
 import Icon from '../../../components/AppIcon';
 
 import Button from '../../../components/ui/Button';
+import { parseUnits } from 'viem';
+import { formatUnits } from 'ethers';
+import { formatDistance, parseISO } from 'date-fns';
+import { formatEthereumAddress } from 'utils/cn';
+import { useAccount } from 'wagmi';
+import toast from 'react-hot-toast';
 
 const DomainHero = ({ domain, onMakeOffer, onBuyNow, onContactSeller, onToggleFavorite }) => {
   const [isFavorited, setIsFavorited] = useState(false);
+  const { address} = useAccount();
 
   const handleFavoriteToggle = () => {
     setIsFavorited(!isFavorited);
     onToggleFavorite(!isFavorited);
   };
 
-  const formatPrice = (price) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    })?.format(price);
-  };
 
   return (
     <div className="bg-card border border-border rounded-lg shadow-card p-6 mb-6">
@@ -33,11 +32,11 @@ const DomainHero = ({ domain, onMakeOffer, onBuyNow, onContactSeller, onToggleFa
               <div className="flex items-center space-x-4 text-sm text-muted-foreground">
                 <div className="flex items-center space-x-1">
                   <Icon name="Calendar" size={16} />
-                  <span>Registered: {domain?.registrationDate}</span>
+                  <span>Tokenized: {formatDistance(parseISO(domain?.tokenizedAt), new Date(), { addSuffix: true })}</span>
                 </div>
                 <div className="flex items-center space-x-1">
                   <Icon name="Clock" size={16} />
-                  <span>Expires: {domain?.expirationDate}</span>
+                  <span>Expires: {formatDistance(parseISO(domain?.expiresAt), new Date(), { addSuffix: true })}</span>
                 </div>
               </div>
             </div>
@@ -63,44 +62,32 @@ const DomainHero = ({ domain, onMakeOffer, onBuyNow, onContactSeller, onToggleFa
               <div className="text-lg font-semibold text-foreground">{domain?.age} years</div>
             </div>
             <div className="bg-muted rounded-lg p-3">
-              <div className="text-sm text-muted-foreground">Traffic</div>
-              <div className="text-lg font-semibold text-foreground">{domain?.monthlyTraffic}</div>
+              <div className="text-sm text-muted-foreground">Token ID</div>
+              <div className="text-lg font-semibold text-foreground">{domain?.tokens[0]?.tokenId?.slice(0, 6)}...{domain?.tokens[0]?.tokenId?.slice(-4)}</div>
             </div>
             <div className="bg-muted rounded-lg p-3">
-              <div className="text-sm text-muted-foreground">DA Score</div>
-              <div className="text-lg font-semibold text-foreground">{domain?.domainAuthority}</div>
+              <div className="text-sm text-muted-foreground">Active Offers</div>
+              <div className="text-lg font-semibold text-foreground">{domain?.activeOffersCount}</div>
             </div>
             <div className="bg-muted rounded-lg p-3">
-              <div className="text-sm text-muted-foreground">Backlinks</div>
-              <div className="text-lg font-semibold text-foreground">{domain?.backlinks}</div>
+              <div className="text-sm text-muted-foreground">Chain</div>
+              <div className="text-lg font-semibold text-foreground">{domain?.tokens[0]?.chain?.name}</div>
             </div>
           </div>
 
-          {/* Tags */}
-          <div className="flex flex-wrap gap-2 mb-4">
-            {domain?.tags?.map((tag, index) => (
-              <span
-                key={index}
-                className="px-3 py-1 bg-secondary/10 text-secondary text-sm rounded-full"
-              >
-                {tag}
-              </span>
-            ))}
-          </div>
         </div>
 
         {/* Price and Actions */}
+        {domain?.tokens[0]?.listings?.length > 0 && (
         <div className="lg:w-80 bg-muted rounded-lg p-6">
           <div className="text-center mb-6">
-            <div className="text-sm text-muted-foreground mb-1">Current Price</div>
+            <div className="text-sm text-muted-foreground mb-1">Asking Price</div>
             <div className="text-3xl font-bold text-foreground mb-2">
-              {formatPrice(domain?.currentPrice)}
+              {formatUnits(domain?.tokens[0]?.listings[0]?.price, domain?.tokens[0]?.listings[0]?.currency?.decimals)} {domain?.tokens[0]?.listings[0]?.currency?.symbol}
             </div>
-            {domain?.originalPrice && domain?.originalPrice > domain?.currentPrice && (
-              <div className="text-sm text-muted-foreground line-through">
-                {formatPrice(domain?.originalPrice)}
-              </div>
-            )}
+            <div className="text-sm text-muted-foreground">
+              {domain?.tokens[0]?.listings[0]?.currency?.usdExchangeRate} USD
+            </div>
           </div>
 
           {/* Action Buttons */}
@@ -108,7 +95,7 @@ const DomainHero = ({ domain, onMakeOffer, onBuyNow, onContactSeller, onToggleFa
             <Button
               variant="default"
               fullWidth
-              onClick={onBuyNow}
+              onClick={() => address ? onBuyNow() : toast.error("Please connect your wallet to buy now")}
               iconName="ShoppingCart"
               iconPosition="left"
             >
@@ -117,7 +104,7 @@ const DomainHero = ({ domain, onMakeOffer, onBuyNow, onContactSeller, onToggleFa
             <Button
               variant="outline"
               fullWidth
-              onClick={onMakeOffer}
+              onClick={() => address ? onMakeOffer() : toast.error("Please connect your wallet to make an offer")}
               iconName="DollarSign"
               iconPosition="left"
             >
@@ -126,7 +113,7 @@ const DomainHero = ({ domain, onMakeOffer, onBuyNow, onContactSeller, onToggleFa
             <Button
               variant="ghost"
               fullWidth
-              onClick={onContactSeller}
+              onClick={() => address ? onContactSeller() : toast.error("Please connect your wallet to contact domain owner")}
               iconName="MessageCircle"
               iconPosition="left"
             >
@@ -141,31 +128,16 @@ const DomainHero = ({ domain, onMakeOffer, onBuyNow, onContactSeller, onToggleFa
                 <Icon name="User" size={20} color="white" />
               </div>
               <div>
-                <div className="font-medium text-foreground">{domain?.seller?.name}</div>
+                <div className="font-medium text-foreground">{formatEthereumAddress(domain?.tokens[0]?.ownerAddress)} - Owner</div>
                 <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-                  <div className="flex items-center space-x-1">
-                    <Icon name="Star" size={14} color="#F59E0B" className="fill-current" />
-                    <span>{domain?.seller?.rating}</span>
-                  </div>
-                  <span>•</span>
-                  <span>{domain?.seller?.totalSales} sales</span>
+                  <span>{domain?.seller?.totalSales} domains</span>
                 </div>
               </div>
             </div>
           </div>
-
-          {/* Trust Badges */}
-          <div className="mt-4 flex items-center justify-center space-x-4">
-            <div className="flex items-center space-x-1 text-xs text-success">
-              <Icon name="Shield" size={14} />
-              <span>Verified</span>
-            </div>
-            <div className="flex items-center space-x-1 text-xs text-primary">
-              <Icon name="Lock" size={14} />
-              <span>Escrow</span>
-            </div>
-          </div>
         </div>
+        )}
+
       </div>
     </div>
   );

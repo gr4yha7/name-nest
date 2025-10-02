@@ -33,7 +33,6 @@ const DomainPreviewModal = ({ domain, isOpen, onClose, onContact }) => {
     }
   }, [domain?.name])
 
-  console.log("details", fullDomainDetails)
 
 
   return (
@@ -200,7 +199,7 @@ const DomainPreviewModal = ({ domain, isOpen, onClose, onContact }) => {
                     <Icon name="MessageSquare" size={16} />
                     <span className="ml-2">Contact Seller</span>
                   </Button>
-                  <Button onClick={() => navigate(`/domain-detail-negotiation?domain=${fullDomainDetails?.name}`)} variant="outline" className="w-full">
+                  <Button onClick={() => navigate(`/domain-detail-negotiation?token_id=${fullDomainDetails?.tokens[0]?.tokenId}&domain=${fullDomainDetails?.name}`)} variant="outline" className="w-full">
                     <Icon name="BadgeDollarSign" size={16} />
                     <span className="ml-2">Purchase Domain</span>
                   </Button>

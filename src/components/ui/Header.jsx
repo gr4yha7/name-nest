@@ -7,8 +7,6 @@ import { injected } from 'wagmi/connectors'
 import { shortenAddress } from 'utils/cn';
 import { ConnectKitButton } from "connectkit";
 import { domaSubgraphService } from 'services/doma';
-import { toast } from 'sonner';
-import WalletConnection from 'components/WalletConnection';
 
 const Header = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -67,7 +65,8 @@ const Header = () => {
       icon: 'MessageSquare',
       tooltip: 'Manage active negotiations',
       hasNotification: notificationCount > 0,
-      notificationCount: notificationCount
+      notificationCount: notificationCount,
+      authRequired: isDisconnected ? true : false
     },
     {
       label: 'Analytics',
@@ -141,11 +140,8 @@ const Header = () => {
         <div className="flex items-center justify-between h-16 px-4 lg:px-6">
           {/* Logo */}
           <div className="flex items-center">
-            <a href="/" className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-                <Icon name="Globe" size={20} color="white" />
-              </div>
-              <span className="text-xl font-bold text-foreground">NameNest</span>
+            <a href="/" className="flex items-cente space-x- w-40">
+              <img src="src/namnest.png" className='w-full' />
             </a>
           </div>
 
@@ -335,7 +331,7 @@ const Header = () => {
 
               {/* Mobile Wallet Connection */}
               <div className="pt-4 border-t border-border">
-                <WalletConnection className="w-full" />
+                <ConnectKitButton className="w-full" />
               </div>
             </div>
           </div>

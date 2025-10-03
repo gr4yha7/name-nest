@@ -42,8 +42,8 @@ const DomainMarketplaceBrowse = () => {
     networks: [],
     keyword: '',
     offerMinUsd: '',
-    priceRangeMin: '',
-    priceRangeMax: '',
+    priceRangeMin: null,
+    priceRangeMax: null,
     statuses: [],
     listed: true,
   });
@@ -106,7 +106,11 @@ const DomainMarketplaceBrowse = () => {
       {
         ...newFilters,
       }
-    ).then((items) => setDisplayedDomains(transformDomainsToListings(items)))
+    ).then((items) => 
+      {
+      setDisplayedDomains(transformDomainsToListings(items));
+      scrollTo(0,500);
+    })
     console.log("newFilters", newFilters)
   };
 
@@ -351,8 +355,8 @@ const DomainMarketplaceBrowse = () => {
                       statuses: [],
                       keyword: '',
                       offerMinUsd: '',
-                      priceRangeMin: '',
-                      priceRangeMax: '',
+                      priceRangeMin: null,
+                      priceRangeMax: null,
                       listed: false
                     });
                     setActiveCategories([]);

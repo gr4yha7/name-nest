@@ -11,7 +11,7 @@ const FilterPanel = ({ isOpen, onClose, filters, onFiltersChange, isMobile = fal
   const priceRanges = [
     { value: "0-500", label: "Under $500" },
   { value: "500-1000", label: "$500 - $1,000" },
-  { value: "1000-2000", label: "$1,001 - $2,000" },
+  { value: "1000-2000", label: "$1,000 - $2,000" },
   { value: "2000-5000", label: "$2,000 - $5,000" },
   { value: "5000-1000000", label: "$5,000+" }
   ];
@@ -43,8 +43,7 @@ const FilterPanel = ({ isOpen, onClose, filters, onFiltersChange, isMobile = fal
       const updatedFilters = { ...localFilters, [key]: value };
       setLocalFilters(updatedFilters);
     } else {
-      let updatedFilters = { ...localFilters, ["priceRangeMin"]: value };
-      updatedFilters = { ...localFilters, ["priceRangeMax"]: secondValue };
+      let updatedFilters = { ...localFilters, ["priceRangeMin"]: value, ["priceRangeMax"]: secondValue };
       setLocalFilters(updatedFilters);
     }
   };
@@ -122,7 +121,7 @@ const FilterPanel = ({ isOpen, onClose, filters, onFiltersChange, isMobile = fal
         <Select
           label="Price Range"
           options={priceRanges}
-          value={`${localFilters?.priceRangeMin} - ${localFilters?.priceRangeMax}`}
+          value={`${localFilters?.priceRangeMin}-${localFilters?.priceRangeMax}`}
           onChange={(value) => {
             // value will be like "2000-5000"
             const [min, max] = value.split("-").map(Number);

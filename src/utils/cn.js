@@ -1,6 +1,6 @@
 import { clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
-import { baseSepolia, curtis, sepolia, shibariumTestnet } from "viem/chains";
+import { avalancheFuji, baseSepolia, curtis, sepolia, shibariumTestnet } from "viem/chains";
 
 export function cn(...inputs) {
     return twMerge(clsx(inputs));
@@ -36,7 +36,7 @@ export const SUPPORTED_CHAINS = [
   baseSepolia,
   curtis,
   sepolia,
-  shibariumTestnet,
+  avalancheFuji,
 ];
 
 export const currencies = [

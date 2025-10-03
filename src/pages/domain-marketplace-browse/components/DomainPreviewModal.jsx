@@ -35,7 +35,7 @@ const DomainPreviewModal = ({ domain, isOpen, onClose, onContact }) => {
     }
   }, [domain?.name])
 
-
+console.log("fullDomainDetails", fullDomainDetails)
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
@@ -73,6 +73,8 @@ const DomainPreviewModal = ({ domain, isOpen, onClose, onContact }) => {
                 {/* Basic Info */}
                 <div className="bg-muted rounded-lg p-4">
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+                    
+                  {fullDomainDetails?.tokens[0]?.listings?.length > 0 &&
                     <div>
                       <div className="text-2xl font-bold text-foreground">
                         {formatUnits(fullDomainDetails?.tokens[0]?.listings[0]?.price, fullDomainDetails?.tokens[0]?.listings[0]?.currency?.decimals)} {fullDomainDetails?.tokens[0]?.listings[0]?.currency?.symbol}
@@ -81,6 +83,7 @@ const DomainPreviewModal = ({ domain, isOpen, onClose, onContact }) => {
                         USD - ${Number(fullDomainDetails?.tokens[0]?.listings[0].currency.usdExchangeRate * formatUnits(fullDomainDetails?.tokens[0]?.listings[0]?.price, fullDomainDetails?.tokens[0]?.listings[0]?.currency?.decimals) ?? 0).toFixed(2)}
                       </div>
                     </div>
+                  }
                     <div>
                       <div className="text-xl font-bold text-foreground">{formatDistance(parseISO(fullDomainDetails?.expiresAt), new Date(), { addSuffix: true })}</div>
                       <div className="text-sm text-muted-foreground">Domain Expires</div>
@@ -172,24 +175,25 @@ const DomainPreviewModal = ({ domain, isOpen, onClose, onContact }) => {
                   </div>
                 </div>
 
-                {/* Features */}
-                <div className="bg-muted rounded-lg p-4">
-                  <h3 className="text-lg font-semibold text-foreground mb-4">Listing Details</h3>
-                  <div className="space-y-3">
+                {fullDomainDetails?.tokens[0]?.listings?.length > 0 &&
+                  <div className="bg-muted rounded-lg p-4">
+                    <h3 className="text-lg font-semibold text-foreground mb-4">Listing Details</h3>
+                    <div className="space-y-3">
+                        <div className="flex items-center space-x-2">
+                          <ListOrderedIcon name="Shield" size={16} className="text-success" />
+                          <span className="text-sm text-foreground">Listed {formatDistance(parseISO(fullDomainDetails?.tokens[0]?.listings[0]?.createdAt), new Date(), { addSuffix: true })}</span>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <TimerIcon name="Shield" size={16} className="text-success" />
+                          <span className="text-sm text-foreground">Listing Expires {formatDistance(parseISO(fullDomainDetails?.tokens[0]?.listings[0]?.expiresAt), new Date(), { addSuffix: true })}</span>
+                        </div>
                       <div className="flex items-center space-x-2">
-                        <ListOrderedIcon name="Shield" size={16} className="text-success" />
-                        <span className="text-sm text-foreground">Listed {formatDistance(parseISO(fullDomainDetails?.tokens[0]?.listings[0]?.createdAt), new Date(), { addSuffix: true })}</span>
+                        <Icon name="Zap" size={16} className="text-primary" />
+                      <span className="text-sm text-foreground">Order Book {fullDomainDetails?.tokens[0]?.listings[0]?.orderbook}</span>
                       </div>
-                      <div className="flex items-center space-x-2">
-                        <TimerIcon name="Shield" size={16} className="text-success" />
-                        <span className="text-sm text-foreground">Listing Expires {formatDistance(parseISO(fullDomainDetails?.tokens[0]?.listings[0]?.expiresAt), new Date(), { addSuffix: true })}</span>
-                      </div>
-                    <div className="flex items-center space-x-2">
-                      <Icon name="Zap" size={16} className="text-primary" />
-                    <span className="text-sm text-foreground">Order Book {fullDomainDetails?.tokens[0]?.listings[0]?.orderbook}</span>
                     </div>
                   </div>
-                </div>
+                }
 
                 {/* Action Buttons */}
                 <div className="space-y-3">

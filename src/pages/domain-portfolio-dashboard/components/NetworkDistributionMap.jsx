@@ -13,9 +13,6 @@ const NetworkDistributionMap = ({ data, selectedNetwork, onNetworkSelect, domain
 
   const chartData = domains ? getChainNameAndCountArray(domains) : [];
 
-  console.log("chart", chartData)
-
-  
   const networks = [
     {
       id: 'doma',

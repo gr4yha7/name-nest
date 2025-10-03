@@ -1,5 +1,5 @@
 import { WagmiProvider, createConfig, http } from "wagmi";
-import { baseSepolia, mainnet, sepolia, shibariumTestnet } from "wagmi/chains";
+import { avalancheFuji, baseSepolia, curtis, sepolia } from "wagmi/chains";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ConnectKitProvider, getDefaultConfig } from "connectkit";
 import { domaTestnet } from "utils/cn";
@@ -8,18 +8,18 @@ const config = createConfig(
   getDefaultConfig({
     walletConnectProjectId: import.meta.env.VITE_WALLETCONNECT_PROJECT_ID,
     // Your dApps chains
-    chains: [mainnet, baseSepolia, sepolia, shibariumTestnet, domaTestnet], // Add your custom chain here
+    chains: [domaTestnet, baseSepolia, sepolia, avalancheFuji, curtis], // Add your custom chain here
     transports: {
-      [mainnet.id]: http(mainnet?.rpcUrls), // Add RPC for custom chain
+      [curtis.id]: http(curtis?.rpcUrls), // Add RPC for custom chain
       [baseSepolia.id]: http(baseSepolia?.rpcUrls), // Add RPC for custom chain
       [sepolia.id]: http(sepolia?.rpcUrls), // Add RPC for custom chain
-      [sepolia.id]: http(sepolia?.rpcUrls), // Add RPC for custom chain
-      [shibariumTestnet.id]: http(shibariumTestnet?.rpcUrls), // Add RPC for custom chain
+      [avalancheFuji.id]: http(avalancheFuji?.rpcUrls), // Add RPC for custom chain
       [domaTestnet.id]: http("https://rpc-testnet.doma.xyz"), // Add RPC for custom chain
     },
 
     // Required App Info
     appName: "NameNest",
+    autoConnect: true,
 
     // Optional App Info
     appDescription: "NameNest is a secure messaging platform for buying and selling domain names.",

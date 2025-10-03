@@ -43,15 +43,15 @@ const Select = React.forwardRef(({
     // Get selected option(s) for display
     const getSelectedDisplay = () => {
         if (!value) return placeholder;
-
+        
         if (multiple) {
             const selectedOptions = options?.filter(opt => value?.includes(opt?.value));
             if (selectedOptions?.length === 0) return placeholder;
             if (selectedOptions?.length === 1) return selectedOptions?.[0]?.label;
             return `${selectedOptions?.length} items selected`;
         }
-
-        const selectedOption = options?.find(opt => opt?.value === value);
+        
+        const selectedOption = options?.find(opt => opt?.value.toString() === value.toString());
         return selectedOption ? selectedOption?.label : placeholder;
     };
 

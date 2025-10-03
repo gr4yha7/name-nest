@@ -33,6 +33,7 @@ const DomainMarketplaceBrowse = () => {
   const [hasMore, setHasMore] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [sortBy, setSortBy] = useState('relevance');
+  const [isOwnerEligible, setIsOwnerEligible] = useState(false);
 
   
   // Filter state
@@ -142,20 +143,23 @@ const DomainMarketplaceBrowse = () => {
   };
 
   // Handle XMTP connection
-  const handleConnectXMTP = useCallback(async () => {
+  const handleConnectXMTP = useCallback(async (isOwnerEligible) => {
     try {
-      await connectXMTP();
-      toast.success('Connected to XMTP!');
-      setOpenDmEligibilityModal(true);
+      if (isOwnerEligible) {
+        await connectXMTP();
+        toast.success('Connected to XMTP!');
+      }
     } catch (error) {
       console.error('Failed to connect to XMTP:', error);
       toast.error('Failed to connect to XMTP');
     }
   }, [connectXMTP]);
 
-  const handleContact = async () => {
-    await handleConnectXMTP()
-  };
+  const handleContact = async (domain) => {
+    setSelectedDomain(domain);
+    setOpenDmEligibilityModal(true);
+    await handleConnectXMTP(isOwnerEligible)
+  }
 
   // Infinite scroll handler
   const handleLoadMore = () => {
@@ -221,7 +225,7 @@ const DomainMarketplaceBrowse = () => {
           domains={featuredDomains}
           onFavorite={handleFavorite}
           onPreview={handlePreview}
-          onContact={handleConnectXMTP}
+          onContact={handleContact}
         />
 
         {/* Category Chips */}
@@ -291,7 +295,7 @@ const DomainMarketplaceBrowse = () => {
                   domain={domain}
                   onFavorite={handleFavorite}
                   onPreview={handlePreview}
-                  onContact={handleConnectXMTP}
+                  onContact={handleContact}
                 />
               ))}
             </div>
@@ -391,6 +395,7 @@ const DomainMarketplaceBrowse = () => {
           domain={selectedDomain}
           isOpen={isDmEligibilityModalOpen}
           onClose={() => setOpenDmEligibilityModal(false)}
+          setIsOwnerEligible={setIsOwnerEligible}
         />
       </main>
     </div>

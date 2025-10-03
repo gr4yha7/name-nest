@@ -12,15 +12,18 @@ function extractHexAddress(input) {
   return match ? match[0] : null;
 }
 
-const DmEligibilityModal = ({ domain, isOpen, onClose }) => {
+const DmEligibilityModal = ({ domain, isOpen, onClose, setIsOwnerEligible }) => {
+  console.log("open", isOpen, "domain", domain);
   if (!isOpen || !domain) {
     return null;
   }
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [allowed, setAllowed] = useState(false);
+  const [userAddress, setUserAddress] = useState(extractHexAddress(domain?.tokens?.length > 0 ? domain?.tokens[0].ownerAddress : domain?.offererAddress));
   const { xmtpClient } = useGlobal();
   const navigate = useNavigate();
-  const userAddress = extractHexAddress(domain?.offererAddress)
+  // const userAddress = extractHexAddress(domain?.offererAddress)
+  console.log("userAddr", userAddress)
 
   const openDm = useCallback(async () => {
     if (!userAddress) return;
@@ -32,34 +35,38 @@ const DmEligibilityModal = ({ domain, isOpen, onClose }) => {
     navigate(`/messages?dm=${convo?.id}&sender=${userAddress}`);
   }, [userAddress, xmtpClient, navigate]);
 
-  useEffect(() => {
-    if (!userAddress || !xmtpClient || !isOpen) {
-      setLoading(false);
-      setAllowed(false);
-      return;
-    }
-    (async () => {
-      setLoading(true);
-      setAllowed(false);
-      try {
-        const identifier = { identifier: userAddress, identifierKind: "Ethereum" };
-        const can = await xmtpClient?.canMessage([identifier]);
-        if (can?.get(userAddress.toLowerCase())) {
-          setAllowed(true);
-          await openDm();
-        } else {
-          setAllowed(false);
-        }
-      } catch (e) {
-        console.error('XMTP eligibility error:', e);
-        setAllowed(false);
-      } finally {
+  const checkCanDm = async () => {
+    setLoading(true);
+    setAllowed(false);
+    try {
+      const identifier = { identifier: userAddress, identifierKind: "Ethereum" };
+      const can = await xmtpClient?.canMessage([identifier]);
+      if (can?.get(userAddress)) {
         setLoading(false);
+        setAllowed(true);
+        setIsOwnerEligible(true);
+        await openDm();
+      } else {
+        setLoading(false);
+        setAllowed(false);
+        setIsOwnerEligible(false);
       }
-    })();
-  }, [userAddress, xmtpClient, isOpen, openDm]);
+    } catch (e) {
+      console.error('XMTP eligibility error:', e);
+      setAllowed(false);
+      setLoading(false);
+    }
+  }
+  useEffect(async () => {
+    // if (!userAddress || !isOpen) {
+    //   setLoading(false);
+    //   setAllowed(false);
+    //   return;
+    // }
+    await checkCanDm();
+  }, [userAddress]);
 
-  if (!isOpen || !userAddress) return null;
+  
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">

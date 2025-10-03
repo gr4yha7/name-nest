@@ -3,6 +3,8 @@ import Icon from '../../../components/AppIcon';
 import Image from '../../../components/AppImage';
 import Input from '../../../components/ui/Input';
 import Select from '../../../components/ui/Select';
+import { Dm } from '@xmtp/browser-sdk';
+import { useGlobal } from 'context/global';
 
 const ConversationList = ({ 
   conversations, 
@@ -14,6 +16,46 @@ const ConversationList = ({
   onFilterChange,
   isMobile 
 }) => {
+  const { xmtpClient } = useGlobal();
+  const [dms, setDms] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let streamController;
+
+    if (xmtpClient) {
+      (async () => {
+        streamController = await xmtpClient.conversations.stream<Dm<string>>({
+          onValue: (value) => {
+            setDms((prevDms) => [...prevDms, value]);
+          },
+          onError: (err) => {
+            console.error("Stream error:", err);
+          },
+        });
+      })();
+    }
+
+    return () => {
+      if (streamController && typeof streamController.return === "function") {
+        streamController.return();
+      }
+    };
+  }, [xmtpClient]);
+
+  useEffect(() => {
+    if (xmtpClient) {
+      setLoading(true);
+      (async () => {
+        const allDms = await xmtpClient.conversations.list();
+        setDms(allDms?.filter((item) => item.isActive));
+        setLoading(false);
+      })();
+    } else {
+      setDms([]);
+    }
+  }, [xmtpClient]);
   const [localSearchQuery, setLocalSearchQuery] = useState(searchQuery || '');
 
   const filterOptions = [

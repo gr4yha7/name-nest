@@ -10,7 +10,9 @@ import { useNavigate } from 'react-router-dom';
 
 
 const DomainPreviewModal = ({ domain, isOpen, onClose, onContact }) => {
-  if (!isOpen || !domain) return null;
+  if (!isOpen || !domain) {
+    return null;
+  }
   const [domainOffers, setDomainOffers] = useState(null);
   const [fullDomainDetails, setFullDomainDetails] = useState(null);
   const navigate = useNavigate();

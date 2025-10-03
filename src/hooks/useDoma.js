@@ -224,11 +224,11 @@ export function useDomainOffers(filters = {}) {
   }, [services.subgraph, filters]);
 
   // Auto-fetch on mount and filter changes
-  useEffect(() => {
-    if (services.subgraph.isInitialized) {
-      fetchOffers();
-    }
-  }, [services.subgraph.isInitialized, filters.listingId, filters.buyer, filters.status]);
+  // useEffect(() => {
+  //   if (services.subgraph.isInitialized) {
+  //     fetchOffers();
+  //   }
+  // }, [services.subgraph.isInitialized, filters.listingId, filters.buyer, filters.status]);
 
   return {
     offers,
@@ -279,75 +279,6 @@ export function useUserDomains(userAddress) {
     isLoading,
     error,
     refresh: fetchDomains,
-  };
-}
-
-/**
- * Hook for XMTP messaging
- * @param {string} userPrivateKey - User's private key for XMTP
- */
-export function useXMTPMessaging(userPrivateKey) {
-  const [isConnected, setIsConnected] = useState(false);
-  const [conversations, setConversations] = useState([]);
-  const [messages, setMessages] = useState([]);
-  const [error, setError] = useState(null);
-
-  const { services, initialize } = useDoma();
-
-  // Initialize XMTP
-  const connectXMTP = useCallback(async () => {
-    if (!userPrivateKey) return;
-
-    try {
-      await initialize({ 
-        initializeXMTP: true, 
-        xmtpPrivateKey: userPrivateKey 
-      });
-      setIsConnected(true);
-    } catch (err) {
-      setError(err);
-    }
-  }, [userPrivateKey, initialize]);
-
-  // Send message
-  const sendMessage = useCallback(async (recipientAddress, content, domainContext) => {
-    if (!services.xmtp.isInitialized) return;
-
-    try {
-      return await services.xmtp.sendMessage(recipientAddress, content, domainContext);
-    } catch (err) {
-      setError(err);
-      throw err;
-    }
-  }, [services.xmtp]);
-
-  // Send offer
-  const sendOffer = useCallback(async (recipientAddress, offerData, domainData) => {
-    if (!services.xmtp.isInitialized) return;
-
-    try {
-      return await services.xmtp.sendOffer(recipientAddress, offerData, domainData);
-    } catch (err) {
-      setError(err);
-      throw err;
-    }
-  }, [services.xmtp]);
-
-  // Auto-connect when private key is available
-  useEffect(() => {
-    if (userPrivateKey && !isConnected) {
-      connectXMTP();
-    }
-  }, [userPrivateKey, isConnected, connectXMTP]);
-
-  return {
-    isConnected,
-    conversations,
-    messages,
-    error,
-    connectXMTP,
-    sendMessage,
-    sendOffer,
   };
 }
 

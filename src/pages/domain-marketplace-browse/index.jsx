@@ -14,6 +14,9 @@ import SortDropdown from './components/SortDropdown';
 import { useGlobal } from 'context/global';
 import { domaSubgraphService } from 'services/doma';
 import { transformDomainsToListings } from 'utils/cn';
+import DmEligibilityModal from 'components/xmtp/DmEligibilityModal';
+import useXMTP from 'hooks/useXMTP';
+import { toast } from 'sonner';
 
 const DomainMarketplaceBrowse = () => {
   const { listings, isLoading: isLoadingGlobal } = useGlobal();
@@ -25,6 +28,7 @@ const DomainMarketplaceBrowse = () => {
   const [isFilterPanelOpen, setIsFilterPanelOpen] = useState(false);
   const [selectedDomain, setSelectedDomain] = useState(null);
   const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
+  const [isDmEligibilityModalOpen, setOpenDmEligibilityModal] = useState(false);
   const [isLoading, setIsLoading] = useState(isLoadingGlobal);
   const [hasMore, setHasMore] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
@@ -49,6 +53,20 @@ const DomainMarketplaceBrowse = () => {
   
   const featuredDomains = listings?.slice(0, 4);
   const [displayedDomains, setDisplayedDomains] = useState(listings?.length > 0 ? listings : []);
+  const {
+    // isConnected: isXMTPConnected,
+    // isLoading: isXMTPLoading,
+    error: xmtpError,
+    connectXMTP,
+  } = useXMTP();
+
+  // Show XMTP errors
+  useEffect(() => {
+    if (xmtpError) {
+      console.error('XMTP Error:', xmtpError);
+      toast.error(`XMTP Error: ${xmtpError.message}`);
+    }
+  }, [xmtpError]);
 
   useEffect(() => {
     console.log("dislayed", listings)
@@ -123,14 +141,21 @@ const DomainMarketplaceBrowse = () => {
     setIsPreviewModalOpen(true);
   };
 
-  const handleContact = (domain) => {
-    navigate('/real-time-messaging-center', { 
-      state: { 
-        selectedDomain: domain,
-        action: 'contact-seller'
-      }
-    });
-  };
+  // Handle XMTP connection
+  const handleConnectXMTP = useCallback(async () => {
+    try {
+      await connectXMTP();
+      toast.success('Connected to XMTP!');
+      setOpenDmEligibilityModal(true);
+    } catch (error) {
+      console.error('Failed to connect to XMTP:', error);
+      toast.error('Failed to connect to XMTP');
+    }
+  }, [connectXMTP]);
+
+  // const handleContact = (domain) => {
+  //   setOpenDmEligibilityModal(true)
+  // };
 
   // Infinite scroll handler
   const handleLoadMore = () => {
@@ -196,7 +221,7 @@ const DomainMarketplaceBrowse = () => {
           domains={featuredDomains}
           onFavorite={handleFavorite}
           onPreview={handlePreview}
-          onContact={handleContact}
+          onContact={handleConnectXMTP}
         />
 
         {/* Category Chips */}
@@ -266,7 +291,7 @@ const DomainMarketplaceBrowse = () => {
                   domain={domain}
                   onFavorite={handleFavorite}
                   onPreview={handlePreview}
-                  onContact={handleContact}
+                  onContact={handleConnectXMTP}
                 />
               ))}
             </div>
@@ -358,7 +383,14 @@ const DomainMarketplaceBrowse = () => {
           domain={selectedDomain}
           isOpen={isPreviewModalOpen}
           onClose={() => setIsPreviewModalOpen(false)}
-          onContact={handleContact}
+          onContact={handleConnectXMTP}
+        />
+
+        {/* XMTP DM Eligibility Modal */}
+        <DmEligibilityModal
+          domain={selectedDomain}
+          isOpen={isDmEligibilityModalOpen}
+          onClose={() => setOpenDmEligibilityModal(false)}
         />
       </main>
     </div>

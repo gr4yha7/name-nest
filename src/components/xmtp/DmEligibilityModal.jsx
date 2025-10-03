@@ -7,11 +7,20 @@ import { Loader2 } from 'lucide-react';
 import NotOnXmtp from './NotOnXmtp';
 import { useGlobal } from 'context/global';
 
-const DmEligibilityModal = ({ userAddress, isOpen, onClose }) => {
+function extractHexAddress(input) {
+  const match = input.match(/0x[a-fA-F0-9]{40}/);
+  return match ? match[0] : null;
+}
+
+const DmEligibilityModal = ({ domain, isOpen, onClose }) => {
+  if (!isOpen || !domain) {
+    return null;
+  }
   const [loading, setLoading] = useState(false);
   const [allowed, setAllowed] = useState(false);
   const { xmtpClient } = useGlobal();
   const navigate = useNavigate();
+  const userAddress = extractHexAddress(domain?.offererAddress)
 
   const openDm = useCallback(async () => {
     if (!userAddress) return;

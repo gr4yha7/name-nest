@@ -14,6 +14,7 @@ import SortDropdown from './components/SortDropdown';
 import { useGlobal } from 'context/global';
 import { domaSubgraphService } from 'services/doma';
 import { transformDomainsToListings } from 'utils/cn';
+import DmEligibilityModal from 'components/xmtp/DmEligibilityModal';
 
 const DomainMarketplaceBrowse = () => {
   const { listings, isLoading: isLoadingGlobal } = useGlobal();
@@ -25,6 +26,7 @@ const DomainMarketplaceBrowse = () => {
   const [isFilterPanelOpen, setIsFilterPanelOpen] = useState(false);
   const [selectedDomain, setSelectedDomain] = useState(null);
   const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
+  const [isDmEligibilityModalOpen, setOpenDmEligibilityModal] = useState(false);
   const [isLoading, setIsLoading] = useState(isLoadingGlobal);
   const [hasMore, setHasMore] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
@@ -120,12 +122,7 @@ const DomainMarketplaceBrowse = () => {
   };
 
   const handleContact = (domain) => {
-    navigate('/real-time-messaging-center', { 
-      state: { 
-        selectedDomain: domain,
-        action: 'contact-seller'
-      }
-    });
+    setOpenDmEligibilityModal(true)
   };
 
   // Infinite scroll handler
@@ -355,6 +352,13 @@ const DomainMarketplaceBrowse = () => {
           isOpen={isPreviewModalOpen}
           onClose={() => setIsPreviewModalOpen(false)}
           onContact={handleContact}
+        />
+
+        {/* Domain Preview Modal */}
+        <DmEligibilityModal
+          domain={selectedDomain}
+          isOpen={isDmEligibilityModalOpen}
+          onClose={() => setOpenDmEligibilityModal(false)}
         />
       </main>
     </div>

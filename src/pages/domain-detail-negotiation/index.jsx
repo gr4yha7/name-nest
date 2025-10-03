@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useLocation } from 'react-router-dom';
 import Header from '../../components/ui/Header';
 import Breadcrumb from '../../components/ui/Breadcrumb';
@@ -297,9 +297,9 @@ const DomainDetailNegotiation = () => {
     }
   }, [connectXMTP]);
 
-  // const handleContactSeller = () => {
-  //   setIsMessagingOpen(true);
-  // };
+  const handleContact = async () => {
+    await handleConnectXMTP()
+  };
 
   const handleToggleFavorite = (isFavorited) => {
     console.log('Favorite toggled:', isFavorited);
@@ -374,7 +374,7 @@ const DomainDetailNegotiation = () => {
               domain={domainDetails}
               onMakeOffer={() => handleMakeOffer()}
               onBuyNow={handleBuyNow}
-              onContactSeller={handleConnectXMTP}
+              onContactSeller={handleContact}
               onToggleFavorite={handleToggleFavorite}
             />
 
@@ -436,7 +436,7 @@ const DomainDetailNegotiation = () => {
               <Button
                 variant="outline"
                 fullWidth
-                onClick={handleConnectXMTP}
+                onClick={handleContact}
                 iconName="MessageCircle"
                 iconPosition="left"
               >
@@ -491,9 +491,9 @@ const DomainDetailNegotiation = () => {
                 <Button
                   variant="ghost"
                   fullWidth
-                  onClick={() => {
+                  onClick={async () => {
                     setShowMobileActions(false);
-                    handleConnectXMTP();
+                    await handleContact();
                   }}
                   iconName="MessageCircle"
                   iconPosition="left"
@@ -511,7 +511,7 @@ const DomainDetailNegotiation = () => {
           /> */}
           {/* XMTP DM Eligibility Modal */}
           <DmEligibilityModal
-            domain={domain}
+            domain={domainDetails}
             isOpen={isDmEligibilityModalOpen}
             onClose={() => setOpenDmEligibilityModal(false)}
           />

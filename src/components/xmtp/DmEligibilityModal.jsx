@@ -29,7 +29,7 @@ const DmEligibilityModal = ({ domain, isOpen, onClose }) => {
     if (!inboxId) return toast.error("Unable to find user inbox ID.");
     const existing = await xmtpClient?.conversations.getDmByInboxId(inboxId);
     const convo = existing || (await xmtpClient?.conversations.newDm(inboxId));
-    navigate(`?dm=${convo?.id}&sender=${userAddress}`);
+    navigate(`/messages?dm=${convo?.id}&sender=${userAddress}`);
   }, [userAddress, xmtpClient, navigate]);
 
   useEffect(() => {

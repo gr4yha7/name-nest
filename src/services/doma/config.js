@@ -32,29 +32,8 @@ const config = {
     maxSize: 1000,
   },
 
-  // Network Configuration
-  networks: {
-    ethereum: {
-      chainId: 1,
-      name: 'Ethereum',
-      rpcUrl: import.meta.env.VITE_ETHEREUM_RPC_URL,
-    },
-    polygon: {
-      chainId: 137,
-      name: 'Polygon',
-      rpcUrl: import.meta.env.VITE_POLYGON_RPC_URL,
-    },
-    solana: {
-      chainId: 'mainnet-beta',
-      name: 'Solana',
-      rpcUrl: import.meta.env.VITE_SOLANA_RPC_URL,
-    },
-  },
+ 
 
-  // XMTP Configuration
-  xmtp: {
-    env: import.meta.env.VITE_XMTP_ENV || 'dev',
-  },
 };
 
 export default config;

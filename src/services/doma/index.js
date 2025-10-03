@@ -7,7 +7,6 @@ import config from './config.js';
 import domaPollService from './pollService.js';
 import domaOrderbookService from './orderbookService.js';
 import domaSubgraphService from './subgraphService.js';
-import domaXMTPService from './xmtpService.js';
 
 /**
  * Initialize all Doma services
@@ -30,11 +29,6 @@ async function initializeDomaServices(options = {}) {
       initPromises.push(domaOrderbookService.initialize(options.orderbookOptions));
     }
 
-    // Initialize XMTP service
-    if (options.initializeXMTP !== false && options.xmtpPrivateKey) {
-      initPromises.push(domaXMTPService.initialize(options.xmtpPrivateKey));
-    }
-
     await Promise.all(initPromises);
 
     console.log('All Doma services initialized successfully');
@@ -44,7 +38,6 @@ async function initializeDomaServices(options = {}) {
         poll: domaPollService,
         orderbook: domaOrderbookService,
         subgraph: domaSubgraphService,
-        xmtp: domaXMTPService,
       },
     };
   } catch (error) {
@@ -60,13 +53,11 @@ function getServicesStatus() {
   return {
     config: {
       endpoints: config.endpoints,
-      networks: Object.keys(config.networks),
     },
     services: {
       poll: domaPollService.getStatus(),
       orderbook: domaOrderbookService.getStatus(),
       subgraph: domaSubgraphService.getStatus(),
-      xmtp: domaXMTPService.getStatus(),
     },
   };
 }
@@ -132,23 +123,12 @@ function setupEventHandlers(handlers) {
   }
 }
 
-/**
- * Setup XMTP message handlers
- * @param {Object} handlers - Message handlers
- */
-function setupXMTPHandlers(handlers) {
-  if (handlers.onMessage) {
-    domaXMTPService.onMessage(handlers.onMessage);
-  }
-}
-
 // Export individual services
 export {
   config,
   domaPollService,
   domaOrderbookService,
   domaSubgraphService,
-  domaXMTPService,
 };
 
 // Export main functions
@@ -158,7 +138,6 @@ export {
   startRealTimeUpdates,
   stopRealTimeUpdates,
   setupEventHandlers,
-  setupXMTPHandlers,
 };
 
 // Default export
@@ -168,12 +147,10 @@ export default {
     poll: domaPollService,
     orderbook: domaOrderbookService,
     subgraph: domaSubgraphService,
-    xmtp: domaXMTPService,
   },
   initialize: initializeDomaServices,
   getStatus: getServicesStatus,
   startRealTimeUpdates,
   stopRealTimeUpdates,
   setupEventHandlers,
-  setupXMTPHandlers,
 };

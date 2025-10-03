@@ -190,15 +190,15 @@ const DomainDetailNegotiation = () => {
       domaSubgraphService.getDomainOffers({"tokenId":searchTokenIdParam}).then((offers) => {
         console.log("offers",offers)
         setDomainOffers(offers)
-        domaSubgraphService.getDomainDetails(searchDomainParam).then((details) => {
+        domaSubgraphService.getDomainDetails(searchDomainParam).then(async(details) => {
           console.log("details",details)
           setDomainDetails(details)
+          await new Promise(resolve => setTimeout(resolve, 1500));
+          setLoading(false);
         })
       })
     });
 
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    setLoading(false);
   };
   
   useEffect(() => {
@@ -353,7 +353,7 @@ const DomainDetailNegotiation = () => {
 
             {/* Landing Page Preview */}
             <div className="mb-6">
-              <LandingPagePreview domain={domain} />
+              <LandingPagePreview domain={domainDetails} />
             </div>
 
             {/* Main Content Layout */}

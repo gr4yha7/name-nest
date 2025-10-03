@@ -6,7 +6,7 @@ const LandingPagePreview = ({ domain }) => {
   const [viewMode, setViewMode] = useState('desktop');
   const [isFullscreen, setIsFullscreen] = useState(false);
 
-  const previewUrl = `https://preview.namenest.com/${domain?.name}`;
+  const previewUrl = `https://${domain?.name}`;
 
   const toggleFullscreen = () => {
     setIsFullscreen(!isFullscreen);
@@ -92,7 +92,7 @@ const LandingPagePreview = ({ domain }) => {
 
         {/* Preview Info */}
         {!isFullscreen && (
-          <div className="px-4 pb-4">
+          <div className="px-4 pb-4 hidden">
             <div className="flex items-center justify-between text-sm text-muted-foreground">
               <div className="flex items-center space-x-4">
                 <span>Last updated: {domain?.landingPage?.lastUpdated}</span>
@@ -109,7 +109,7 @@ const LandingPagePreview = ({ domain }) => {
       </div>
       {/* SEO Metrics */}
       {!isFullscreen && (
-        <div className="p-4 border-t border-border bg-muted/30">
+        <div className="p-4 hidden border-t border-border bg-muted/30">
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
             <div className="text-center">
               <div className="text-lg font-semibold text-foreground">{domain?.landingPage?.pageSpeed}</div>

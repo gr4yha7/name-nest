@@ -140,11 +140,8 @@ const Header = () => {
         <div className="flex items-center justify-between h-16 px-4 lg:px-6">
           {/* Logo */}
           <div className="flex items-center">
-            <a href="/" className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-                <Icon name="Globe" size={20} color="white" />
-              </div>
-              <span className="text-xl font-bold text-foreground">NameNest</span>
+            <a href="/" className="flex items-cente space-x- w-40">
+              <img src="src/namnest.png" className='w-full' />
             </a>
           </div>
 

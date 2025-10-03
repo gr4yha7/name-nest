@@ -1,6 +1,5 @@
 import React, { useMemo, useEffect, useState } from 'react';
 import { Helmet } from 'react-helmet';
-import { BuilderComponent, builder, useIsPreviewing } from '@builder.io/react';
 import { useParams } from 'react-router-dom';
 import { useDoma } from '../../hooks/useDoma';
 import Header from '../../components/ui/Header';
@@ -13,8 +12,7 @@ import {
   openGraph,
   twitterCard,
 } from '../../utils/seo';
-
-builder.init(import.meta.env.VITE_BUILDER_API_KEY || '');
+import NotFound from 'pages/NotFound';
 
 const DomainSalesPage = ({ domainName: propDomainName, listing: propListing, ogImage: propOgImage }) => {
   const params = useParams();
@@ -24,8 +22,8 @@ const DomainSalesPage = ({ domainName: propDomainName, listing: propListing, ogI
   const [domainData, setDomainData] = useState(null);
   const [listing, setListing] = useState(propListing || null);
   const domainName = propDomainName || params?.name;
+  console.log('domainName', domainName)
   const ogImage = propOgImage;
-  const isPreviewing = useIsPreviewing();
   const highlights = useMemo(() => {
     const list = [];
     if (listing?.chain?.name) list.push(`${listing.chain.name} ready`);
@@ -33,6 +31,34 @@ const DomainSalesPage = ({ domainName: propDomainName, listing: propListing, ogI
     if (listing?.category) list.push(listing.category);
     return list;
   }, [listing]);
+
+  // const [notFound, setNotFound] = useState(false);
+  // const [content, setContent] = useState(null);
+
+  // get the page content from Builder
+  //  useEffect(() => {
+  //   async function fetchContent() {
+  //     const content = await builder
+  //       .get("page", {
+  //         url: window.location.pathname
+  //       })
+  //       .promise();
+
+  //     setContent(content);
+  //     setNotFound(!content);
+
+  //     // if the page title is found, 
+  //     // set the document title
+  //     if (content?.data.title) {
+  //      document.title = content.data.title
+  //     }
+  //   }
+  //   fetchContent();
+  // }, [window.location.pathname]);
+
+  // if (notFound && !isPreviewing) {
+  //   return <NotFound/>
+  // }
 
   useEffect(() => {
     let active = true;
@@ -45,10 +71,12 @@ const DomainSalesPage = ({ domainName: propDomainName, listing: propListing, ogI
         let detail = null;
         if (services.subgraph.getDomainDetails) {
           detail = await services.subgraph.getDomainDetails(domainName);
+          console.log('detail (fetch)', detail)
         }
         if (!detail && services.subgraph.searchDomains) {
           const res = await services.subgraph.searchDomains({ name: domainName, take: 1 });
           detail = res?.items?.[0];
+          console.log('detail (search)', detail)
         }
         if (!active) return;
         setDomainData(detail || null);
@@ -124,22 +152,23 @@ const DomainSalesPage = ({ domainName: propDomainName, listing: propListing, ogI
           {/* </section> */}
         {/* </div> */}
 
-        <section className="mt-10">
+        {/* <section className="mt-10">
           <BuilderComponent
-            model="domain-sales-content"
-            options={{ includeRefs: true }}
+            model="page"
+            options={{ enrich: true }}
             data={{ domainName, listing, domainData }}
+            content={content}
           />
-        </section>
+        </section> */}
 
-        <section className="mt-10 bg-white rounded-lg shadow p-6">
+        {/* <section className="mt-10 bg-white rounded-lg shadow p-6">
           <h2 className="text-xl font-semibold mb-2">Why {domainName}?</h2>
           <ul className="list-disc ml-5 text-gray-700 space-y-1">
             {highlights.map((h) => (
               <li key={h}>{h}</li>
             ))}
           </ul>
-        </section>
+        </section> */}
       </main>
     </div>
   );

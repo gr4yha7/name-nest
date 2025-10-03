@@ -25,7 +25,7 @@ const DomainPortfolioDashboard = () => {
     status: 'all'
   });
   const [loading, setLoading] = useState(true);
-  const { address} = useAccount();
+  const { address, isConnected} = useAccount();
 
 
   // Mock portfolio data
@@ -66,16 +66,17 @@ const DomainPortfolioDashboard = () => {
   };
 
   const loadPortfolioData = async () => {
-    domaSubgraphService.getUserDomains(address).then((names) => {
+    domaSubgraphService.getUserDomains(address).then(async (names) => {
       setMyDomains(names)
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      console.log("loading poe")
+      setPortfolioData(mockPortfolioData);
+      setLoading(false);
     });
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    setPortfolioData(mockPortfolioData);
-    setLoading(false);
   };
 
   useEffect(() => {
-    if (address) {
+    if (isConnected) {
       loadPortfolioData();
     }
   }, [address]);
@@ -90,7 +91,7 @@ const DomainPortfolioDashboard = () => {
     setFilterOptions(prev => ({ ...prev, ...newFilters }));
   };
 
-  if (!address) {
+  if (!isConnected) {
     return (
       <div className="min-h-screen bg-background">
         <Header />
@@ -190,6 +191,7 @@ const DomainPortfolioDashboard = () => {
               onSelectionChange={setSelectedDomains}
               filters={filterOptions}
               onFilterChange={handleFilterChange}
+              loadPortfolioData={loadPortfolioData}
             />
           </div>
         )}

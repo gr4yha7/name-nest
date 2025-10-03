@@ -12,7 +12,7 @@ const SearchAutocomplete = ({ value, onChange, onSearch, placeholder = "Search m
 
   useEffect(() => {
     if (value && value?.length > 1) {
-      const result = domaSubgraphService.searchDomains({"name":value.toString()}).then((names) => {
+      const result = domaSubgraphService.searchDomains({"keyword":value.toString()}).then((names) => {
         setSuggestions(names?.slice(0, 10));
       });
       setIsOpen(true);

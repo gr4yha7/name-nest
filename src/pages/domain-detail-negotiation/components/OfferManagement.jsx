@@ -5,10 +5,10 @@ import Input from '../../../components/ui/Input';
 import { formatUnits } from 'ethers';
 import { formatDistance, parseISO } from 'date-fns';
 import { currencies, formatEthereumAddress, formatJustEthereumAddress, shortenAddress } from 'utils/cn';
-import { useAccount } from 'wagmi';
+import { useAccount, useChainId, useSwitchChain } from 'wagmi';
 import toast from 'react-hot-toast';
 import { viemToEthersSigner } from '@doma-protocol/orderbook-sdk';
-import { domaOrderbookService } from 'services/doma';
+import { domaOrderbookService, domaSubgraphService } from 'services/doma';
 
 const OfferManagement = ({ domain, offers, onMakeOffer, walletClient, fetchDomainDetails }) => {
   const { address} = useAccount();
@@ -17,6 +17,8 @@ const OfferManagement = ({ domain, offers, onMakeOffer, walletClient, fetchDomai
   const [isLoading, setIsLoading] = useState(false);
   const [selectedOffer, setSelectedOffer] = useState(null);
 
+  const { switchChainAsync } = useSwitchChain();
+  const currentChainId = useChainId();
 
   const formatPrice = (price) => {
     return new Intl.NumberFormat('en-US', {
@@ -27,25 +29,31 @@ const OfferManagement = ({ domain, offers, onMakeOffer, walletClient, fetchDomai
     })?.format(price);
   };
 
-  const handleCancelOffer = (e) => {
+  const handleCancelOffer = async (e) => {
     e?.preventDefault();
 
       if (!walletClient) return;
-
-      const signer = viemToEthersSigner(walletClient, domain?.tokens[0]?.chain?.networkId);
+      const requiredChainId = domain?.tokens[0]?.chain?.networkId;
       
       try {
         setIsLoading(true);
-        const chainId = domain?.tokens[0]?.chain?.networkId;
+        
+        if (requiredChainId && currentChainId !== parseInt(requiredChainId.split(':')[1], 10)) {
+          await switchChainAsync({ chainId: parseInt(requiredChainId.split(':')[1], 10) });
+        }
+        
+        const signer = viemToEthersSigner(walletClient, domain?.tokens[0]?.chain?.networkId);
+        const chainId = requiredChainId;
         domaOrderbookService.cancelOffer(  
         selectedOffer?.externalId,
         signer, 
         chainId
-      ).then((result) => {
+      ).then(async (result) => {
           if (result?.status === "success") {
             const urlParams = new URLSearchParams(location.search);
             const searchTokenIdParam = urlParams?.get('token_id');
             const searchDomainParam = urlParams?.get('domain');
+            await domaSubgraphService.initialize();
             fetchDomainDetails(searchTokenIdParam,searchDomainParam)
             domainOffers.filter(item => item.externalId !== selectedOffer?.externalId)
             setIsLoading(false);
@@ -56,40 +64,49 @@ const OfferManagement = ({ domain, offers, onMakeOffer, walletClient, fetchDomai
         })
       } catch (error) {
         console.log(error)
-        toast.error(error)
+        toast.error(error?.message || 'Network switch rejected')
         setIsLoading(false);
       }
   };
 
-  const handleAcceptOffer = (e) => {
+  const handleAcceptOffer = async (e) => {
     e?.preventDefault();
 
       if (!walletClient) return;
 
-      const signer = viemToEthersSigner(walletClient, domain?.tokens[0]?.chain?.networkId);
-      
+      const requiredChainId = domain?.tokens[0]?.chain?.networkId;
       try {
         setIsLoading(true);
-        const chainId = domain?.tokens[0]?.chain?.networkId;
+
+        if (requiredChainId && currentChainId !== parseInt(requiredChainId.split(':')[1], 10)) {
+          await switchChainAsync({ chainId: parseInt(requiredChainId.split(':')[1], 10) });
+        }
+
+        const signer = viemToEthersSigner(walletClient, requiredChainId);
+        const chainId = requiredChainId;
         domaOrderbookService.acceptOffer(  
         selectedOffer?.externalId,
         signer, 
         chainId
-      ).then((result) => {
+      ).then(async (result) => {
           if (result?.status === "success") {
             const urlParams = new URLSearchParams(location.search);
             const searchTokenIdParam = urlParams?.get('token_id');
             const searchDomainParam = urlParams?.get('domain');
+            await domaSubgraphService.initialize();
             fetchDomainDetails(searchTokenIdParam,searchDomainParam)
             setIsLoading(false);
             setShowCancelOfferModal(false);
           } else {
             setIsLoading(false);
           }
+        }).catch((err) => {
+          setIsLoading(false);
+          toast.error(err?.message || 'Accept failed');
         })
       } catch (error) {
         console.log(error)
-        toast.error(error)
+        toast.error(error?.message || 'Network switch rejected')
         setIsLoading(false);
       }
   };

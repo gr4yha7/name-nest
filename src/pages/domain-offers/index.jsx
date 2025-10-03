@@ -14,7 +14,7 @@ import { viemToEthersSigner } from '@doma-protocol/orderbook-sdk';
 const DomainOffers = () => {
   const [domainOffers, setDomainOffers] = useState([]);
   const { data: walletClient } = useWalletClient();
-  const { address } = useAccount();
+  const { address, isConnected } = useAccount();
   const [loading, setLoading] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedOffer, setSelectedOffer] = useState(null);
@@ -76,7 +76,7 @@ const DomainOffers = () => {
   };
 
 
-  if (!address) {
+  if (!isConnected) {
     return (
       <div className="min-h-screen bg-background">
         <Header />

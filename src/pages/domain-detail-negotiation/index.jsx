@@ -240,7 +240,7 @@ const DomainDetailNegotiation = () => {
         signer, 
         chainId,
         currency
-      ).then((result) => {
+      ).then(async (result) => {
           if (result?.orderId) {
             setIsLoading(false);
             setShowOfferForm(false);
@@ -249,7 +249,7 @@ const DomainDetailNegotiation = () => {
             const urlParams = new URLSearchParams(location.search);
             const searchTokenIdParam = urlParams?.get('token_id');
             const searchDomainParam = urlParams?.get('domain');
-        
+            await domaSubgraphService.initialize();
             fetchDomainDetails(searchTokenIdParam,searchDomainParam)
           } else {
             setIsLoading(false);

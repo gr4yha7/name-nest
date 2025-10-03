@@ -12,7 +12,6 @@ import AnalyticsPerformanceDashboard from './pages/analytics-performance-dashboa
 import DomainPortfolioDashboard from './pages/domain-portfolio-dashboard';
 import Web3WalletIntegrationHub from './pages/web3-wallet-integration-hub';
 import DecentralizedDomainRegistry from './pages/decentralized-domain-registry';
-import DomaIntegrationExample from './examples/DomaIntegrationExample';
 import DomainOffers from "pages/domain-offers";
 import XMTPMessagingTest from './pages/xmtp-messaging-test';
 import DomainSalesPage from './pages/domain-sales';
@@ -25,7 +24,6 @@ const Routes = () => {
       <RouterRoutes>
         {/* Define your route here */}
         <Route path="/" element={<DomainMarketplaceBrowse />} />
-        <Route path="/test" element={<DomaIntegrationExample />} />
         <Route path="/domain-listing-creation" element={<DomainListingCreation />} />
         <Route path="/transaction-order-management" element={<TransactionOrderManagement />} />
         <Route path="/domain-detail-negotiation" element={<DomainDetailNegotiation />} />

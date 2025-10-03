@@ -7,6 +7,7 @@ import { injected } from 'wagmi/connectors'
 import { shortenAddress } from 'utils/cn';
 import { ConnectKitButton } from "connectkit";
 import { domaSubgraphService } from 'services/doma';
+import WalletConnection from 'components/WalletConnection';
 
 const Header = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);

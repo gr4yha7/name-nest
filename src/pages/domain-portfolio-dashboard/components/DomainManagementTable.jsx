@@ -8,11 +8,11 @@ import { formatUnits } from 'viem';
 import Input from 'components/ui/Input';
 import toast from 'react-hot-toast';
 import { ethers } from 'ethers';
-import { domaOrderbookService } from 'services/doma';
+import { domaOrderbookService, domaSubgraphService } from 'services/doma';
 import { useEthersSigner } from 'hooks/UseEthersSigner';
-import { useSwitchChain, useWalletClient } from 'wagmi';
+import { useSwitchChain, useWalletClient, useChainId, useAccount } from 'wagmi';
 import { OrderbookType, viemToEthersSigner } from '@doma-protocol/orderbook-sdk';
-import { calculateExpiryDate, currencies, SUPPORTED_CHAINS } from 'utils/cn';
+import { calculateExpiryDate, currencies, inFromNowSeconds, SUPPORTED_CHAINS } from 'utils/cn';
 import { ChevronDown, ChevronUp, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
@@ -21,7 +21,8 @@ const DomainManagementTable = ({
   selectedDomains,
   onSelectionChange,
   filters,
-  onFilterChange
+  onFilterChange,
+  loadPortfolioData
 }) => {
   const [sortField, setSortField] = useState('name');
   const [sortDirection, setSortDirection] = useState('asc');
@@ -35,7 +36,6 @@ const DomainManagementTable = ({
   const [expiryValue, setExpiryValue] = useState(1);
   const [expiryUnit, setExpiryUnit] = useState('day');
   const [showExpiryDropdown, setShowExpiryDropdown] = useState(false);
-  const [listPrice, setListPrice] = useState('100');
   const [currency, setCurrency] = useState('WETH');
   const [showCurrencyDropdown, setShowCurrencyDropdown] = useState(false);
   
@@ -46,7 +46,8 @@ const DomainManagementTable = ({
 
   const { data: walletClient } = useWalletClient();
   const { switchChainAsync } = useSwitchChain();
-
+  const { address, isConnected } = useAccount();
+  const currentChainId = useChainId();
 
   const networkOptions = [
     { value: 'all', label: 'All Networks' },
@@ -70,16 +71,6 @@ const DomainManagementTable = ({
       solana: 'Sun'
     };
     return icons?.[network] || 'Globe';
-  };
-
-  const getStatusColor = (status) => {
-    const colors = {
-      listed: 'bg-blue-100 text-blue-800',
-      holding: 'bg-gray-100 text-gray-800',
-      sold: 'bg-green-100 text-green-800',
-      transfer: 'bg-yellow-100 text-yellow-800'
-    };
-    return colors?.[status] || 'bg-gray-100 text-gray-800';
   };
 
   const handleSort = (field) => {
@@ -116,27 +107,37 @@ const DomainManagementTable = ({
   };
 
   const handleListingOrder = async () => {
-
     if (listingPrice <= 0) {
       toast.error("Price must be greater than zero");
       return;
     }
 
     if (!walletClient) return;
+    const requiredChainId = selectedDomain?.tokens[0]?.chain?.networkId;    
 
-    // Convert Viem wallet client to Ethers signer
-    const signer = viemToEthersSigner(walletClient, selectedDomain?.tokens[0]?.chain?.networkId);
-    const currencyAddress = currencies.find(
-      (c) => c.symbol === currency
-    )?.contractAddress;
-
+    
     try {
+      if (!SUPPORTED_CHAINS?.map((it) => it.id).includes(parseInt(requiredChainId.split(':')[1], 10))) {
+        toast.error('Unsupported network in this dApp.');
+        return;
+      }
       setIsLoading(true);
-      const chainId = selectedDomain?.tokens[0]?.chain?.networkId;
-      await domaOrderbookService.createListing({
+      if (requiredChainId && currentChainId !== parseInt(requiredChainId.split(':')[1], 10)) {
+        await switchChainAsync({ chainId: parseInt(requiredChainId.split(':')[1], 10) });
+      }
+      // Convert Viem wallet client to Ethers signer
+      const signer = viemToEthersSigner(walletClient, requiredChainId);
+      const chainId = requiredChainId;
+
+      const currencyAddress = currencies.find(
+        (c) => c.symbol === currency
+      )?.contractAddress;
+
+      const result = await domaOrderbookService.createListing({
         contractAddress: selectedDomain["tokens"]?.[0]?.tokenAddress,
         tokenId: selectedDomain["tokens"]?.[0]?.tokenId,
         price: listingPrice,
+        expiryDate: inFromNowSeconds(expiryValue, expiryUnit)
       },
       signer, 
       chainId,
@@ -148,9 +149,14 @@ const DomainManagementTable = ({
         console.log("Progress update:", currentStep, currentProgress);
       }
     ); 
-      setIsLoading(false);
-      setShowListingModal(false);
-      toast.success("Domain Listed on MarketPlace")
+    if (result?.orderId) {
+      await domaSubgraphService.initialize(),
+      await loadPortfolioData().then((it) => 
+        setIsLoading(false),
+        setShowListingModal(false),
+        toast.success("Domain Listed on MarketPlace")
+    );
+    }
     } catch (error) {
       console.log(error)
       setIsLoading(false);
@@ -161,28 +167,37 @@ const DomainManagementTable = ({
     if (!walletClient) return;
     const listingId = selectedDomain?.tokens[0]?.listings[selectedDomain?.tokens[0]?.listings?.length - 1]?.externalId;
     // Convert Viem wallet client to Ethers signer
-    const signer = viemToEthersSigner(walletClient, selectedDomain?.tokens[0]?.chain?.networkId);
-
+    const requiredChainId = selectedDomain?.tokens[0]?.chain?.networkId;    
     try {
+      if (!SUPPORTED_CHAINS?.map((it) => it.id).includes(parseInt(requiredChainId.split(':')[1], 10))) {
+        toast.error('Unsupported network in this dApp.');
+        return;
+      }
       setIsLoading(true);
-      const chainId = selectedDomain?.tokens[0]?.chain?.networkId;
+      if (requiredChainId && currentChainId !== parseInt(requiredChainId.split(':')[1], 10)) {
+        await switchChainAsync({ chainId: parseInt(requiredChainId.split(':')[1], 10) });
+      }
+      const signer = viemToEthersSigner(walletClient, requiredChainId);
+      const chainId = requiredChainId;
       const result = await domaOrderbookService.cancelListing(
         listingId,
       signer, 
       chainId,
       (currentStep, currentProgress) => {
-        // This is the progress callback
         setProgress(currentProgress);
         console.log("Progress update:", currentStep, currentProgress);
       }
     ); 
-      setIsLoading(false);
-      if (result) {
-        toast.success("Domain Listing Cancelled on MarketPlace")
-        setShowCancelListingModal(false);
+
+    if (result?.status) {
+      toast.success("Domain Listing Cancelled on MarketPlace")
+      await domaSubgraphService.initialize();
+      await loadPortfolioData().then((res) =>
+          setIsLoading(false),
+          setShowCancelListingModal(false)
+        );
       }
     } catch (error) {
-      toast.error("error", error)
       console.log(error)
       setIsLoading(false);
     }
@@ -568,7 +583,7 @@ const DomainManagementTable = ({
                   </div>
                 </div>
 
-                {isLoading && (
+                {/* {isLoading && (
                 <>
                   <div className="flex items-center justify-between text-xs text-muted-foreground">
                     <span>Creating listing...</span>
@@ -581,7 +596,7 @@ const DomainManagementTable = ({
                     />
                   </div>
                 </>
-              )}
+              )} */}
 
                 {/* List Button */}
                 <div className="flex space-x-3 w-full">

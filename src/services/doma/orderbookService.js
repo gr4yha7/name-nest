@@ -108,7 +108,7 @@ class DomaOrderbookService {
       this.cacheOrder(result.orderId, result);
       
       console.log('Created listing:', result.orderId);
-      return result;
+      return result?.orders[0];
     } catch (error) {
       this.handleOrderbookError(error);
       throw error;
@@ -255,7 +255,7 @@ class DomaOrderbookService {
       this.invalidateOrder(orderId);
       
       console.log('Cancelled listing:', orderId);
-      return result;
+      return normalizeBigInt(result);
     } catch (error) {
       this.handleOrderbookError(error);
       throw error;

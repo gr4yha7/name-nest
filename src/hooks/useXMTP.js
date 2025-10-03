@@ -61,26 +61,24 @@ export function useXMTP() {
       
       // console.log('Can message:', canMessage);
       // console.log('Can message result:', canMessage.get(address));
-      
+      let client;
       if (canMessage.get(address)) {
         // Build existing client
         // console.log('Building existing XMTP client...');
-        const client = await Client.build(
+        client = await Client.build(
           { identifier: address, identifierKind: 'Ethereum' },
           { env: 'dev', appVersion: 'namenest/1.0.0' }
         );
         // await client.revokeAllOtherInstallations()
-        setXmtpClient(client);
         // console.log('Built existing XMTP client');
       } else {
         // Create new client
         console.log('Creating new XMTP client...');
-        const client = await Client.create(signer, { env: 'dev', appVersion: 'namenest/1.0.0' });
+        client = await Client.create(signer, { env: 'dev', appVersion: 'namenest/1.0.0' });
         // await client.revokeAllOtherInstallations()
         console.log('Created new XMTP client');
-        setXmtpClient(client);
       }
-      
+      setXmtpClient(client);
       setIsXMTPConnected(true);
     } catch (err) {
       console.error('Failed to connect to XMTP:', err);

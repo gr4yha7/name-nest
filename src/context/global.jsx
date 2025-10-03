@@ -83,21 +83,21 @@ export const GlobalProvider = ({ children }) => {
     }, [isInitialized, isLoading, initialize]);
   
     // Start real-time updates when initialized
-    useEffect(() => {
-      if (isInitialized) {
-        startUpdates({
-          polling: {
-            interval: 50000, // Poll every 50 seconds
-            eventTypes: ['NAME_TOKEN_LISTED'], // Only fetch these events
-          },
-        });
-      }
+    // useEffect(() => {
+    //   if (isInitialized) {
+    //     startUpdates({
+    //       polling: {
+    //         interval: 50000, // Poll every 50 seconds
+    //         eventTypes: ['NAME_TOKEN_LISTED'], // Only fetch these events
+    //       },
+    //     });
+    //   }
   
-      // Cleanup on unmount
-      return () => {
-        stopUpdates();
-      };
-    }, [isInitialized, startUpdates, stopUpdates]);
+    //   // Cleanup on unmount
+    //   return () => {
+    //     stopUpdates();
+    //   };
+    // }, [isInitialized, startUpdates, stopUpdates]);
 
   // Value to be provided to the context
   const value = {

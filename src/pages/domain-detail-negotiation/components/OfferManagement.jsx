@@ -47,6 +47,7 @@ const OfferManagement = ({ domain, offers, onMakeOffer, walletClient, fetchDomai
             const searchTokenIdParam = urlParams?.get('token_id');
             const searchDomainParam = urlParams?.get('domain');
             fetchDomainDetails(searchTokenIdParam,searchDomainParam)
+            domainOffers.filter(item => item.externalId !== selectedOffer?.externalId)
             setIsLoading(false);
             setShowCancelOfferModal(false);
           } else {

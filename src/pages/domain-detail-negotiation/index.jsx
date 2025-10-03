@@ -185,13 +185,11 @@ const DomainDetailNegotiation = () => {
 
   const fetchDomainDetails = async (searchTokenIdParam, searchDomainParam) => {
     domaSubgraphService.getTokenActivities(searchTokenIdParam).then((activities) => {
-      console.log("activities",activities)
       setActivities(activities)
       domaSubgraphService.getDomainOffers({"tokenId":searchTokenIdParam}).then((offers) => {
         console.log("offers",offers)
         setDomainOffers(offers)
         domaSubgraphService.getDomainDetails(searchDomainParam).then(async(details) => {
-          console.log("details",details)
           setDomainDetails(details)
           await new Promise(resolve => setTimeout(resolve, 1500));
           setLoading(false);
@@ -399,7 +397,7 @@ const DomainDetailNegotiation = () => {
             {/* Mobile Offer Management */}
             {domainDetails["tokens"][0]?.listings?.length > 0 &&
             <div className="lg:hidden mt-6">
-              <OfferManagement domain={domainDetails} offers={domainOffers} setOffer={setShowOfferForm} />
+              <OfferManagement domain={domainDetails} offers={domainOffers} setOffer={setShowOfferForm} walletClient={walletClient} fetchDomainDetails={fetchDomainDetails} />
             </div>
             }
           </main>

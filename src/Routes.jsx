@@ -24,7 +24,7 @@ const Routes = () => {
       <ScrollToTop />
       <RouterRoutes>
         {/* Define your route here */}
-        <Route path="/" element={<AnalyticsPerformanceDashboard />} />
+        <Route path="/" element={<DomainMarketplaceBrowse />} />
         <Route path="/test" element={<DomaIntegrationExample />} />
         <Route path="/domain-listing-creation" element={<DomainListingCreation />} />
         <Route path="/transaction-order-management" element={<TransactionOrderManagement />} />

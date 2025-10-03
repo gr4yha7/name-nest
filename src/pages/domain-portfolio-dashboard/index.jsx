@@ -11,6 +11,7 @@ import SmartContractIntegration from './components/SmartContractIntegration';
 import { useAccount, useConnect, useDisconnect } from 'wagmi';
 import { getNamesOwnedByAddress } from 'graphs/getAccountNames';
 import { domaSubgraphService } from 'services/doma';
+import { ConnectKitButton } from 'connectkit';
 
 const DomainPortfolioDashboard = () => {
   const [selectedNetwork, setSelectedNetwork] = useState('all');
@@ -25,8 +26,6 @@ const DomainPortfolioDashboard = () => {
   });
   const [loading, setLoading] = useState(true);
   const { address} = useAccount();
-  const { disconnect } = useDisconnect();
-  const { connect } = useConnect();
 
 
   // Mock portfolio data
@@ -81,13 +80,6 @@ const DomainPortfolioDashboard = () => {
     }
   }, [address]);
 
-  const handleWalletConnect = async () => {
-    if (!address) {
-      connect({ connector: injected() })
-    } else {
-      disconnect();
-    }
-  };
 
   const handleBulkAction = (action, domainIds) => {
     console.log(`Performing ${action} on domains:`, domainIds);
@@ -114,14 +106,9 @@ const DomainPortfolioDashboard = () => {
               <p className="text-muted-foreground mb-8">
                 Connect your Web3 wallet to access your domain portfolio dashboard and manage your decentralized assets.
               </p>
-              <Button
-                onClick={handleWalletConnect}
-                size="lg"
-                className="w-full sm:w-auto"
-              >
-                <Icon name="Wallet" size={16} className="mr-2" />
-                Connect Wallet
-              </Button>
+              <div className='flex justify-center w-full'>
+                <ConnectKitButton />
+              </div>
             </div>
           </div>
         </main>

@@ -61,7 +61,7 @@ const DomainOffers = () => {
         chainId
       ).then((result) => {
           if (result?.status === "success") {
-            fetchDomainDetails()
+            domainOffers.filter(item => item.externalId !== selectedOffer?.externalId)
             setIsLoading(false);
             setShowCancelOfferModal(false);
           } else {

@@ -149,9 +149,9 @@ const DomainMarketplaceBrowse = () => {
     }
   }, [connectXMTP]);
 
-  // const handleContact = (domain) => {
-  //   setOpenDmEligibilityModal(true)
-  // };
+  const handleContact = async () => {
+    await handleConnectXMTP()
+  };
 
   // Infinite scroll handler
   const handleLoadMore = () => {
@@ -379,7 +379,7 @@ const DomainMarketplaceBrowse = () => {
           domain={selectedDomain}
           isOpen={isPreviewModalOpen}
           onClose={() => setIsPreviewModalOpen(false)}
-          onContact={handleConnectXMTP}
+          onContact={handleContact}
         />
 
         {/* XMTP DM Eligibility Modal */}

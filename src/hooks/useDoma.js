@@ -10,7 +10,7 @@ import {
   startRealTimeUpdates,
   stopRealTimeUpdates,
   setupEventHandlers,
-  setupXMTPHandlers,
+  // setupXMTPHandlers,
   domaPollService,
   domaOrderbookService,
   domaSubgraphService,
@@ -81,9 +81,9 @@ export function useDoma(options = {}) {
   }, []);
 
   // Setup XMTP handlers
-  const setupXMTP = useCallback((handlers) => {
-    setupXMTPHandlers(handlers);
-  }, []);
+  // const setupXMTP = useCallback((handlers) => {
+  //   setupXMTPHandlers(handlers);
+  // }, []);
 
   // Auto-initialize on mount if options provided
   useEffect(() => {
@@ -105,7 +105,7 @@ export function useDoma(options = {}) {
     startUpdates,
     stopUpdates,
     setupEvents,
-    setupXMTP,
+    // setupXMTP,
     
     // Services
     services: {

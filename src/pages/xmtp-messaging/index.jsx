@@ -1,124 +1,81 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { useAccount, useConnect, useDisconnect } from 'wagmi';
-import { useXMTP } from '../../hooks/useXMTP';
-import { toast } from 'sonner';
+import React, { /*useState, useEffect,*/ useCallback } from 'react';
+// import { useAccount, useConnect, useDisconnect } from 'wagmi';
+// import { useXMTP } from '../../hooks/useXMTP';
+// import { toast } from 'sonner';
 
 // UI Components
-import Button from '../../components/ui/Button';
-import Input from '../../components/ui/Input';
+// import Button from '../../components/ui/Button';
 import Header from '../../components/ui/Header';
 import Breadcrumb from '../../components/ui/Breadcrumb';
-import DmEligibilityModal from 'components/xmtp/DmEligibilityModal';
+// import DmEligibilityModal from 'components/xmtp/DmEligibilityModal';
 import { MessagingProvider } from 'components/xmtp/MessagingContext';
 import ConversationsPanel from 'components/xmtp/ConversationsPanel';
 import ThreadView from 'components/xmtp/ThreadView';
 
-const XMTPMessagingTest = () => {
-  const { isConnected: walletConnected } = useAccount();
-  const { connect, connectors, isPending } = useConnect();
-  const { disconnect } = useDisconnect();
-  const {
-    isConnected: isXMTPConnected,
-    isLoading: isXMTPLoading,
-    error: xmtpError,
-    connectXMTP,
-    sendMessage,
-    sendOffer,
-    loadConversationHistory,
-    loadConversations,
-    conversations,
-    messages,
-  } = useXMTP({ autoConnect: false });
+const XMTPMessaging = () => {
+  // const { isConnected: walletConnected } = useAccount();
+  // const { connect, connectors, isPending } = useConnect();
+  // const { disconnect } = useDisconnect();
+  // const {
+  //   isConnected: isXMTPConnected,
+  //   isLoading: isXMTPLoading,
+  //   error: xmtpError,
+  //   connectXMTP,
+  // } = useXMTP({ autoConnect: false });
 
-  // Show XMTP errors
-  useEffect(() => {
-    if (xmtpError) {
-      console.error('XMTP Error:', xmtpError);
-      toast.error(`XMTP Error: ${xmtpError.message}`);
-    }
-  }, [xmtpError]);
+  // // Show XMTP errors
+  // useEffect(() => {
+  //   if (xmtpError) {
+  //     console.error('XMTP Error:', xmtpError);
+  //     toast.error(`XMTP Error: ${xmtpError.message}`);
+  //   }
+  // }, [xmtpError]);
 
-  // Debug wallet connection status
-  useEffect(() => {
-    console.log('Wallet connection status:', {
-      walletConnected,
-      isXMTPConnected,
-      isXMTPLoading,
-      xmtpError: xmtpError?.message
-    });
-  }, [walletConnected, isXMTPConnected, isXMTPLoading, xmtpError]);
-  const [domainContext, setDomainContext] = useState(null);
-  const [isCanDmModalOpen, setIsCanDmModalOpen] = useState(false);
-  const [testUserAddress, setTestUserAddress] = useState('0x3Db2f85e7A204aB666229E637A2B9eA92e566F49');
+  // // Debug wallet connection status
+  // useEffect(() => {
+  //   console.log('Wallet connection status:', {
+  //     walletConnected,
+  //     isXMTPConnected,
+  //     isXMTPLoading,
+  //     xmtpError: xmtpError?.message
+  //   });
+  // }, [walletConnected, isXMTPConnected, isXMTPLoading, xmtpError]);
+  // const [isCanDmModalOpen, setIsCanDmModalOpen] = useState(false);
+  // const [testUserAddress, setTestUserAddress] = useState('0x3Db2f85e7A204aB666229E637A2B9eA92e566F49');
 
   // Connect wallet
-  const connectWallet = useCallback(() => {
-    if (connectors[0]) {
-      connect({ connector: connectors[0] });
-    }
-  }, [connect, connectors]);
+  // const connectWallet = useCallback(() => {
+  //   if (connectors[0]) {
+  //     connect({ connector: connectors[0] });
+  //   }
+  // }, [connect, connectors]);
 
-  // Handle XMTP connection
-  const handleConnectXMTP = useCallback(async () => {
-    try {
-      await connectXMTP();
-      toast.success('Connected to XMTP!');
-      setIsCanDmModalOpen(true)
-    } catch (error) {
-      console.error('Failed to connect to XMTP:', error);
-      toast.error('Failed to connect to XMTP');
-    }
-  }, [connectXMTP]);
-
-  // Test wallet client signing
-  const testWalletSigning = useCallback(async () => {
-    try {
-      const { useSignMessage } = await import('wagmi');
-      const { signMessageAsync } = useSignMessage();
-      const { address } = useAccount();
-      
-      if (!signMessageAsync || !address) {
-        toast.error('No wallet client available');
-        return;
-      }
-
-      const testMessage = 'Test message for XMTP';
-      const signature = await signMessageAsync({
-        account: address,
-        message: testMessage,
-      });
-      console.log('Test signature:', signature);
-      toast.success('Wallet signing test successful!');
-    } catch (error) {
-      console.error('Wallet signing test failed:', error);
-      toast.error(`Wallet signing test failed: ${error.message}`);
-    }
-  }, []);
+  // // Handle XMTP connection
+  // const handleConnectXMTP = useCallback(async () => {
+  //   try {
+  //     await connectXMTP();
+  //     toast.success('Connected to XMTP!');
+  //     setIsCanDmModalOpen(true)
+  //   } catch (error) {
+  //     console.error('Failed to connect to XMTP:', error);
+  //     toast.error('Failed to connect to XMTP');
+  //   }
+  // }, [connectXMTP]);
 
   // Handle offer sent
-  const handleOfferSent = useCallback((offerData) => {
-    console.log('Offer sent:', offerData);
-    toast.success(`Offer sent: ${offerData.price} ${offerData.currency}`);
-  }, []);
-
-  // Set sample domain context
-  useEffect(() => {
-    setDomainContext({
-      name: 'example.com',
-      network: 'Ethereum',
-      tokenId: '123456789',
-      listingId: 'listing_123'
-    });
-  }, []);
+  // const handleOfferSent = useCallback((offerData) => {
+  //   console.log('Offer sent:', offerData);
+  //   toast.success(`Offer sent: ${offerData.price} ${offerData.currency}`);
+  // }, []);
 
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
-      <DmEligibilityModal
+      {/* <DmEligibilityModal
         isOpen={isCanDmModalOpen}
         onClose={() => setIsCanDmModalOpen(false)}
         userAddress={testUserAddress}
-      />
+      /> */}
       
       <div className="container mx-auto px-4 py-6">
         <Breadcrumb customItems={[{ label: 'Home', path: '/' }, { label: 'Messages', path: '/xmtp-messaging-test', isLast: true }]} />
@@ -129,7 +86,7 @@ const XMTPMessagingTest = () => {
             <h1 className="text-2xl font-bold text-foreground">Messages</h1>
             <p className="text-muted-foreground">Manage your domain negotiations and communications</p>
           </div>
-          <div className="flex items-center space-x-3">
+          {/* <div className="flex items-center space-x-3">
             {!walletConnected ? (
               <Button onClick={connectWallet} disabled={isPending}>
                 {isPending ? 'Connecting...' : 'Connect Wallet'}
@@ -141,13 +98,17 @@ const XMTPMessagingTest = () => {
             ) : (
               <Button variant="outline" onClick={() => disconnect()}>Disconnect</Button>
             )}
-          </div>
+          </div> */}
         </div>
 
         {/* Main Content: styled like real-time-messaging-center */}
         <div className="bg-card border border-border rounded-lg shadow-card overflow-hidden">
           <div className="flex h-[calc(100vh-200px)] mx-4">
-            {walletConnected && isXMTPConnected ? (
+              <MessagingProvider>
+                <ConversationsPanel />
+                <ThreadView />
+              </MessagingProvider>
+            {/* {walletConnected && isXMTPConnected ? (
               <MessagingProvider>
                 <ConversationsPanel />
                 <ThreadView />
@@ -177,7 +138,7 @@ const XMTPMessagingTest = () => {
                   )}
                 </div>
               </div>
-            )}
+            )} */}
           </div>
         </div>
       </div>
@@ -185,4 +146,4 @@ const XMTPMessagingTest = () => {
   );
 };
 
-export default XMTPMessagingTest;
+export default XMTPMessaging;

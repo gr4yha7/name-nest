@@ -54,7 +54,6 @@ const config = {
   // XMTP Configuration
   xmtp: {
     env: import.meta.env.VITE_XMTP_ENV || 'dev',
-    privateKey: import.meta.env.VITE_XMTP_PRIVATE_KEY,
   },
 };
 

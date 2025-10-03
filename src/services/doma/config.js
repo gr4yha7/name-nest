@@ -7,8 +7,8 @@ const config = {
   // API Endpoints
   endpoints: {
     poll: import.meta.env.VITE_DOMA_POLL_API_URL || 'https://api-testnet.doma.xyz/v1/poll',
-    orderbook: import.meta.env.VITE_DOMA_ORDERBOOK_API_URL || 'https://api-testnet.doma.xyz/orderbook',
-    subgraph: import.meta.env.VITE_DOMA_SUBGRAPH_URL || 'https://api-testnet.doma.xyz/subgraph',
+    orderbook: import.meta.env.VITE_DOMA_ORDERBOOK_API_URL || 'https://api-testnet.doma.xyz/v1/orderbook',
+    subgraph: import.meta.env.VITE_DOMA_SUBGRAPH_URL || 'https://api-testnet.doma.xyz/graphql',
   },
 
   // API Configuration

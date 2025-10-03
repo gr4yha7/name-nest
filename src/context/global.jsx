@@ -9,6 +9,7 @@ const GlobalContext = createContext();
 export const GlobalProvider = ({ children }) => {
     const [selectedDomain, setSelectedDomain] = useState(null);
     const [fetchedDomains, setFetchedDomains] = useState([]);
+    const [xmtpClient, setXmtpClient] = useState(null)
   
     // Initialize Doma services
     const { 
@@ -107,12 +108,14 @@ export const GlobalProvider = ({ children }) => {
     offersLoading,
     listingsError,
     offersError,
+    xmtpClient,
     loadMore,
     refresh,
     selectedDomain,
     setSelectedDomain,
     fetchedDomains,
     setFetchedDomains,
+    setXmtpClient,
   };
 
   return (

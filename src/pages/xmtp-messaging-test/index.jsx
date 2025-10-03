@@ -7,7 +7,11 @@ import { toast } from 'sonner';
 import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
 import Header from '../../components/ui/Header';
-import ChatInterface from '../../components/xmtp/ChatInterface';
+import Breadcrumb from '../../components/ui/Breadcrumb';
+import DmEligibilityModal from 'components/xmtp/DmEligibilityModal';
+import { MessagingProvider } from 'components/xmtp/MessagingContext';
+import ConversationsPanel from 'components/xmtp/ConversationsPanel';
+import ThreadView from 'components/xmtp/ThreadView';
 
 const XMTPMessagingTest = () => {
   const { isConnected: walletConnected } = useAccount();
@@ -44,6 +48,8 @@ const XMTPMessagingTest = () => {
     });
   }, [walletConnected, isXMTPConnected, isXMTPLoading, xmtpError]);
   const [domainContext, setDomainContext] = useState(null);
+  const [isCanDmModalOpen, setIsCanDmModalOpen] = useState(false);
+  const [testUserAddress, setTestUserAddress] = useState('0x3Db2f85e7A204aB666229E637A2B9eA92e566F49');
 
   // Connect wallet
   const connectWallet = useCallback(() => {
@@ -57,6 +63,7 @@ const XMTPMessagingTest = () => {
     try {
       await connectXMTP();
       toast.success('Connected to XMTP!');
+      setIsCanDmModalOpen(true)
     } catch (error) {
       console.error('Failed to connect to XMTP:', error);
       toast.error('Failed to connect to XMTP');
@@ -107,129 +114,70 @@ const XMTPMessagingTest = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
+      <DmEligibilityModal
+        isOpen={isCanDmModalOpen}
+        onClose={() => setIsCanDmModalOpen(false)}
+        userAddress={testUserAddress}
+      />
       
-      <div className="container mx-auto px-4 py-8">
-        <div className="max-w-6xl mx-auto">
-          <div className="bg-white rounded-lg shadow-lg overflow-hidden">
-            <div className="p-6 border-b">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h1 className="text-2xl font-bold text-gray-900">XMTP Messaging Test</h1>
-                  <p className="text-gray-600 mt-2">
-                    Test XMTP messaging functionality with domain context
+      <div className="container mx-auto px-4 py-6">
+        <Breadcrumb customItems={[{ label: 'Home', path: '/' }, { label: 'Messages', path: '/xmtp-messaging-test', isLast: true }]} />
+
+        {/* Header Actions to mirror messaging center */}
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h1 className="text-2xl font-bold text-foreground">Messages</h1>
+            <p className="text-muted-foreground">Manage your domain negotiations and communications</p>
+          </div>
+          <div className="flex items-center space-x-3">
+            {!walletConnected ? (
+              <Button onClick={connectWallet} disabled={isPending}>
+                {isPending ? 'Connecting...' : 'Connect Wallet'}
+              </Button>
+            ) : !isXMTPConnected ? (
+              <Button onClick={handleConnectXMTP} disabled={isXMTPLoading}>
+                {isXMTPLoading ? 'Connecting...' : 'Connect XMTP'}
+              </Button>
+            ) : (
+              <Button variant="outline" onClick={() => disconnect()}>Disconnect</Button>
+            )}
+          </div>
+        </div>
+
+        {/* Main Content: styled like real-time-messaging-center */}
+        <div className="bg-card border border-border rounded-lg shadow-card overflow-hidden">
+          <div className="flex h-[calc(100vh-200px)] mx-4">
+            {walletConnected && isXMTPConnected ? (
+              <MessagingProvider>
+                <ConversationsPanel />
+                <ThreadView />
+              </MessagingProvider>
+            ) : (
+              <div className="flex items-center justify-center w-full bg-gray-50">
+                <div className="text-center">
+                  <div className="w-16 h-16 mx-auto mb-4 bg-gray-200 rounded-full flex items-center justify-center">
+                    <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                    </svg>
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                    {!walletConnected ? 'Connect Your Wallet' : 'Connect to XMTP'}
+                  </h3>
+                  <p className="text-gray-600 mb-4">
+                    {!walletConnected ? 'Connect your wallet to start using XMTP messaging' : 'Initialize XMTP to start messaging with domain context'}
                   </p>
-                </div>
-                <div className="flex items-center space-x-4">
-                  <div className="text-sm text-gray-600">
-                    Wallet: {walletConnected ? (
-                      <span className="text-green-600 font-medium">Connected</span>
-                    ) : (
-                      <span className="text-red-600 font-medium">Disconnected</span>
-                    )}
-                  </div>
-                  <div className="text-sm text-gray-600">
-                    XMTP: {isXMTPConnected ? (
-                      <span className="text-green-600 font-medium">Connected</span>
-                    ) : (
-                      <span className="text-red-600 font-medium">Disconnected</span>
-                    )}
-                    {xmtpError && (
-                      <div className="text-xs text-red-500 mt-1">
-                        Error: {xmtpError.message}
-                      </div>
-                    )}
-                  </div>
                   {!walletConnected ? (
-                    <Button
-                      onClick={connectWallet}
-                      disabled={isPending}
-                      className="px-4"
-                    >
+                    <Button onClick={connectWallet} disabled={isPending}>
                       {isPending ? 'Connecting...' : 'Connect Wallet'}
                     </Button>
-                  ) : !isXMTPConnected ? (
-                    <div className="flex space-x-2">
-                      <Button
-                        onClick={handleConnectXMTP}
-                        disabled={isXMTPLoading}
-                        className="px-4"
-                      >
-                        {isXMTPLoading ? 'Connecting...' : 'Connect XMTP'}
-                      </Button>
-                      {xmtpError && (
-                        <Button
-                          onClick={handleConnectXMTP}
-                          variant="outline"
-                          size="sm"
-                          className="px-2"
-                        >
-                          Retry
-                        </Button>
-                      )}
-                      <Button
-                        onClick={testWalletSigning}
-                        variant="outline"
-                        size="sm"
-                        className="px-2"
-                      >
-                        Test Signing
-                      </Button>
-                    </div>
                   ) : (
-                    <Button
-                      onClick={() => disconnect()}
-                      variant="outline"
-                      className="px-4"
-                    >
-                      Disconnect
+                    <Button onClick={handleConnectXMTP} disabled={isXMTPLoading}>
+                      {isXMTPLoading ? 'Connecting...' : 'Connect XMTP'}
                     </Button>
                   )}
                 </div>
               </div>
-            </div>
-
-            <div className="h-[600px]">
-              {walletConnected && isXMTPConnected ? (
-                <ChatInterface 
-                  domainContext={domainContext}
-                  onOfferSent={handleOfferSent}
-                />
-              ) : (
-                <div className="flex items-center justify-center h-full bg-gray-50">
-                  <div className="text-center">
-                    <div className="w-16 h-16 mx-auto mb-4 bg-gray-200 rounded-full flex items-center justify-center">
-                      <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                      </svg>
-                    </div>
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                      {!walletConnected ? 'Connect Your Wallet' : 'Connect to XMTP'}
-                    </h3>
-                    <p className="text-gray-600 mb-4">
-                      {!walletConnected 
-                        ? 'Connect your wallet to start using XMTP messaging'
-                        : 'Initialize XMTP to start messaging with domain context'
-                      }
-                    </p>
-                    {!walletConnected ? (
-                      <Button
-                        onClick={connectWallet}
-                        disabled={isPending}
-                      >
-                        {isPending ? 'Connecting...' : 'Connect Wallet'}
-                      </Button>
-                    ) : (
-                      <Button
-                        onClick={handleConnectXMTP}
-                        disabled={isXMTPLoading}
-                      >
-                        {isXMTPLoading ? 'Connecting...' : 'Connect XMTP'}
-                      </Button>
-                    )}
-                  </div>
-                </div>
-              )}
-            </div>
+            )}
           </div>
         </div>
       </div>

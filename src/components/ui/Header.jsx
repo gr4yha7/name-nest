@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import Icon from '../AppIcon';
 import Button from './Button';
@@ -7,6 +7,8 @@ import { injected } from 'wagmi/connectors'
 import { shortenAddress } from 'utils/cn';
 import { ConnectKitButton } from "connectkit";
 import { domaSubgraphService } from 'services/doma';
+import { toast } from 'sonner';
+import WalletConnection from 'components/WalletConnection';
 
 const Header = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -25,6 +27,7 @@ const Header = () => {
 
   useEffect(() => {
     if (address) {
+      
       domaSubgraphService.getDomainDeals({
         offeredBy: address
       }).then((offers) => {

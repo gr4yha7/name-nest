@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import Icon from '../../../components/AppIcon';
 import Button from '../../../components/ui/Button';
+import CustomLandingPage from './CustomLandingPage';
 
 const LandingPagePreview = ({ domain }) => {
   const [viewMode, setViewMode] = useState('desktop');
   const [isFullscreen, setIsFullscreen] = useState(false);
-
   const previewUrl = `https://${domain?.name}`;
 
   const toggleFullscreen = () => {
@@ -77,16 +77,11 @@ const LandingPagePreview = ({ domain }) => {
         <div className="flex items-center justify-center p-8">
           <div
             className={`bg-white border border-border rounded-lg shadow-elevated overflow-hidden transition-all duration-300 ${
-              viewMode === 'desktop' ?'w-full max-w-6xl h-96' 
+              viewMode === 'desktop' ?'w-full max-w-6xl h-full' 
                 : viewMode === 'tablet' ?'w-96 h-80' :'w-80 h-96'
             } ${isFullscreen ? 'w-full h-full max-w-none' : ''}`}
           >
-            <iframe
-              src={previewUrl}
-              className="w-full h-full border-0"
-              title={`Landing page preview for ${domain?.name}`}
-              loading="lazy"
-            />
+            <CustomLandingPage domainDetails={domain} />
           </div>
         </div>
 

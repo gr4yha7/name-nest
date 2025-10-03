@@ -7,7 +7,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useAccount, useSignMessage } from 'wagmi';
 import { Client, ConsentState } from '@xmtp/browser-sdk';
 import { toBytes } from 'viem';
-// import { domaXMTPService } from '../services/doma/index.js';
+import { useGlobal } from 'context/global';
 
 /**
  * Hook for XMTP messaging with wallet integration
@@ -21,9 +21,8 @@ export function useXMTP(options = {}) {
   const [error, setError] = useState(null);
   const [conversations, setConversations] = useState([]);
   const [messages, setMessages] = useState([]);
-  const [xmtpClient, setXmtpClient] = useState(null);
+  const { xmtpClient, setXmtpClient } = useGlobal();
 
-  // Create signer using useSignMessage hook (like domainline)
   const signer = useMemo(() => {
     if (!address || !signMessageAsync) return null;
     
@@ -45,7 +44,7 @@ export function useXMTP(options = {}) {
     };
   }, [address, signMessageAsync]);
 
-  // Initialize XMTP with wallet (using domainline approach)
+  // Initialize XMTP with wallet
   const connectXMTP = useCallback(async () => {
     if (!address || !signer) {
       throw new Error('Wallet not connected or signer not ready');
@@ -100,7 +99,7 @@ export function useXMTP(options = {}) {
     } finally {
       setIsLoading(false);
     }
-  }, [address, signer]);
+  }, [address, signer, setXmtpClient]);
 
   // Disconnect XMTP
   const disconnectXMTP = useCallback(async () => {

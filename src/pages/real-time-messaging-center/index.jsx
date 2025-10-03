@@ -7,6 +7,11 @@ import ChatInterface from './components/ChatInterface';
 import MessageSearch from './components/MessageSearch';
 import Icon from '../../components/AppIcon';
 import Button from '../../components/ui/Button';
+// XMTP-backed UI
+import { MessagingProvider } from '../../components/xmtp/MessagingContext';
+import RtmcConversations from '../../components/xmtp/RtmcConversations';
+import RtmcChat from '../../components/xmtp/RtmcChat';
+import { useGlobal } from 'context/global';
 
 const RealTimeMessagingCenter = () => {
   const navigate = useNavigate();
@@ -21,6 +26,7 @@ const RealTimeMessagingCenter = () => {
   const [searchResults, setSearchResults] = useState([]);
   const [isConnected, setIsConnected] = useState(true);
   const [typingUsers, setTypingUsers] = useState(new Set());
+  const { xmtpClient } = useGlobal();
 // Access the state passed during navigation
   const location = useLocation();
   const { selectedDomain, action } = location.state || {};
@@ -423,54 +429,75 @@ const RealTimeMessagingCenter = () => {
         {/* Main Content */}
         <div className="bg-card border border-border rounded-lg shadow-card overflow-hidden">
           <div className="flex h-[calc(100vh-200px)] mx-4">
-            {/* Mobile Layout */}
-            {isMobile ? (
-              <>
-                {!showMobileChat ? (
-                  <ConversationList
-                    conversations={conversations}
-                    activeConversationId={activeConversationId}
-                    onConversationSelect={handleConversationSelect}
-                    searchQuery={searchQuery}
-                    onSearchChange={setSearchQuery}
-                    filterType={filterType}
-                    onFilterChange={setFilterType}
-                    isMobile={isMobile}
-                  />
+            {xmtpClient ? (
+              // XMTP-backed layout matching RTMC UI
+              <MessagingProvider>
+                {isMobile ? (
+                  <>
+                    {!showMobileChat ? (
+                      <RtmcConversations isMobile />
+                    ) : (
+                      <RtmcChat isMobile onBack={handleBackToList} />
+                    )}
+                  </>
                 ) : (
-                  <ChatInterface
-                    conversation={activeConversation}
-                    messages={messages}
-                    onSendMessage={handleSendMessage}
-                    onSendOffer={handleSendOffer}
-                    currentUserId={currentUserId}
-                    isMobile={isMobile}
-                    onBack={handleBackToList}
-                  />
+                  <>
+                    <RtmcConversations />
+                    <RtmcChat />
+                  </>
                 )}
-              </>
+              </MessagingProvider>
             ) : (
-              /* Desktop Layout */
+              // Existing mock layout fallback
               <>
-                <ConversationList
-                  conversations={conversations}
-                  activeConversationId={activeConversationId}
-                  onConversationSelect={handleConversationSelect}
-                  searchQuery={searchQuery}
-                  onSearchChange={setSearchQuery}
-                  filterType={filterType}
-                  onFilterChange={setFilterType}
-                  isMobile={isMobile}
-                />
-                <ChatInterface
-                  conversation={activeConversation}
-                  messages={messages}
-                  onSendMessage={handleSendMessage}
-                  onSendOffer={handleSendOffer}
-                  currentUserId={currentUserId}
-                  isMobile={isMobile}
-                  onBack={handleBackToList}
-                />
+                {isMobile ? (
+                  <>
+                    {!showMobileChat ? (
+                      <ConversationList
+                        conversations={conversations}
+                        activeConversationId={activeConversationId}
+                        onConversationSelect={handleConversationSelect}
+                        searchQuery={searchQuery}
+                        onSearchChange={setSearchQuery}
+                        filterType={filterType}
+                        onFilterChange={setFilterType}
+                        isMobile={isMobile}
+                      />
+                    ) : (
+                      <ChatInterface
+                        conversation={activeConversation}
+                        messages={messages}
+                        onSendMessage={handleSendMessage}
+                        onSendOffer={handleSendOffer}
+                        currentUserId={currentUserId}
+                        isMobile={isMobile}
+                        onBack={handleBackToList}
+                      />
+                    )}
+                  </>
+                ) : (
+                  <>
+                    <ConversationList
+                      conversations={conversations}
+                      activeConversationId={activeConversationId}
+                      onConversationSelect={handleConversationSelect}
+                      searchQuery={searchQuery}
+                      onSearchChange={setSearchQuery}
+                      filterType={filterType}
+                      onFilterChange={setFilterType}
+                      isMobile={isMobile}
+                    />
+                    <ChatInterface
+                      conversation={activeConversation}
+                      messages={messages}
+                      onSendMessage={handleSendMessage}
+                      onSendOffer={handleSendOffer}
+                      currentUserId={currentUserId}
+                      isMobile={isMobile}
+                      onBack={handleBackToList}
+                    />
+                  </>
+                )}
               </>
             )}
           </div>

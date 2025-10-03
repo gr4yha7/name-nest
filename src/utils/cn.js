@@ -66,6 +66,56 @@ export const currencies = [
   }
 ];
 
+export const transformDomainsToListings = (domains) => {
+  const listings = [];
+
+  domains.forEach(domain => {
+    const token = domain.tokens?.[0];
+    if (!token) return;
+
+    // Process each listing in the token
+    token.listings?.forEach(listing => {
+      listings.push({
+        __typename: "NameListingModel",
+        id: listing.id,
+        externalId: listing.externalId,
+        price: listing.price,
+        offererAddress: listing.offererAddress,
+        orderbook: listing.orderbook,
+        currency: {
+          __typename: "CurrencyModel",
+          symbol: listing.currency.symbol,
+          name: listing.currency.name,
+          decimals: listing.currency.decimals,
+          usdExchangeRate: listing.currency.usdExchangeRate
+        },
+        expiresAt: listing.expiresAt,
+        createdAt: listing.createdAt,
+        updatedAt: listing.createdAt,
+        name: domain.name,
+        nameExpiresAt: domain.expiresAt,
+        registrar: {
+          __typename: "RegistrarModel",
+          ianaId: domain.registrar.ianaId,
+          name: domain.registrar.name,
+          websiteUrl: domain.registrar.websiteUrl
+        },
+        tokenId: token.tokenId,
+        tokenAddress: token.tokenAddress,
+        chain: {
+          __typename: "ChainModel",
+          networkId: token.chain.networkId,
+          name: token.chain.name,
+          addressUrlTemplate: token.chain.addressUrlTemplate || null
+        }
+      });
+    });
+  });
+
+  console.log("listings", listings)
+
+  return listings;
+}
 
 export const calculateExpiryDate = (expiryUnit, expiryValue) => {
   const date = new Date();
@@ -110,6 +160,7 @@ export function formatEthereumAddress(input) {
   // Truncate the address to show the first 5 and last 3 characters
   return `${address.slice(0, 5)}...${address.slice(-3)}`;
 }
+
 export function formatJustEthereumAddress(input) {
   // Extract the Ethereum address (assuming it's the last part after the last colon)
   const address = input.split(":").pop();

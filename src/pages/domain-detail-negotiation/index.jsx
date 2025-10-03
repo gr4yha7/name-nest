@@ -309,7 +309,9 @@ const DomainDetailNegotiation = () => {
               <p className="text-muted-foreground mb-8">
                 Connect your Web3 wallet to access your domain deals.
               </p>
-              <ConnectKitButton/>
+              <div className='flex justify-center w-full'>
+                <ConnectKitButton />
+              </div>
             </div>
           </div>
         </main>

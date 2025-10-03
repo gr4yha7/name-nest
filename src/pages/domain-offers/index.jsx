@@ -50,7 +50,7 @@ const DomainOffers = () => {
         <Header />
         <main className="container mx-auto px-4 py-8">
           <div className="max-w-2xl mx-auto text-center">
-            <div className="bg-card border border-border rounded-lg p-8">
+            <div className="bg-card border border-border rounded-lg p-8 w-full">
               <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6">
                 <Icon name="Wallet" size={32} className="text-primary" />
               </div>
@@ -60,7 +60,9 @@ const DomainOffers = () => {
               <p className="text-muted-foreground mb-8">
                 Connect your Web3 wallet to access your domain deals.
               </p>
-              <ConnectKitButton/>
+              <div className='flex justify-center w-full'>
+                <ConnectKitButton />
+              </div>
             </div>
           </div>
         </main>
@@ -73,7 +75,7 @@ const DomainOffers = () => {
     <div className="min-h-screen bg-background">
       <Header />
 
-      {(loading && domainOffers?.length === 0) && (
+      {(loading) && (
         <div className="flex items-center justify-center py-20">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
             <span className="ml-3 text-muted-foreground">Loading All Deals...</span>

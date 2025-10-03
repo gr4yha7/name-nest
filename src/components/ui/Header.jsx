@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import Icon from '../AppIcon';
 import Button from './Button';
@@ -7,6 +7,9 @@ import { injected } from 'wagmi/connectors'
 import { shortenAddress } from 'utils/cn';
 import { ConnectKitButton } from "connectkit";
 import { domaSubgraphService } from 'services/doma';
+import useXMTP from 'hooks/useXMTP';
+import { toast } from 'sonner';
+import WalletConnection from 'components/WalletConnection';
 
 const Header = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -20,11 +23,28 @@ const Header = () => {
   const { disconnect } = useDisconnect();
   const { connect } = useConnect();
   const navigate = useNavigate();
+  const {
+    isConnected: isXMTPConnected,
+    error: xmtpError,
+    connectXMTP,
+  } = useXMTP({ autoConnect: false });
+  
+  // Handle XMTP connection
+  const handleConnectXMTP = useCallback(async () => {
+    try {
+      await connectXMTP();
+      toast.success('Connected to XMTP!');
+    } catch (error) {
+      console.error('Failed to connect to XMTP:', error);
+      toast.error('Failed to connect to XMTP! Error: ' + xmtpError);
+    }
+  }, [connectXMTP]);
 
   const [notificationCount, setNotificationCount] = useState(0);
 
   useEffect(() => {
     if (address) {
+      
       domaSubgraphService.getDomainDeals({
         offeredBy: address
       }).then((offers) => {
@@ -37,6 +57,12 @@ const Header = () => {
       setNotificationCount(0);
     }
   }, [address]);
+
+  useEffect(() => {
+    if (address && !isXMTPConnected) {
+      handleConnectXMTP()
+    }
+  }, [address, isXMTPConnected])
 
   const navigationItems = [
     {

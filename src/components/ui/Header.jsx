@@ -64,7 +64,8 @@ const Header = () => {
       icon: 'MessageSquare',
       tooltip: 'Manage active negotiations',
       hasNotification: notificationCount > 0,
-      notificationCount: notificationCount
+      notificationCount: notificationCount,
+      authRequired: isDisconnected ? true : false
     },
     {
       label: 'Analytics',

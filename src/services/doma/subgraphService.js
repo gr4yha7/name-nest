@@ -574,17 +574,17 @@ console.log("result?.data",result)
     if (filters.offerMinUsd) {
       variables.offerMinUsd = Number(filters.offerMinUsd);
     }
-    if (filters.priceRangeMin) {
+    if (filters.priceRangeMin && filters?.priceRangeMin !== "") {
       variables.priceRangeMin = Number(filters.priceRangeMin);
     }
-    if (filters.priceRangeMax) {
+    if (filters.priceRangeMax && filters?.priceRangeMax !== "") {
       variables.priceRangeMax = Number(filters.priceRangeMax);
     }
-    if (filters.priceRangeMax) {
+    if (filters.priceRangeMax && filters?.priceRangeMax !== "") {
       variables.priceRangeCurrency = "USDC";
     }
-    if (filters.networkIds && filters.networkIds.length > 0) {
-      variables.networkIds = filters.networkIds;
+    if (filters.networks && filters.networks.length > 0) {
+      variables.networkIds = filters.networks;
     }
     if (filters.registrarIanaIds && filters.registrarIanaIds.length > 0) {
       variables.registrarIanaIds = filters.registrarIanaIds;

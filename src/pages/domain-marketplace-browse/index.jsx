@@ -88,7 +88,11 @@ const DomainMarketplaceBrowse = () => {
       {
         ...newFilters,
       }
-    ).then((items) => setDisplayedDomains(transformDomainsToListings(items)))
+    ).then((items) => 
+      {
+      setDisplayedDomains(transformDomainsToListings(items));
+      scrollTo(0,500);
+    })
     console.log("newFilters", newFilters)
   };
 

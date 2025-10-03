@@ -42,8 +42,8 @@ const DomainMarketplaceBrowse = () => {
     networks: [],
     keyword: '',
     offerMinUsd: '',
-    priceRangeMin: '',
-    priceRangeMax: '',
+    priceRangeMin: null,
+    priceRangeMax: null,
     statuses: [],
     listed: true,
   });
@@ -355,8 +355,8 @@ const DomainMarketplaceBrowse = () => {
                       statuses: [],
                       keyword: '',
                       offerMinUsd: '',
-                      priceRangeMin: '',
-                      priceRangeMax: '',
+                      priceRangeMin: null,
+                      priceRangeMax: null,
                       listed: false
                     });
                     setActiveCategories([]);

@@ -562,7 +562,11 @@ console.log("result?.data",result)
       active: true,
       sortOrder: filters.sortOrder || 'DESC',
       claimStatus: filters.claimStatus || 'ALL',
+      priceRangeMin: filters.priceRangeMin ? filters.priceRangeMin : null,
+      priceRangeMax: filters.priceRangeMax ? filters.priceRangeMax : null,
     };
+
+    console.log(filters?.priceRangeMax?.length)
 
     // Only add optional parameters if they have valid values
     if (filters.ownedBy && filters.ownedBy.length > 0) {
@@ -574,13 +578,7 @@ console.log("result?.data",result)
     if (filters.offerMinUsd) {
       variables.offerMinUsd = Number(filters.offerMinUsd);
     }
-    if (filters.priceRangeMin && filters?.priceRangeMin !== "") {
-      variables.priceRangeMin = Number(filters.priceRangeMin);
-    }
-    if (filters.priceRangeMax && filters?.priceRangeMax !== "") {
-      variables.priceRangeMax = Number(filters.priceRangeMax);
-    }
-    if (filters.priceRangeMax && filters?.priceRangeMax !== "") {
+    if (filters.priceRangeMax && filters?.priceRangeMax) {
       variables.priceRangeCurrency = "USDC";
     }
     if (filters.networks && filters.networks.length > 0) {

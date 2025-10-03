@@ -458,16 +458,30 @@ console.log("result?.data",result)
       query SearchDomains(
         $skip: Int
         $take: Int
-        $name: String!
+        $tlds: [String!]
+        $name: String
+        $offerMinUsd: Float
+        $priceRangeMin: Float
+        $priceRangeCurrency: String
+        $priceRangeMax: Float
         $listed: Boolean
-        $active: Boolean
+        $statuses: [NameOrderbookStatusFilter!]
+        $networkIds: [String!]
+        $registrarIanaIds: [Int!]
       ) {
         names(
           skip: $skip
           take: $take
+          tlds: $tlds
           name: $name
+          offerMinUsd: $offerMinUsd
+          priceRangeMin: $priceRangeMin
+          priceRangeCurrency: $priceRangeCurrency
+          priceRangeMax: $priceRangeMax
           listed: $listed
-          active: $active
+          statuses: $statuses
+          networkIds: $networkIds
+          registrarIanaIds: $registrarIanaIds
         ) {
           items {
             name
@@ -545,9 +559,7 @@ console.log("result?.data",result)
     const variables = {
       skip: filters.skip || 0,
       take: filters.take || 20,
-      listed: true,
       active: true,
-
       sortOrder: filters.sortOrder || 'DESC',
       claimStatus: filters.claimStatus || 'ALL',
     };
@@ -556,8 +568,20 @@ console.log("result?.data",result)
     if (filters.ownedBy && filters.ownedBy.length > 0) {
       variables.ownedBy = filters.ownedBy;
     }
-    if (filters.name) {
-      variables.name = filters.name;
+    if (filters.keyword) {
+      variables.name = filters.keyword;
+    }
+    if (filters.offerMinUsd) {
+      variables.offerMinUsd = Number(filters.offerMinUsd);
+    }
+    if (filters.priceRangeMin) {
+      variables.priceRangeMin = Number(filters.priceRangeMin);
+    }
+    if (filters.priceRangeMax) {
+      variables.priceRangeMax = Number(filters.priceRangeMax);
+    }
+    if (filters.priceRangeMax) {
+      variables.priceRangeCurrency = "USDC";
     }
     if (filters.networkIds && filters.networkIds.length > 0) {
       variables.networkIds = filters.networkIds;
@@ -567,6 +591,9 @@ console.log("result?.data",result)
     }
     if (filters.tlds && filters.tlds.length > 0) {
       variables.tlds = filters.tlds;
+    }
+    if (filters.statuses && filters.statuses?.length > 0) {
+      variables.statuses = filters.statuses;
     }
     if (filters.sortBy) {
       variables.sortBy = filters.sortBy;

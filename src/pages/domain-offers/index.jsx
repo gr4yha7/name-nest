@@ -4,17 +4,21 @@ import Header from '../../components/ui/Header';
 import Breadcrumb from '../../components/ui/Breadcrumb';
 import Icon from '../../components/AppIcon';
 import Button from '../../components/ui/Button';
-import { domaSubgraphService } from 'services/doma';
+import { domaOrderbookService, domaSubgraphService } from 'services/doma';
 import { useAccount, useWalletClient } from 'wagmi';
 import { ConnectKitButton } from 'connectkit';
 import { formatUnits } from 'ethers';
 import { formatDistance, parseISO } from 'date-fns';
+import { viemToEthersSigner } from '@doma-protocol/orderbook-sdk';
 
 const DomainOffers = () => {
   const [domainOffers, setDomainOffers] = useState([]);
   const { data: walletClient } = useWalletClient();
   const { address } = useAccount();
   const [loading, setLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
+  const [selectedOffer, setSelectedOffer] = useState(null);
+  const [showCancelOfferModal, setShowCancelOfferModal] = useState(false);
 
   const fetchDomainDetails = async () => {
     domaSubgraphService.getDomainDeals({
@@ -43,6 +47,34 @@ const DomainOffers = () => {
     window.scrollTo(0, 0);
   }, []);
 
+  const handleCancelOffer = () => {
+      if (!walletClient) return;
+
+      const signer = viemToEthersSigner(walletClient, offer?.chain?.networkId);
+      
+      try {
+        setIsLoading(true);
+        const chainId = offer?.chain?.networkId;
+        domaOrderbookService.cancelOffer(  
+        offer?.externalId,
+        signer, 
+        chainId
+      ).then((result) => {
+          if (result?.status === "success") {
+            fetchDomainDetails()
+            setIsLoading(false);
+            setShowCancelOfferModal(false);
+          } else {
+            setIsLoading(false);
+          }
+        })
+      } catch (error) {
+        console.log(error)
+        toast.error(error)
+        setIsLoading(false);
+      }
+  };
+
 
   if (!address) {
     return (
@@ -50,7 +82,7 @@ const DomainOffers = () => {
         <Header />
         <main className="container mx-auto px-4 py-8">
           <div className="max-w-2xl mx-auto text-center">
-            <div className="bg-card border border-border rounded-lg p-8">
+            <div className="bg-card border border-border rounded-lg p-8 w-full">
               <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6">
                 <Icon name="Wallet" size={32} className="text-primary" />
               </div>
@@ -60,7 +92,9 @@ const DomainOffers = () => {
               <p className="text-muted-foreground mb-8">
                 Connect your Web3 wallet to access your domain deals.
               </p>
-              <ConnectKitButton/>
+              <div className='flex justify-center w-full'>
+                <ConnectKitButton />
+              </div>
             </div>
           </div>
         </main>
@@ -73,7 +107,7 @@ const DomainOffers = () => {
     <div className="min-h-screen bg-background">
       <Header />
 
-      {(loading && domainOffers?.length === 0) && (
+      {(loading) && (
         <div className="flex items-center justify-center py-20">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
             <span className="ml-3 text-muted-foreground">Loading All Deals...</span>
@@ -182,7 +216,8 @@ const DomainOffers = () => {
                                     className="bg-red-500 hover:bg-red-600 text-white"
                                     onClick={() => {
                                       // Handle cancel offer
-                                      console.log('Cancel offer:', offer.id);
+                                      setShowCancelOfferModal(true);
+                                      setSelectedOffer(offer)
                                     }}
                                   >
                                     <Icon name="X" size={14} />
@@ -209,6 +244,38 @@ const DomainOffers = () => {
 
         </main>
         </>
+      )}
+
+    {showCancelOfferModal && (
+        <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-card border border-border rounded-lg shadow-modal w-full max-w-lg">
+            <div className="flex items-center justify-between p-6 border-b border-border">
+              
+              <div className='grid'>
+                <span className="text-lg font-semibold text-foreground">Cancel Domain offer</span>
+                <span className="text-xs font-semibold mt-2 text-foreground text-red-500">Are you sure you want to cancel this offer?</span>
+              </div>
+            </div>
+            
+            <div className="p-6 space-y-4">
+              <div className="flex space-x-3 w-full">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="w-full bg-gray-500 hover:bg-gray-600 text-white"
+                    onClick={() => setShowCancelOfferModal(false)}
+                  >
+                    Cancel
+                  </Button>
+
+                  <Button disabled={isLoading} className="w-full disabled:cursor-not-allowed h-10 hover:bg-blue-900" onClick={() => handleCancelOffer()} type="submit">
+                  {isLoading ? "Processing" : "Proceed"}
+                  </Button>
+                </div>
+              
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

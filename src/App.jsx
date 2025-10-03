@@ -4,9 +4,7 @@ import WagmiProviderWrapper from "./providers/WagmiProvider";
 
 function App() {
   return (
-    <WagmiProviderWrapper>
       <Routes />
-    </WagmiProviderWrapper>
   );
 }
 

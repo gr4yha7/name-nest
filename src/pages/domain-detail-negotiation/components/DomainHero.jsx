@@ -58,8 +58,8 @@ const DomainHero = ({ domain, onMakeOffer, onBuyNow, onContactSeller, onToggleFa
           {/* Key Metrics */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
             <div className="bg-muted rounded-lg p-3">
-              <div className="text-sm text-muted-foreground">Domain Age</div>
-              <div className="text-lg font-semibold text-foreground">{domain?.age} years</div>
+              <div className="text-sm text-muted-foreground">Claimed By</div>
+              <div className="text-lg font-semibold text-foreground">{formatEthereumAddress(domain?.claimedBy)}</div>
             </div>
             <div className="bg-muted rounded-lg p-3">
               <div className="text-sm text-muted-foreground">Token ID</div>

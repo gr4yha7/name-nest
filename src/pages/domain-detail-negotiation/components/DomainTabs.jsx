@@ -275,10 +275,10 @@ const DomainTabs = ({ domain, domainD, activities }) => {
         </div>
 
       {/* Price History */}
+          {domainD?.tokens[0]?.listings.map((listing, index) => (
       <div>
         <h4 className="text-lg font-semibold text-foreground mb-4">Price History</h4>
         <div className="space-y-3">
-          {domainD?.tokens[0]?.listings.map((listing, index) => (
             <div key={index} className="flex items-center justify-between p-3 bg-muted rounded-lg">
               <div>
                 <div className="font-medium text-foreground">{formatUnits(listing?.price, listing?.currency?.decimals)} {listing?.currency?.symbol}</div>
@@ -291,9 +291,9 @@ const DomainTabs = ({ domain, domainD, activities }) => {
                 <div className="text-sm text-muted-foreground">USD Exchange Rate: {listing?.currency?.usdExchangeRate.toFixed(2)}USD</div>
               </div>
             </div>
-          ))}
         </div>
       </div>
+          ))}
     </div>
   );
 

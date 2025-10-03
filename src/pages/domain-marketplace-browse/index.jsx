@@ -12,6 +12,8 @@ import SearchAutocomplete from './components/SearchAutocomplete';
 import DomainPreviewModal from './components/DomainPreviewModal';
 import SortDropdown from './components/SortDropdown';
 import { useGlobal } from 'context/global';
+import { domaSubgraphService } from 'services/doma';
+import { transformDomainsToListings } from 'utils/cn';
 
 const DomainMarketplaceBrowse = () => {
   const { listings, isLoading: isLoadingGlobal } = useGlobal();
@@ -33,12 +35,13 @@ const DomainMarketplaceBrowse = () => {
   const [filters, setFilters] = useState({
     priceRange: 'all',
     tlds: [],
-    categories: [],
-    length: 'all',
+    networks: [],
     keyword: '',
-    minRating: 0,
-    hasEscrow: false,
-    isVerified: false
+    offerMinUsd: '',
+    priceRangeMin: '',
+    priceRangeMax: '',
+    statuses: [],
+    listed: true,
   });
   
   const [activeCategories, setActiveCategories] = useState([]);
@@ -79,9 +82,14 @@ const DomainMarketplaceBrowse = () => {
   }, []);
 
   // Handle filter changes
-  const handleFiltersChange = (newFilters) => {
+  const handleFiltersChange = async (newFilters) => {
     setFilters(newFilters);
-    setCurrentPage(1);
+    await domaSubgraphService.searchDomains(
+      {
+        ...newFilters,
+      }
+    ).then((items) => setDisplayedDomains(transformDomainsToListings(items)))
+    console.log("newFilters", newFilters)
   };
 
   // Handle category toggle
@@ -314,11 +322,13 @@ const DomainMarketplaceBrowse = () => {
                       priceRange: 'all',
                       tlds: [],
                       categories: [],
-                      length: 'all',
+                      networks: [],
+                      statuses: [],
                       keyword: '',
-                      minRating: 0,
-                      hasEscrow: false,
-                      isVerified: false
+                      offerMinUsd: '',
+                      priceRangeMin: '',
+                      priceRangeMax: '',
+                      listed: false
                     });
                     setActiveCategories([]);
                   }}
@@ -352,3 +362,4 @@ const DomainMarketplaceBrowse = () => {
 };
 
 export default DomainMarketplaceBrowse;
+

@@ -8,6 +8,7 @@ import { useAccount, useSignMessage } from 'wagmi';
 import { Client } from '@xmtp/browser-sdk';
 import { toBytes } from 'viem';
 import { useGlobal } from 'context/global';
+import { toast } from 'sonner';
 
 /**
  * Hook for XMTP messaging with wallet integration
@@ -61,33 +62,35 @@ export function useXMTP() {
       // console.log('Can message:', canMessage);
       // console.log('Can message result:', canMessage.get(address));
       
-      let client;
       if (canMessage.get(address)) {
         // Build existing client
         // console.log('Building existing XMTP client...');
-        client = await Client.build(
+        const client = await Client.build(
           { identifier: address, identifierKind: 'Ethereum' },
           { env: 'dev', appVersion: 'namenest/1.0.0' }
         );
-        setIsLoading(false);
+        // await client.revokeAllOtherInstallations()
+        setXmtpClient(client);
         // console.log('Built existing XMTP client');
       } else {
         // Create new client
         console.log('Creating new XMTP client...');
-        client = await Client.create(signer, { env: 'dev', appVersion: 'namenest/1.0.0' });
+        const client = await Client.create(signer, { env: 'dev', appVersion: 'namenest/1.0.0' });
+        // await client.revokeAllOtherInstallations()
         console.log('Created new XMTP client');
-        setIsLoading(false);
+        setXmtpClient(client);
       }
       
-      setXmtpClient(client);
       setIsXMTPConnected(true);
     } catch (err) {
       console.error('Failed to connect to XMTP:', err);
+      toast.error('Failed to connect to XMTP:', err);
       setError(err);
       setIsLoading(false);
-      throw err;
+    } finally {
+      setIsLoading(false);
     }
-  }, [address, signer, xmtpClient, setXmtpClient]);
+  }, [address, signer, setXmtpClient]);
 
   // Disconnect XMTP
   const disconnectXMTP = useCallback(async () => {

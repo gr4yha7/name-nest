@@ -7,7 +7,6 @@ import { injected } from 'wagmi/connectors'
 import { shortenAddress } from 'utils/cn';
 import { ConnectKitButton } from "connectkit";
 import { domaSubgraphService } from 'services/doma';
-import useXMTP from 'hooks/useXMTP';
 import { toast } from 'sonner';
 import WalletConnection from 'components/WalletConnection';
 
@@ -23,22 +22,6 @@ const Header = () => {
   const { disconnect } = useDisconnect();
   const { connect } = useConnect();
   const navigate = useNavigate();
-  const {
-    isConnected: isXMTPConnected,
-    error: xmtpError,
-    connectXMTP,
-  } = useXMTP({ autoConnect: false });
-  
-  // Handle XMTP connection
-  const handleConnectXMTP = useCallback(async () => {
-    try {
-      await connectXMTP();
-      toast.success('Connected to XMTP!');
-    } catch (error) {
-      console.error('Failed to connect to XMTP:', error);
-      toast.error('Failed to connect to XMTP! Error: ' + xmtpError);
-    }
-  }, [connectXMTP]);
 
   const [notificationCount, setNotificationCount] = useState(0);
 
@@ -57,12 +40,6 @@ const Header = () => {
       setNotificationCount(0);
     }
   }, [address]);
-
-  useEffect(() => {
-    if (address && !isXMTPConnected) {
-      handleConnectXMTP()
-    }
-  }, [address, isXMTPConnected])
 
   const navigationItems = [
     {

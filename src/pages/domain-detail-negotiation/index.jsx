@@ -19,8 +19,11 @@ import { formatUnits } from 'ethers';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import { calculateExpiryDate, currencies, inFromNowSeconds } from 'utils/cn';
 import { ConnectKitButton } from 'connectkit';
+import DmEligibilityModal from 'components/xmtp/DmEligibilityModal';
+import useXMTP from 'hooks/useXMTP';
 
 const DomainDetailNegotiation = () => {
+  const [isDmEligibilityModalOpen, setOpenDmEligibilityModal] = useState(false);
   const [isMessagingOpen, setIsMessagingOpen] = useState(false);
   const [showMobileActions, setShowMobileActions] = useState(false);
   const [activities, setActivities] = useState(null);
@@ -45,6 +48,12 @@ const DomainDetailNegotiation = () => {
   const { data: walletClient } = useWalletClient();
 
   const { address } = useAccount();
+  const {
+    // isConnected: isXMTPConnected,
+    // isLoading: isXMTPLoading,
+    error: xmtpError,
+    connectXMTP,
+  } = useXMTP();
 
   // Mock domain data
   const domain = {
@@ -143,6 +152,14 @@ const DomainDetailNegotiation = () => {
     { label: 'Marketplace', path: '/domain-marketplace-browse' },
     { label: domainDetails?.name, path: location?.pathname, isLast: true }
   ];
+
+  // Show XMTP errors
+  useEffect(() => {
+    if (xmtpError) {
+      console.error('XMTP Error:', xmtpError);
+      toast.error(`XMTP Error: ${xmtpError.message}`);
+    }
+  }, [xmtpError]);
 
   useEffect(() => {
     // Scroll to top on component mount
@@ -270,9 +287,21 @@ const DomainDetailNegotiation = () => {
     setBuyDomainModal(true);
   };
 
-  const handleContactSeller = () => {
-    setIsMessagingOpen(true);
-  };
+  // Handle XMTP connection
+  const handleConnectXMTP = useCallback(async () => {
+    try {
+      await connectXMTP();
+      toast.success('Connected to XMTP!');
+      setOpenDmEligibilityModal(true);
+    } catch (error) {
+      console.error('Failed to connect to XMTP:', error);
+      toast.error('Failed to connect to XMTP');
+    }
+  }, [connectXMTP]);
+
+  // const handleContactSeller = () => {
+  //   setIsMessagingOpen(true);
+  // };
 
   const handleToggleFavorite = (isFavorited) => {
     console.log('Favorite toggled:', isFavorited);
@@ -347,7 +376,7 @@ const DomainDetailNegotiation = () => {
               domain={domainDetails}
               onMakeOffer={() => handleMakeOffer()}
               onBuyNow={handleBuyNow}
-              onContactSeller={handleContactSeller}
+              onContactSeller={handleConnectXMTP}
               onToggleFavorite={handleToggleFavorite}
             />
 
@@ -409,7 +438,7 @@ const DomainDetailNegotiation = () => {
               <Button
                 variant="outline"
                 fullWidth
-                onClick={handleContactSeller}
+                onClick={handleConnectXMTP}
                 iconName="MessageCircle"
                 iconPosition="left"
               >
@@ -466,7 +495,7 @@ const DomainDetailNegotiation = () => {
                   fullWidth
                   onClick={() => {
                     setShowMobileActions(false);
-                    handleContactSeller();
+                    handleConnectXMTP();
                   }}
                   iconName="MessageCircle"
                   iconPosition="left"
@@ -477,10 +506,16 @@ const DomainDetailNegotiation = () => {
             </div>
           )}
           {/* Messaging Panel */}
-          <MessagingPanel
+          {/* <MessagingPanel
             domain={domain}
-            isOpen={isMessagingOpen}
+            isOpen={isMessagingOpen} 
             onClose={() => setIsMessagingOpen(false)}
+          /> */}
+          {/* XMTP DM Eligibility Modal */}
+          <DmEligibilityModal
+            domain={domain}
+            isOpen={isDmEligibilityModalOpen}
+            onClose={() => setOpenDmEligibilityModal(false)}
           />
           {/* Add bottom padding for mobile sticky bar */}
           <div className="lg:hidden h-20"></div>

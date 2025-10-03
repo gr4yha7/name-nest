@@ -13,6 +13,7 @@ import DomainPortfolioDashboard from './pages/domain-portfolio-dashboard';
 import Web3WalletIntegrationHub from './pages/web3-wallet-integration-hub';
 import DecentralizedDomainRegistry from './pages/decentralized-domain-registry';
 import DomaIntegrationExample from './examples/DomaIntegrationExample';
+import DomainOffers from "pages/domain-offers";
 import XMTPMessagingTest from './pages/xmtp-messaging-test';
 import DomainSalesPage from './pages/domain-sales';
 
@@ -28,6 +29,7 @@ const Routes = () => {
         <Route path="/domain-listing-creation" element={<DomainListingCreation />} />
         <Route path="/transaction-order-management" element={<TransactionOrderManagement />} />
         <Route path="/domain-detail-negotiation" element={<DomainDetailNegotiation />} />
+        <Route path="/domain-offers" element={<DomainOffers />} />
         <Route path="/real-time-messaging-center" element={<RealTimeMessagingCenter />} />
         <Route path="/domain-marketplace-browse" element={<DomainMarketplaceBrowse />} />
         <Route path="/analytics-performance-dashboard" element={<AnalyticsPerformanceDashboard />} />

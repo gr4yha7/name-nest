@@ -93,7 +93,7 @@ const DomainCard = ({ domain, onFavorite, onPreview, onContact }) => {
       <div className="grid grid-cols-2 gap-3 mb-4 text-sm">
         <div className="flex items-center space-x-2">
           <Icon name="Calendar" size={14} className="text-muted-foreground" />
-          <span className="text-muted-foreground">Sale Expires:</span>
+          <span className="text-muted-foreground">Token Expires:</span>
           <span className="text-foreground font-medium">{formatDistance(parseISO(domain?.nameExpiresAt), new Date(), { addSuffix: true })}</span>
         </div>
         <div className="flex items-center space-x-2">

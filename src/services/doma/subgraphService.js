@@ -240,15 +240,106 @@ class DomaSubgraphService {
     const variables = {
       skip: filters.skip || 0,
       take: filters.take || 50,
-      sortOrder: filters.sortOrder || 'DESC',
+      sortOrder: filters.sortOrder || 'DESC'
     };
 
     // Only add optional parameters if they have valid values
     if (filters.tokenId) {
-      variables.tokenId = filters.tokenId;
+      variables.tokenId = filters.tokenId ?? "";
     }
-    if (filters.offeredBy && filters.offeredBy.length > 0) {
-      variables.offeredBy = filters.offeredBy;
+    if (filters.offeredBy) {
+      variables.offeredBy = `eip155:1:${filters.offeredBy.toLowerCase()}`;
+    }
+    if (filters.status) {
+      variables.status = filters.status;
+    }
+
+    try {
+      const result = await this.client.query({
+        query,
+        variables,
+        fetchPolicy: 'cache-first',
+      });
+console.log("result?.data",result)
+      return result.data.offers.items;
+    } catch (error) {
+      console.error('Failed to fetch domain offers:', error);
+      throw error;
+    }
+  }
+
+  async getDomainDeals(filters = {}) {
+    this.ensureInitialized();
+    const query = gql`
+      query GetDomainOffers(
+        $skip: Int
+        $take: Int
+        $sortOrder: SortOrderType
+        $tokenId: String
+        $offeredBy: [AddressCAIP10!]
+        $status: OfferStatus
+      ) {
+        offers(
+          skip: $skip
+          take: $take
+          sortOrder: $sortOrder
+          tokenId: $tokenId
+          offeredBy: $offeredBy
+          status: $status
+        ) {
+          items {
+            id
+            externalId
+            price
+            offererAddress
+            orderbook
+            currency {
+              symbol
+              name
+              decimals
+              usdExchangeRate
+            }
+            expiresAt
+            createdAt
+            name
+            nameExpiresAt
+            registrar {
+              ianaId
+              name
+              websiteUrl
+            }
+            tokenId
+            tokenAddress
+            chain {
+              networkId
+              name
+              addressUrlTemplate
+            }
+          }
+          totalCount
+          pageSize
+          currentPage
+          totalPages
+          hasPreviousPage
+          hasNextPage
+        }
+      }
+    `;
+
+    const variables = {
+      skip: filters.skip || 0,
+      take: filters.take || 50,
+      tokenId: filters?.tokenId || "",
+      offeredBy: `eip155:1:${filters.offeredBy.toLowerCase()}`,
+      sortOrder: filters.sortOrder || 'DESC'
+    };
+
+    // Only add optional parameters if they have valid values
+    if (filters.tokenId) {
+      variables.tokenId = filters.tokenId ?? "";
+    }
+    if (filters.offeredBy) {
+      variables.offeredBy = `eip155:1:${filters.offeredBy.toLowerCase()}`;
     }
     if (filters.status) {
       variables.status = filters.status;
@@ -261,8 +352,7 @@ class DomaSubgraphService {
         fetchPolicy: 'cache-first',
       });
 
-      console.log('Domain offers:', result);
-      return result.data.offers;
+      return result.data.offers.items;
     } catch (error) {
       console.error('Failed to fetch domain offers:', error);
       throw error;
@@ -280,137 +370,66 @@ class DomaSubgraphService {
       query GetDomainDetails($name: String!) {
         name(name: $name) {
           name
-          expiresAt
-          tokenizedAt
-          eoi
-          registrar {
-            ianaId
-            name
-            websiteUrl
-          }
-          nameservers {
-            name
-            ipv4
-            ipv6
-          }
-          dsKeys {
-            keyTag
-            algorithm
-            digestType
-            digest
-          }
-          transferLock
-          claimedBy
-          tokens {
-            id
-            tokenId
-            tokenAddress
-            owner
-            chain {
-              networkId
+            expiresAt
+            tokenizedAt
+            eoi
+            registrar {
+              ianaId
               name
-              addressUrlTemplate
+              websiteUrl
             }
-          }
-          activities {
-            ... on NameClaimedActivity {
-              type
-              txHash
-              sld
-              tld
-              createdAt
-              claimedBy
+            nameservers {
+              ldhName
             }
-            ... on NameRenewedActivity {
-              type
-              txHash
-              sld
-              tld
-              createdAt
-              expiresAt
+            dsKeys {
+              keyTag
+              algorithm
+              digestType
+              digest
             }
-            ... on NameDetokenizedActivity {
-              type
-              txHash
-              sld
-              tld
-              createdAt
-              networkId
-            }
-            ... on NameTokenizedActivity {
-              type
-              txHash
-              sld
-              tld
-              createdAt
-              networkId
-            }
-            ... on NameClaimRequestedActivity {
-              type
-              txHash
-              sld
-              tld
-              createdAt
-            }
-            ... on NameClaimApprovedActivity {
-              type
-              txHash
-              sld
-              tld
-              createdAt
-            }
-            ... on NameClaimRejectedActivity {
-              type
-              txHash
-              sld
-              tld
-              createdAt
-            }
-          }
-          isFractionalized
-          fractionalTokenInfo {
-            id
-            address
-            fractionalizedAt
-            fractionalizedBy
-            boughtOutAt
-            boughtOutBy
-            buyoutPrice
-            status
-            poolAddress
-            launchpadAddress
-            vestingWalletAddress
-            chain {
-              networkId
-              name
-              addressUrlTemplate
-            }
-            params {
-              initialValuation
-              name
-              symbol
-              decimals
-              totalSupply
-              launchpadType
-              launchpadSupply
-              launchpadFeeBps
-              poolSupply
-              poolFeeBps
-              initialLaunchpadPrice
-              finalLaunchpadPrice
-              launchStartDate
-              launchEndDate
-              launchpadData
-              vestingCliffSeconds
-              vestingDurationSeconds
-              initialPoolPrice
+            transferLock
+            claimedBy
+            tokens {
               tokenId
+              tokenAddress
+              ownerAddress
+              chain {
+                networkId
+                name
+                addressUrlTemplate
+              }
+              listings {
+                id
+                externalId
+                price
+                offererAddress
+                orderbook
+                currency {
+                  name
+                  symbol
+                  decimals
+                  usdExchangeRate
+                }
+                createdAt
+                expiresAt
+              }
+            }
+            isFractionalized
+            highestOffer {
+              id
+              price
+              offererAddress
+              orderbook
+              currency {
+                name
+                symbol
+                decimals
+                usdExchangeRate
+              }
+              createdAt
               expiresAt
             }
-            fractionalizedTxHash
-            boughtOutTxHash
-            name
-          }
+            activeOffersCount
         }
       }
     `;
@@ -421,7 +440,6 @@ class DomaSubgraphService {
         variables: { name: domainName },
         fetchPolicy: 'cache-first',
       });
-
       return result.data.name;
     } catch (error) {
       console.error('Failed to fetch domain details:', error);
@@ -434,6 +452,190 @@ class DomaSubgraphService {
    * @param {Object} filters - Search filters
    */
   async searchDomains(filters = {}) {
+    this.ensureInitialized();
+
+    const query = gql`
+      query SearchDomains(
+        $skip: Int
+        $take: Int
+        $tlds: [String!]
+        $name: String
+        $offerMinUsd: Float
+        $priceRangeMin: Float
+        $priceRangeCurrency: String
+        $priceRangeMax: Float
+        $listed: Boolean
+        $statuses: [NameOrderbookStatusFilter!]
+        $networkIds: [String!]
+        $registrarIanaIds: [Int!]
+      ) {
+        names(
+          skip: $skip
+          take: $take
+          tlds: $tlds
+          name: $name
+          offerMinUsd: $offerMinUsd
+          priceRangeMin: $priceRangeMin
+          priceRangeCurrency: $priceRangeCurrency
+          priceRangeMax: $priceRangeMax
+          listed: $listed
+          statuses: $statuses
+          networkIds: $networkIds
+          registrarIanaIds: $registrarIanaIds
+        ) {
+          items {
+            name
+            expiresAt
+            tokenizedAt
+            eoi
+            registrar {
+              ianaId
+              name
+              websiteUrl
+            }
+            nameservers {
+              ldhName
+            }
+            dsKeys {
+              keyTag
+              algorithm
+              digestType
+              digest
+            }
+            transferLock
+            claimedBy
+            tokens {
+              tokenId
+              tokenAddress
+              ownerAddress
+              chain {
+                networkId
+                name
+                addressUrlTemplate
+              }
+              listings {
+                id
+                externalId
+                price
+                offererAddress
+                orderbook
+                currency {
+                  name
+                  symbol
+                  decimals
+                  usdExchangeRate
+                }
+                createdAt
+                expiresAt
+              }
+            }
+            isFractionalized
+            highestOffer {
+              id
+              price
+              offererAddress
+              orderbook
+              currency {
+                name
+                symbol
+                decimals
+                usdExchangeRate
+              }
+              createdAt
+              expiresAt
+            }
+            activeOffersCount
+          }
+          totalCount
+          pageSize
+          currentPage
+          totalPages
+          hasPreviousPage
+          hasNextPage
+        }
+      }
+    `;
+
+    const variables = {
+      skip: filters.skip || 0,
+      take: filters.take || 20,
+      active: true,
+      sortOrder: filters.sortOrder || 'DESC',
+      claimStatus: filters.claimStatus || 'ALL',
+    };
+
+    // Only add optional parameters if they have valid values
+    if (filters.ownedBy && filters.ownedBy.length > 0) {
+      variables.ownedBy = filters.ownedBy;
+    }
+    if (filters.keyword) {
+      variables.name = filters.keyword;
+    }
+    if (filters.offerMinUsd) {
+      variables.offerMinUsd = Number(filters.offerMinUsd);
+    }
+    if (filters.priceRangeMin) {
+      variables.priceRangeMin = Number(filters.priceRangeMin);
+    }
+    if (filters.priceRangeMax) {
+      variables.priceRangeMax = Number(filters.priceRangeMax);
+    }
+    if (filters.priceRangeMax) {
+      variables.priceRangeCurrency = "USDC";
+    }
+    if (filters.networkIds && filters.networkIds.length > 0) {
+      variables.networkIds = filters.networkIds;
+    }
+    if (filters.registrarIanaIds && filters.registrarIanaIds.length > 0) {
+      variables.registrarIanaIds = filters.registrarIanaIds;
+    }
+    if (filters.tlds && filters.tlds.length > 0) {
+      variables.tlds = filters.tlds;
+    }
+    if (filters.statuses && filters.statuses?.length > 0) {
+      variables.statuses = filters.statuses;
+    }
+    if (filters.sortBy) {
+      variables.sortBy = filters.sortBy;
+    }
+    if (filters.fractionalized !== null && filters.fractionalized !== undefined) {
+      variables.fractionalized = filters.fractionalized;
+    }
+    if (filters.listed !== null && filters.listed !== undefined) {
+      variables.listed = filters.listed;
+    }
+    if (filters.active !== null && filters.active !== undefined) {
+      variables.active = filters.active;
+    }
+    if (filters.priceRangeMin !== null && filters.priceRangeMin !== undefined) {
+      variables.priceRangeMin = filters.priceRangeMin;
+    }
+    if (filters.priceRangeMax !== null && filters.priceRangeMax !== undefined) {
+      variables.priceRangeMax = filters.priceRangeMax;
+    }
+    if (filters.priceRangeCurrency) {
+      variables.priceRangeCurrency = filters.priceRangeCurrency;
+    }
+
+    try {
+      const result = await this.client.query({
+        query,
+        variables,
+        fetchPolicy: 'cache-first',
+      });
+
+      return result.data.names.items;
+    } catch (error) {
+      console.error('Failed to search domains:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Search domains using the names query
+   * @param {Object} filters - Search filters
+   */
+  async searchDomainsCopy(filters = {}) {
     this.ensureInitialized();
 
     const query = gql`
@@ -640,6 +842,21 @@ class DomaSubgraphService {
                 name
                 addressUrlTemplate
               }
+              listings {
+                id
+                externalId
+                price
+                offererAddress
+                orderbook
+                currency {
+                  name
+                  symbol
+                  decimals
+                  usdExchangeRate
+                }
+                createdAt
+                expiresAt
+                }
             }
             isFractionalized
             fractionalTokenInfo {
@@ -800,6 +1017,237 @@ class DomaSubgraphService {
       });
 
       return result.data.nameActivities;
+    } catch (error) {
+      console.error('Failed to fetch name activities:', error);
+      throw error;
+    }
+  }
+
+  async getTokenActivities(tokenId, options = {}) {
+    this.ensureInitialized();
+
+    const query = gql`query GetTokenActivities(
+        $skip: Int
+        $take: Int
+        $tokenId: String!
+        $sortOrder: SortOrderType
+      ) {
+        tokenActivities(
+          skip: $skip
+          take: $take
+          tokenId: $tokenId
+          sortOrder: $sortOrder
+        ) {
+        __typename
+        items {
+        ... on TokenBoughtOutActivity {
+        id
+        type
+        networkId
+        txHash
+        finalized
+        tokenId
+        name
+        createdAt
+        chain {
+          name
+          networkId
+          addressUrlTemplate
+        }
+        buyoutPrice
+        }
+
+        ... on TokenTransferredActivity {
+        id
+        type
+        networkId
+        txHash
+        finalized
+        tokenId
+        name
+        createdAt
+        chain {
+          name
+          networkId
+          addressUrlTemplate
+        }
+          transferredTo
+          transferredFrom
+        }
+      
+      ... on TokenFractionalizedActivity {
+        id
+        type
+        networkId
+        txHash
+        finalized
+        tokenId
+        name
+        createdAt
+        chain {
+          name
+          networkId
+          addressUrlTemplate
+        }
+      }
+      
+      ... on TokenListedActivity {
+        id
+        type
+        networkId
+        txHash
+        finalized
+        tokenId
+        name
+        createdAt
+        chain {
+          name
+          networkId
+          addressUrlTemplate
+        }
+        orderId
+        startsAt
+        expiresAt
+        seller
+        listingBuyer: buyer
+        payment {
+          price
+          tokenAddress
+          currencySymbol
+          usdValue
+        }
+      }
+      
+      ... on TokenListingCancelledActivity {
+        id
+        type
+        networkId
+        txHash
+        finalized
+        tokenId
+        name
+        createdAt
+        chain {
+          name
+          networkId
+          addressUrlTemplate
+        }
+        reason
+        orderId
+        orderbook
+      }
+      
+      ... on TokenMintedActivity {
+        id
+        type
+        networkId
+        txHash
+        finalized
+        tokenId
+        name
+        createdAt
+        chain {
+          name
+          networkId
+          addressUrlTemplate
+        }
+        owner
+      }
+
+      ... on TokenOfferReceivedActivity {
+        id
+        type
+        networkId
+        txHash
+        finalized
+        tokenId
+        name
+        createdAt
+        chain {
+          name
+          networkId
+          addressUrlTemplate
+        }
+        orderId
+        expiresAt
+        buyer
+        seller
+        payment {
+          price
+          tokenAddress
+          currencySymbol
+          usdValue
+        }
+        orderbook
+      }
+
+      ... on TokenOfferCancelledActivity {
+        id
+        type
+        networkId
+        txHash
+        finalized
+        tokenId
+        name
+        createdAt
+        chain {
+          name
+          networkId
+          addressUrlTemplate
+        }
+        reason
+        orderId
+        orderbook
+      }
+      ... on TokenPurchasedActivity {
+        id
+        type
+        networkId
+        txHash
+        finalized
+        tokenId
+        name
+        createdAt
+        chain {
+          name
+          networkId
+          addressUrlTemplate
+        }
+        orderId
+        seller
+        buyer
+        payment {
+          price
+          tokenAddress
+          currencySymbol
+          usdValue
+        }
+        orderbook
+      }
+      }
+      totalCount
+      pageSize
+      currentPage
+      totalPages
+      hasPreviousPage
+      hasNextPage
+    }
+  }`;
+
+    const variables = {
+      skip: options.skip || 0,
+      take: options.take || 50,
+      sortOrder: options.sortOrder || 'DESC',
+      tokenId: tokenId,
+    };
+
+    try {
+      const result = await this.client.query({
+        query,
+        variables,
+        fetchPolicy: 'cache-first',
+      });
+      return result.data.tokenActivities;
     } catch (error) {
       console.error('Failed to fetch name activities:', error);
       throw error;

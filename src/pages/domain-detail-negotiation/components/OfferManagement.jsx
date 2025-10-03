@@ -2,44 +2,21 @@ import React, { useState } from 'react';
 import Icon from '../../../components/AppIcon';
 import Button from '../../../components/ui/Button';
 import Input from '../../../components/ui/Input';
+import { formatUnits } from 'ethers';
+import { formatDistance, parseISO } from 'date-fns';
+import { currencies, formatEthereumAddress, formatJustEthereumAddress, shortenAddress } from 'utils/cn';
+import { useAccount } from 'wagmi';
+import toast from 'react-hot-toast';
+import { viemToEthersSigner } from '@doma-protocol/orderbook-sdk';
+import { domaOrderbookService } from 'services/doma';
 
-const OfferManagement = ({ domain, onMakeOffer }) => {
-  const [showOfferForm, setShowOfferForm] = useState(false);
-  const [offerAmount, setOfferAmount] = useState('');
-  const [offerMessage, setOfferMessage] = useState('');
-  const [paymentTerms, setPaymentTerms] = useState('full');
+const OfferManagement = ({ domain, offers, onMakeOffer, walletClient, fetchDomainDetails }) => {
+  const { address} = useAccount();
+  const [showCancelOfferModal, setShowCancelOfferModal] = useState(false);
+  const [showAcceptOfferModal, setShowAcceptOfferModal] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [selectedOffer, setSelectedOffer] = useState(null);
 
-  // Mock offer history
-  const offerHistory = [
-    {
-      id: 1,
-      type: 'offer',
-      amount: 8500,
-      status: 'countered',
-      message: 'I\'m interested in purchasing this domain for my new startup. Would you consider this offer?',
-      timestamp: new Date(Date.now() - 86400000 * 2),
-      counterAmount: 9200,
-      counterMessage: 'Thanks for your interest! Given the domain\'s performance, I can offer it for $9,200. This includes transfer assistance and 30 days support.'
-    },
-    {
-      id: 2,
-      type: 'offer',
-      amount: 7800,
-      status: 'declined',
-      message: 'This is my budget for the domain acquisition.',
-      timestamp: new Date(Date.now() - 86400000 * 5),
-      declineMessage: 'I appreciate your offer, but it\'s below my minimum acceptable price for this premium domain.'
-    },
-    {
-      id: 3,
-      type: 'offer',
-      amount: 9000,
-      status: 'pending',
-      message: 'I can meet you halfway. This is a fair offer considering current market conditions.',
-      timestamp: new Date(Date.now() - 3600000 * 6),
-      isLatest: true
-    }
-  ];
 
   const formatPrice = (price) => {
     return new Intl.NumberFormat('en-US', {
@@ -50,190 +27,118 @@ const OfferManagement = ({ domain, onMakeOffer }) => {
     })?.format(price);
   };
 
-  const formatDate = (date) => {
-    return new Intl.DateTimeFormat('en-US', {
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    })?.format(date);
-  };
-
-  const handleSubmitOffer = (e) => {
+  const handleCancelOffer = (e) => {
     e?.preventDefault();
-    if (!offerAmount || parseFloat(offerAmount) <= 0) return;
 
-    const newOffer = {
-      amount: parseFloat(offerAmount),
-      message: offerMessage,
-      paymentTerms: paymentTerms
-    };
+      if (!walletClient) return;
 
-    onMakeOffer(newOffer);
-    setShowOfferForm(false);
-    setOfferAmount('');
-    setOfferMessage('');
-    setPaymentTerms('full');
+      const signer = viemToEthersSigner(walletClient, domain?.tokens[0]?.chain?.networkId);
+      
+      try {
+        setIsLoading(true);
+        const chainId = domain?.tokens[0]?.chain?.networkId;
+        domaOrderbookService.cancelOffer(  
+        selectedOffer?.externalId,
+        signer, 
+        chainId
+      ).then((result) => {
+          if (result?.status === "success") {
+            const urlParams = new URLSearchParams(location.search);
+            const searchTokenIdParam = urlParams?.get('token_id');
+            const searchDomainParam = urlParams?.get('domain');
+            fetchDomainDetails(searchTokenIdParam,searchDomainParam)
+            setIsLoading(false);
+            setShowCancelOfferModal(false);
+          } else {
+            setIsLoading(false);
+          }
+        })
+      } catch (error) {
+        console.log(error)
+        toast.error(error)
+        setIsLoading(false);
+      }
   };
 
-  const getStatusColor = (status) => {
-    switch (status) {
-      case 'accepted':
-        return 'text-success bg-success/10';
-      case 'declined':
-        return 'text-error bg-error/10';
-      case 'countered':
-        return 'text-warning bg-warning/10';
-      case 'pending':
-        return 'text-primary bg-primary/10';
-      default:
-        return 'text-muted-foreground bg-muted';
-    }
+  const handleAcceptOffer = (e) => {
+    e?.preventDefault();
+
+      if (!walletClient) return;
+
+      const signer = viemToEthersSigner(walletClient, domain?.tokens[0]?.chain?.networkId);
+      
+      try {
+        setIsLoading(true);
+        const chainId = domain?.tokens[0]?.chain?.networkId;
+        domaOrderbookService.acceptOffer(  
+        selectedOffer?.externalId,
+        signer, 
+        chainId
+      ).then((result) => {
+          if (result?.status === "success") {
+            const urlParams = new URLSearchParams(location.search);
+            const searchTokenIdParam = urlParams?.get('token_id');
+            const searchDomainParam = urlParams?.get('domain');
+            fetchDomainDetails(searchTokenIdParam,searchDomainParam)
+            setIsLoading(false);
+            setShowCancelOfferModal(false);
+          } else {
+            setIsLoading(false);
+          }
+        })
+      } catch (error) {
+        console.log(error)
+        toast.error(error)
+        setIsLoading(false);
+      }
   };
 
-  const getStatusIcon = (status) => {
-    switch (status) {
-      case 'accepted':
-        return 'CheckCircle';
-      case 'declined':
-        return 'XCircle';
-      case 'countered':
-        return 'ArrowRightLeft';
-      case 'pending':
-        return 'Clock';
-      default:
-        return 'Circle';
-    }
-  };
 
   return (
     <div className="bg-card border border-border rounded-lg shadow-card">
       {/* Header */}
+
+      {address?.toLowerCase !== formatEthereumAddress(domain["tokens"][0]?.ownerAddress).toLowerCase() &&
       <div className="flex items-center justify-between p-6 border-b border-border">
         <h3 className="text-lg font-semibold text-foreground">Offer Management</h3>
         <Button
           variant="default"
-          onClick={() => setShowOfferForm(true)}
+          onClick={() => address ? onMakeOffer(true) : toast.error("Please connect your wallet to make an offer")}
           iconName="Plus"
           iconPosition="left"
-        >
+          >
           Make Offer
         </Button>
       </div>
-      {/* Offer Form Modal */}
-      {showOfferForm && (
-        <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-card border border-border rounded-lg shadow-modal w-full max-w-md">
-            <div className="flex items-center justify-between p-6 border-b border-border">
-              <h4 className="text-lg font-semibold text-foreground">Make an Offer</h4>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setShowOfferForm(false)}
-              >
-                <Icon name="X" size={16} />
-              </Button>
-            </div>
-            
-            <form onSubmit={handleSubmitOffer} className="p-6 space-y-4">
-              <Input
-                label="Offer Amount"
-                type="number"
-                placeholder="Enter your offer amount"
-                value={offerAmount}
-                onChange={(e) => setOfferAmount(e?.target?.value)}
-                required
-                min="1"
-                step="1"
-              />
-              
-              <div>
-                <label className="block text-sm font-medium text-foreground mb-2">
-                  Payment Terms
-                </label>
-                <div className="space-y-2">
-                  <label className="flex items-center space-x-2">
-                    <input
-                      type="radio"
-                      name="paymentTerms"
-                      value="full"
-                      checked={paymentTerms === 'full'}
-                      onChange={(e) => setPaymentTerms(e?.target?.value)}
-                      className="text-primary"
-                    />
-                    <span className="text-sm text-foreground">Full payment upfront</span>
-                  </label>
-                  <label className="flex items-center space-x-2">
-                    <input
-                      type="radio"
-                      name="paymentTerms"
-                      value="installments"
-                      checked={paymentTerms === 'installments'}
-                      onChange={(e) => setPaymentTerms(e?.target?.value)}
-                      className="text-primary"
-                    />
-                    <span className="text-sm text-foreground">Payment in installments</span>
-                  </label>
-                </div>
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-foreground mb-2">
-                  Message to Seller
-                </label>
-                <textarea
-                  value={offerMessage}
-                  onChange={(e) => setOfferMessage(e?.target?.value)}
-                  placeholder="Add a personal message to strengthen your offer..."
-                  rows={4}
-                  className="w-full px-3 py-2 border border-border rounded-md bg-input text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent resize-none"
-                />
-              </div>
-              
-              <div className="flex items-center justify-between pt-4">
-                <div className="text-sm text-muted-foreground">
-                  Current asking price: {formatPrice(domain?.currentPrice)}
-                </div>
-                <div className="flex space-x-3">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => setShowOfferForm(false)}
-                  >
-                    Cancel
-                  </Button>
-                  <Button type="submit">
-                    Submit Offer
-                  </Button>
-                </div>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+        }
+      
       {/* Offer History */}
       <div className="p-6">
-        {offerHistory?.length === 0 ? (
+        {offers?.length === 0 ? (
           <div className="text-center py-8">
-            <Icon name="MessageSquare" size={48} className="mx-auto text-muted-foreground mb-4" />
-            <h4 className="text-lg font-medium text-foreground mb-2">No offers yet</h4>
-            <p className="text-muted-foreground mb-4">Be the first to make an offer on this domain</p>
-            <Button
-              variant="default"
-              onClick={() => setShowOfferForm(true)}
-              iconName="Plus"
-              iconPosition="left"
-            >
-              Make First Offer
-            </Button>
+          {address?.toLowerCase !== formatEthereumAddress(domain["tokens"][0]?.ownerAddress).toLowerCase() &&
+            <div>
+              <Icon name="MessageSquare" size={48} className="mx-auto text-muted-foreground mb-4" />
+              <h4 className="text-lg font-medium text-foreground mb-2">No offers yet</h4>
+              <p className="text-muted-foreground mb-4">Be the first to make an offer on this domain</p>
+              <Button
+                variant="default"
+                onClick={() => address ? onMakeOffer(true) : toast.error("Please connect your wallet to make an offer")}
+                iconName="Plus"
+                iconPosition="left"
+              >
+                Make First Offer
+              </Button>
+            </div>
+            }
           </div>
         ) : (
           <div className="space-y-4">
-            {offerHistory?.map((offer) => (
+            {offers?.map((offer) => (
               <div
                 key={offer?.id}
                 className={`border border-border rounded-lg p-4 ${
-                  offer?.isLatest ? 'ring-2 ring-primary/20 bg-primary/5' : 'bg-muted/30'
+                  offer?.[offers?.length - 1]?.id === offer?.id ? 'ring-2 ring-primary/20 bg-primary/5' : 'bg-muted/30'
                 }`}
               >
                 <div className="flex items-start justify-between mb-3">
@@ -242,26 +147,38 @@ const OfferManagement = ({ domain, onMakeOffer }) => {
                       <Icon name="User" size={16} color="white" />
                     </div>
                     <div>
-                      <div className="font-medium text-foreground">Your Offer</div>
-                      <div className="text-sm text-muted-foreground">{formatDate(offer?.timestamp)}</div>
+                      <div className="font-medium text-foreground">{address ? (formatJustEthereumAddress(offer?.offererAddress).toLowerCase() === address.toLowerCase() && "Your Offer") : shortenAddress(formatJustEthereumAddress(offer?.offererAddress)) + " Offer"}</div>
+                      <div className="text-sm text-muted-foreground">Created {formatDistance(parseISO(offer?.createdAt), new Date(), { addSuffix: true })}</div>
+                  <div className="text-sm text-muted-foreground">Expires {formatDistance(parseISO(offer?.expiresAt), new Date(), { addSuffix: true })}</div>
                     </div>
                   </div>
-                  <div className="flex items-center space-x-2">
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(offer?.status)}`}>
-                      <Icon name={getStatusIcon(offer?.status)} size={12} className="inline mr-1" />
-                      {offer?.status?.charAt(0)?.toUpperCase() + offer?.status?.slice(1)}
-                    </span>
-                  </div>
+
+
                 </div>
                 
                 <div className="mb-3">
-                  <div className="text-2xl font-bold text-foreground mb-1">
-                    {formatPrice(offer?.amount)}
+                  <div className="text-md font-bold text-foreground mb-1">
+                    {formatUnits(offer?.price, offer?.currency?.decimals)} {offer?.currency?.symbol}
                   </div>
                   {offer?.message && (
                     <p className="text-sm text-muted-foreground">{offer?.message}</p>
                   )}
                 </div>
+
+                {address && (
+                <div className="flex space-x-2 mt-3">
+                  {address.toLowerCase() === formatJustEthereumAddress(domain?.tokens[0]?.ownerAddress).toLowerCase() && (
+                    <Button onClick={() => {setSelectedOffer(offer);setShowAcceptOfferModal(true)}} variant="default" size="sm">
+                      Accept Offer
+                    </Button>
+                  )}
+                  {formatJustEthereumAddress(offer?.offererAddress).toLowerCase() === address.toLowerCase() && (
+                  <Button onClick={() => {setSelectedOffer(offer);setShowCancelOfferModal(true)}} variant="outline" className="bg-red-500 hover:bg-red-600 cursor-pointer text-white" size="sm">
+                    Cancel Offer
+                  </Button>
+                  )}
+                </div>
+                )}
                 
                 {/* Counter Offer */}
                 {offer?.status === 'countered' && (
@@ -300,6 +217,69 @@ const OfferManagement = ({ domain, onMakeOffer }) => {
           </div>
         )}
       </div>
+
+      {showCancelOfferModal && (
+        <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-card border border-border rounded-lg shadow-modal w-full max-w-lg">
+            <div className="flex items-center justify-between p-6 border-b border-border">
+              
+              <div className='grid'>
+                <span className="text-lg font-semibold text-foreground">Cancel Domain offer</span>
+                <span className="text-xs font-semibold mt-2 text-foreground text-red-500">Are you sure you want to cancel this offer?</span>
+              </div>
+            </div>
+            
+            <div className="p-6 space-y-4">
+              <div className="flex space-x-3 w-full">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="w-full bg-gray-500 hover:bg-gray-600 text-white"
+                    onClick={() => setShowCancelOfferModal(false)}
+                  >
+                    Cancel
+                  </Button>
+
+                  <Button disabled={isLoading} className="w-full disabled:cursor-not-allowed h-10 hover:bg-blue-900" onClick={() => handleCancelOffer()} type="submit">
+                  {isLoading ? "Processing" : "Proceed"}
+                  </Button>
+                </div>
+              
+            </div>
+          </div>
+        </div>
+      )}
+      {showAcceptOfferModal && (
+        <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-card border border-border rounded-lg shadow-modal w-full max-w-lg">
+            <div className="flex items-center justify-between p-6 border-b border-border">
+              
+              <div className='grid'>
+                <span className="text-lg font-semibold text-foreground">Accept Domain offer</span>
+                <span className="text-xs font-semibold mt-2 text-foreground text-red-500">Are you sure you want to accept this offer?</span>
+              </div>
+            </div>
+            
+            <div className="p-6 space-y-4">
+              <div className="flex space-x-3 w-full">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="w-full bg-gray-500 hover:bg-gray-600 text-white"
+                    onClick={() => setShowAcceptOfferModal(false)}
+                  >
+                    Cancel
+                  </Button>
+
+                  <Button disabled={isLoading} className="w-full disabled:cursor-not-allowed h-10 hover:bg-blue-900" onClick={() => handleAcceptOffer()} type="submit">
+                  {isLoading ? "Processing" : "Proceed"}
+                  </Button>
+                </div>
+              
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

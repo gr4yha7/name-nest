@@ -387,3 +387,28 @@ const DomaIntegrationExample = () => {
 };
 
 export default DomaIntegrationExample;
+
+// {
+//   "id": 155880,
+//   "name": "pi5ojixk9l.shib",
+//   "type": "NAME_TOKENIZED",
+//   "uniqueId": "DOMA_RECORD-eip155:97476-finalized-0x8b2cdf423fee45238ee6361478e4d93b3bdd2b22e03a18d550611b3e4d1d32f3-2",
+//   "relayId": "9e3f0c00-fe4e-4db4-ba0f-c705e6db6159",
+//   "eventData": {
+//       "type": "NAME_TOKENIZED",
+//       "dsKeys": [],
+//       "txHash": "0x8b2cdf423fee45238ee6361478e4d93b3bdd2b22e03a18d550611b3e4d1d32f3",
+//       "removed": false,
+//       "logIndex": 2,
+//       "claimedBy": "eip155:157:0x2E7cC63800e77BB8c662c45Ef33D1cCc23861532",
+//       "finalized": true,
+//       "networkId": "eip155:97476",
+//       "blockNumber": "6142024",
+//       "nameservers": [],
+//       "correlationId": "5203cfc69c7ece59f89ea9bb402cd31f1011683f489e9d629d632be070aa9daf",
+//       "registrarIanaId": 3784,
+//       "domaRecordAddress": "0xF6A92E0f8bEa4174297B0219d9d47fEe335f84f8",
+//       "name": "pi5ojixk9l.shib",
+//       "expiresAt": "2026-06-01T00:00:00.000Z"
+//   }
+// }

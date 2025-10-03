@@ -6,20 +6,37 @@ import { useAccount, useConnect, useDisconnect } from 'wagmi';
 import { injected } from 'wagmi/connectors'
 import { shortenAddress } from 'utils/cn';
 import { ConnectKitButton } from "connectkit";
+import { domaSubgraphService } from 'services/doma';
 
 const Header = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isSearchExpanded, setIsSearchExpanded] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [notificationCount, setNotificationCount] = useState(3);
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
   const { isConnected: isWalletConnected } = useAccount();
   const location = useLocation();
-
+  
   const { address, isDisconnected} = useAccount();
   const { disconnect } = useDisconnect();
   const { connect } = useConnect();
   const navigate = useNavigate();
+
+  const [notificationCount, setNotificationCount] = useState(0);
+
+  useEffect(() => {
+    if (address) {
+      domaSubgraphService.getDomainDeals({
+        offeredBy: address
+      }).then((offers) => {
+        setNotificationCount(offers?.length || 0);
+      }).catch((error) => {
+        console.error('Failed to fetch domain deals:', error);
+        setNotificationCount(0);
+      });
+    } else {
+      setNotificationCount(0);
+    }
+  }, [address]);
 
   const navigationItems = [
     {
@@ -35,15 +52,15 @@ const Header = () => {
       tooltip: 'Manage your domain portfolio',
       authRequired: isDisconnected ? true : false
     },
-    {
-      label: 'Sell Domain',
-      path: '/domain-listing-creation',
-      icon: 'Plus',
-      tooltip: 'Create new domain listing'
-    },
+    // {
+    //   label: 'Sell Domain',
+    //   path: '/domain-listing-creation',
+    //   icon: 'Plus',
+    //   tooltip: 'Create new domain listing'
+    // },
     {
       label: 'My Deals',
-      path: '/domain-detail-negotiation',
+      path: '/domain-offers',
       icon: 'MessageSquare',
       tooltip: 'Manage active negotiations',
       hasNotification: notificationCount > 0,

@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Icon from '../../../components/AppIcon';
 import Input from '../../../components/ui/Input';
+import { domaSubgraphService } from 'services/doma';
 
-const SearchAutocomplete = ({ value, onChange, onSearch, placeholder = "Search domains...", domains, onPreview }) => {
+const SearchAutocomplete = ({ value, onChange, onSearch, placeholder = "Search more domains...", domains, onPreview }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [suggestions, setSuggestions] = useState([]);
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
@@ -11,10 +12,9 @@ const SearchAutocomplete = ({ value, onChange, onSearch, placeholder = "Search d
 
   useEffect(() => {
     if (value && value?.length > 1) {
-      const filtered = domains?.filter(suggestion =>
-        suggestion?.name?.toLowerCase()?.includes(value?.toLowerCase())
-      );
-      setSuggestions(filtered?.slice(0, 8));
+      const result = domaSubgraphService.searchDomains({"name":value.toString()}).then((names) => {
+        setSuggestions(names?.slice(0, 10));
+      });
       setIsOpen(true);
     } else {
       setSuggestions([]);
@@ -68,7 +68,7 @@ const SearchAutocomplete = ({ value, onChange, onSearch, placeholder = "Search d
 
   const handleSuggestionClick = (suggestion) => {
     onChange(suggestion?.name);
-    onSearch(suggestion?.name);
+    // onSearch(suggestion?.name);
     setIsOpen(false);
     setHighlightedIndex(-1);
     onPreview(suggestion);

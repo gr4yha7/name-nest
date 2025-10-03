@@ -7,10 +7,28 @@ import {
   createDomaOrderbookClient, 
   OrderbookType, 
   DomaOrderbookError, 
-  DomaOrderbookErrorCode 
+  DomaOrderbookErrorCode, 
+  getDomaOrderbookClient
 } from '@doma-protocol/orderbook-sdk';
 import { viemToEthersSigner } from '@doma-protocol/orderbook-sdk';
 import config from './config.js';
+import { currencies, domaTestnet } from 'utils/cn.js';
+import { baseSepolia, sepolia, shibariumTestnet } from 'viem/chains';
+import { formatUnits, parseUnits } from 'viem';
+import toast from 'react-hot-toast';
+
+ 
+// Convert all BigInt values in an object/array to string recursively
+function normalizeBigInt(value) {
+  if (typeof value === 'bigint') return value.toString();
+  if (Array.isArray(value)) return value.map(normalizeBigInt);
+  if (value && typeof value === 'object') {
+    const out = {};
+    for (const k of Object.keys(value)) out[k] = normalizeBigInt(value[k]);
+    return out;
+  }
+  return value;
+}
 
 class DomaOrderbookService {
   constructor() {
@@ -29,9 +47,17 @@ class DomaOrderbookService {
       const clientConfig = {
         apiClientOptions: {
           baseUrl: config.endpoints.orderbook,
-          apiKey: config.api.key,
+          defaultHeaders: {
+            "Api-Key": config.api.key,
+          },
         },
-        ...options,
+        source: "domainLine",
+        chains: [
+          domaTestnet,
+          baseSepolia,
+          sepolia,
+          shibariumTestnet
+        ]
       };
 
       this.client = createDomaOrderbookClient(clientConfig);
@@ -51,25 +77,28 @@ class DomaOrderbookService {
    * @param {string} chainId - Chain ID (e.g., 'eip155:1')
    * @param {Function} onProgress - Progress callback
    */
-  async createListing(listingData, signer, chainId, onProgress = null) {
+  async createListing(listingData, signer, chainId, currencyAddress, currency, onProgress = null) {
     this.ensureInitialized();
 
     try {
       // Convert price to wei if needed
-      const priceInWei = this.convertToWei(listingData.price, listingData.currency);
+      const currencyDetails = currencies.find((c) => c.symbol === currency);
+      const client = getDomaOrderbookClient();
 
-      const result = await this.client.createListing({
+      const result = await client.createListing({
+        signer,
+        chainId,
         params: {
+          orderbook: OrderbookType.DOMA,
+          source: "domainLine",
           items: [{
             contract: listingData.contractAddress,
             tokenId: listingData.tokenId,
-            price: priceInWei,
+            price: parseUnits(listingData?.price, currencyDetails?.decimals),
+            duration: listingData?.expiryDate || Math.floor(Date.now() / 1000) + 86400, // 24 hours default,
+            currencyContractAddress: currencyAddress
           }],
-          orderbook: OrderbookType.DOMA,
-          marketplaceFees: listingData.marketplaceFees, // Optional, will be fetched automatically if not provided
         },
-        signer,
-        chainId,
         onProgress: onProgress || ((step, progress) => {
           console.log(`Creating listing: ${step} (${progress}%)`);
         }),
@@ -93,36 +122,41 @@ class DomaOrderbookService {
    * @param {string} chainId - Chain ID (e.g., 'eip155:1')
    * @param {Function} onProgress - Progress callback
    */
-  async createOffer(offerData, signer, chainId, onProgress = null) {
+  async createOffer(offerData, signer, chainId, currency, onProgress = null) {
     this.ensureInitialized();
-
+    
     try {
-      // Convert price to wei if needed
-      const priceInWei = this.convertToWei(offerData.price, offerData.currency);
+      const currencyDetails = currencies.find((c) => c.symbol === currency);
+      console.log(parseUnits(offerData?.price, currencyDetails?.decimals))
 
       const result = await this.client.createOffer({
+        signer,
+        chainId,
         params: {
+          orderbook: OrderbookType.DOMA,
+          source: "domainLine",
           items: [{
             contract: offerData.contractAddress,
             tokenId: offerData.tokenId,
-            currencyContractAddress: offerData.currencyContractAddress || '0x0000000000000000000000000000000000000000', // ETH
-            price: priceInWei,
+            currencyContractAddress: offerData.currencyContractAddress,
+            price: parseUnits(offerData?.price, currencyDetails?.decimals).toString(),
           }],
-          orderbook: OrderbookType.DOMA,
           expirationTime: offerData.expirationTime || Math.floor(Date.now() / 1000) + 86400, // 24 hours default
         },
-        signer,
-        chainId,
-        onProgress: onProgress || ((step, progress) => {
-          console.log(`Creating offer: ${step} (${progress}%)`);
+        onProgress:((progress) => {
+          console.log("progress", progress)
+          const isAllComplete = progress.every((p) => p.status === "complete");
+          if (isAllComplete) {
+            toast.success("Offer created successfully!");
+          }
         }),
       });
 
       // Cache the offer
-      this.cacheOrder(result.orderId, result);
+      this.cacheOrder(result.orders[0]?.orderId, result);
       
-      console.log('Created offer:', result.orderId);
-      return result;
+      console.log('Created offer:', result);
+      return result.orders[0];
     } catch (error) {
       this.handleOrderbookError(error);
       throw error;
@@ -155,7 +189,7 @@ class DomaOrderbookService {
       this.invalidateOrder(offerId);
       
       console.log('Accepted offer:', offerId);
-      return result;
+      return normalizeBigInt(result);
     } catch (error) {
       this.handleOrderbookError(error);
       throw error;
@@ -170,14 +204,12 @@ class DomaOrderbookService {
    * @param {string} chainId - Chain ID (e.g., 'eip155:1')
    * @param {Function} onProgress - Progress callback
    */
-  async buyListing(orderId, fulfillerAddress, signer, chainId, onProgress = null) {
+  async buyListing(orderId, signer, chainId, onProgress = null) {
     this.ensureInitialized();
-
     try {
       const result = await this.client.buyListing({
         params: {
-          orderId,
-          fulFillerAddress: fulfillerAddress,
+          orderId
         },
         signer,
         chainId,
@@ -190,10 +222,10 @@ class DomaOrderbookService {
       this.invalidateOrder(orderId);
       
       console.log('Bought listing:', orderId);
-      return result;
+      return orderId;
     } catch (error) {
       this.handleOrderbookError(error);
-      throw error;
+      return error;
     }
   }
 
@@ -256,7 +288,7 @@ class DomaOrderbookService {
       this.invalidateOrder(orderId);
       
       console.log('Cancelled offer:', orderId);
-      return result;
+      return normalizeBigInt(result);
     } catch (error) {
       this.handleOrderbookError(error);
       throw error;
@@ -361,36 +393,47 @@ class DomaOrderbookService {
       switch (error.code) {
         case DomaOrderbookErrorCode.SIGNER_NOT_PROVIDED:
           console.error('Please connect your wallet');
+          toast.error(error?.message)
           break;
         case DomaOrderbookErrorCode.FETCH_FEES_FAILED:
           console.error('Failed to fetch marketplace fees');
+          toast.error(error?.message)
           break;
         case DomaOrderbookErrorCode.CLIENT_NOT_INITIALIZED:
           console.error('SDK not initialized');
+          toast.error(error?.message)
           break;
         case DomaOrderbookErrorCode.INSUFFICIENT_FUNDS:
           console.error('Insufficient funds for transaction');
+          toast.error(error?.message)
           break;
         case DomaOrderbookErrorCode.ORDER_NOT_FOUND:
           console.error('Order not found');
+          toast.error(error?.message)
           break;
         case DomaOrderbookErrorCode.ORDER_EXPIRED:
           console.error('Order has expired');
+          toast.error(error?.message)
           break;
         case DomaOrderbookErrorCode.ORDER_ALREADY_FULFILLED:
           console.error('Order already fulfilled');
+          toast.error(error?.message)
           break;
         case DomaOrderbookErrorCode.ORDER_CANCELLED:
           console.error('Order has been cancelled');
+          toast.error(error?.message)
           break;
         case DomaOrderbookErrorCode.INVALID_SIGNATURE:
           console.error('Invalid signature');
+          toast.error(error?.message)
           break;
         case DomaOrderbookErrorCode.NETWORK_ERROR:
           console.error('Network error occurred');
+          toast.error(error?.message)
           break;
         default:
           console.error('Unknown Doma Orderbook error:', error.message);
+          toast.error(error?.message)
       }
     } else {
       console.error('Non-Doma Orderbook error:', error.message);

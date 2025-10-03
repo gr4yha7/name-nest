@@ -15,7 +15,7 @@ import { domaSubgraphService } from 'services/doma';
 const DomainPortfolioDashboard = () => {
   const [selectedNetwork, setSelectedNetwork] = useState('all');
   const [portfolioData, setPortfolioData] = useState(null);
-  const [selectedDomains, setSelectedDomains] = useState([""]);
+  const [selectedDomains, setSelectedDomains] = useState([]);
   const [myDomains, setMyDomains] = useState([]);
   const [filterOptions, setFilterOptions] = useState({
     network: 'all',
@@ -67,11 +67,9 @@ const DomainPortfolioDashboard = () => {
   };
 
   const loadPortfolioData = async () => {
-    setLoading(true);
-    domaSubgraphService.getUserDomains("0xd35095b3d9435e07d48671C38d54e71e2eB90E77").then((names) => {
+    domaSubgraphService.getUserDomains(address).then((names) => {
       setMyDomains(names)
-    });;
-    // Simulate API call
+    });
     await new Promise(resolve => setTimeout(resolve, 1500));
     setPortfolioData(mockPortfolioData);
     setLoading(false);
@@ -179,14 +177,14 @@ const DomainPortfolioDashboard = () => {
             <PortfolioOverviewCards data={portfolioData} domains={myDomains} />
 
             {/* Network Distribution and Analytics Row */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="gap-6">
               <NetworkDistributionMap 
                 data={portfolioData?.networkDistribution} 
                 domains={myDomains} 
                 selectedNetwork={selectedNetwork}
                 onNetworkSelect={setSelectedNetwork}
               />
-              <PortfolioAnalytics data={portfolioData} domains={myDomains} />
+              {/* <PortfolioAnalytics data={portfolioData} domains={myDomains} /> */}
             </div>
 
             {/* Smart Contract Integration */}

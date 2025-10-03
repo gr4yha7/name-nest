@@ -1,46 +1,28 @@
 import { WagmiProvider, createConfig, http } from "wagmi";
-import { mainnet } from "wagmi/chains";
+import { baseSepolia, mainnet, sepolia, shibariumTestnet } from "wagmi/chains";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ConnectKitProvider, getDefaultConfig } from "connectkit";
-
-// Define your custom chain
-const customChain = {
-  id: 97476, // Replace with your custom chain ID
-  name: "Domain Testnet",
-  network: "domainTestnet",
-  nativeCurrency: {
-    decimals: 18,
-    name: "Domain Testnet",
-    symbol: "ETH",
-  },
-  rpcUrls: {
-    default: {
-      http: ["https://rpc-testnet.doma.xyz"], // Replace with your custom RPC URL
-    },
-  },
-  blockExplorers: {
-    default: {
-      name: "Domain Explorer",
-      url: "https://explorer-testnet.doma.xyz", // Replace with your custom block explorer URL
-    },
-  },
-  testnet: true, // Set to false if it's a mainnet
-};
+import { domaTestnet } from "utils/cn";
 
 const config = createConfig(
   getDefaultConfig({
     walletConnectProjectId: import.meta.env.VITE_WALLETCONNECT_PROJECT_ID,
     // Your dApps chains
-    chains: [mainnet, customChain], // Add your custom chain here
+    chains: [mainnet, baseSepolia, sepolia, shibariumTestnet, domaTestnet], // Add your custom chain here
     transports: {
-      [customChain.id]: http("https://rpc-testnet.doma.xyz"), // Add RPC for custom chain
+      [mainnet.id]: http(mainnet?.rpcUrls), // Add RPC for custom chain
+      [baseSepolia.id]: http(baseSepolia?.rpcUrls), // Add RPC for custom chain
+      [sepolia.id]: http(sepolia?.rpcUrls), // Add RPC for custom chain
+      [sepolia.id]: http(sepolia?.rpcUrls), // Add RPC for custom chain
+      [shibariumTestnet.id]: http(shibariumTestnet?.rpcUrls), // Add RPC for custom chain
+      [domaTestnet.id]: http("https://rpc-testnet.doma.xyz"), // Add RPC for custom chain
     },
 
     // Required App Info
     appName: "NameNest",
 
     // Optional App Info
-    appDescription: "NameNest is a secure platform for buying and selling domain names.",
+    appDescription: "NameNest is a secure messaging platform for buying and selling domain names.",
     appUrl: "https://family.co", // your app's url
     appIcon: "/logo.png", // your app's icon, no bigger than 1024x1024px (max. 1MB)
   }),

@@ -9,43 +9,44 @@ const FilterPanel = ({ isOpen, onClose, filters, onFiltersChange, isMobile = fal
   const [localFilters, setLocalFilters] = useState(filters);
 
   const priceRanges = [
-    { value: 'all', label: 'All Prices' },
-    { value: '0-1000', label: 'Under $1,000' },
-    { value: '1000-5000', label: '$1,000 - $5,000' },
-    { value: '5000-10000', label: '$5,000 - $10,000' },
-    { value: '10000-50000', label: '$10,000 - $50,000' },
-    { value: '50000+', label: '$50,000+' }
+    { value: "0-500", label: "Under $500" },
+  { value: "500-1000", label: "$500 - $1,000" },
+  { value: "1000-2000", label: "$1,001 - $2,000" },
+  { value: "2000-5000", label: "$2,000 - $5,000" },
+  { value: "5000-1000000", label: "$5,000+" }
   ];
 
   const tldOptions = [
-    { value: '.com', label: '.com' },
-    { value: '.net', label: '.net' },
-    { value: '.org', label: '.org' },
-    { value: '.io', label: '.io' },
-    { value: '.ai', label: '.ai' },
-    { value: '.co', label: '.co' }
+    { value: 'com', label: '.com' },
+    { value: 'net', label: '.net' },
+    { value: 'org', label: '.org' },
+    { value: 'io', label: '.io' },
+    { value: 'ai', label: '.ai' },
+    { value: 'co', label: '.co' }
   ];
 
-  const categoryOptions = [
-    { value: 'technology', label: 'Technology' },
-    { value: 'business', label: 'Business' },
-    { value: 'finance', label: 'Finance' },
-    { value: 'health', label: 'Health' },
-    { value: 'education', label: 'Education' },
-    { value: 'entertainment', label: 'Entertainment' }
+  const statuses = [
+    { value: 'UNLISTED', label: 'Unlisted' },
+    { value: 'OFFERS_RECEIVED', label: 'Offers Received' },
   ];
 
-  const lengthOptions = [
-    { value: 'all', label: 'Any Length' },
-    { value: '1-5', label: '1-5 characters' },
-    { value: '6-10', label: '6-10 characters' },
-    { value: '11-15', label: '11-15 characters' },
-    { value: '16+', label: '16+ characters' }
+  const networkOptions = [
+    { value: "eip155:97476", label: 'Doma Testnet' },
+    { value: "eip155:84532", label: 'Base Testnet' },
+    { value: "eip155:11155111", label: 'Sepolia Testnet' },
+    { value: "eip155:1427", label: 'Ape Testnet' },
+    { value: "eip155:43113", label: 'Avalanche' },
   ];
 
-  const handleFilterChange = (key, value) => {
-    const updatedFilters = { ...localFilters, [key]: value };
-    setLocalFilters(updatedFilters);
+  const handleFilterChange = (key, value, secondValue) => {
+    if (key !== "priceChange") {
+      const updatedFilters = { ...localFilters, [key]: value };
+      setLocalFilters(updatedFilters);
+    } else {
+      let updatedFilters = { ...localFilters, ["priceRangeMin"]: value };
+      updatedFilters = { ...localFilters, ["priceRangeMax"]: secondValue };
+      setLocalFilters(updatedFilters);
+    }
   };
 
   const handleApplyFilters = () => {
@@ -60,11 +61,9 @@ const FilterPanel = ({ isOpen, onClose, filters, onFiltersChange, isMobile = fal
       priceRange: 'all',
       tlds: [],
       categories: [],
-      length: 'all',
+      networks: [],
       keyword: '',
-      minRating: 0,
-      hasEscrow: false,
-      isVerified: false
+      listed: true,
     };
     setLocalFilters(clearedFilters);
     onFiltersChange(clearedFilters);
@@ -73,13 +72,8 @@ const FilterPanel = ({ isOpen, onClose, filters, onFiltersChange, isMobile = fal
   const getActiveFilterCount = () => {
     let count = 0;
     if (localFilters?.priceRange !== 'all') count++;
-    if (localFilters?.tlds?.length > 0) count++;
-    if (localFilters?.categories?.length > 0) count++;
-    if (localFilters?.length !== 'all') count++;
+    if (localFilters?.networks?.length > 0) count++;
     if (localFilters?.keyword) count++;
-    if (localFilters?.minRating > 0) count++;
-    if (localFilters?.hasEscrow) count++;
-    if (localFilters?.isVerified) count++;
     return count;
   };
 
@@ -113,25 +107,30 @@ const FilterPanel = ({ isOpen, onClose, filters, onFiltersChange, isMobile = fal
         />
       </div>
 
+      <div>
+        <Input
+          label="Min Offer (USD)"
+          type="number"
+          placeholder="Search in domain min usd offer..."
+          value={localFilters?.offerMinUsd}
+          onChange={(e) => handleFilterChange('offerMinUsd', e?.target?.value)}
+        />
+      </div>
+
       {/* Price Range */}
       <div>
         <Select
           label="Price Range"
           options={priceRanges}
-          value={localFilters?.priceRange}
-          onChange={(value) => handleFilterChange('priceRange', value)}
+          value={`${localFilters?.priceRangeMin} - ${localFilters?.priceRangeMax}`}
+          onChange={(value) => {
+            // value will be like "2000-5000"
+            const [min, max] = value.split("-").map(Number);
+            handleFilterChange('priceChange', min, max)
+          }}
         />
       </div>
 
-      {/* Domain Length */}
-      <div>
-        <Select
-          label="Domain Length"
-          options={lengthOptions}
-          value={localFilters?.length}
-          onChange={(value) => handleFilterChange('length', value)}
-        />
-      </div>
 
       {/* TLD Selection */}
       <div>
@@ -155,22 +154,43 @@ const FilterPanel = ({ isOpen, onClose, filters, onFiltersChange, isMobile = fal
         </div>
       </div>
 
-      {/* Categories */}
+      {/* Networks */}
       <div>
         <label className="block text-sm font-medium text-foreground mb-3">
-          Categories
+          Networks
         </label>
         <div className="space-y-2">
-          {categoryOptions?.map((category) => (
+          {networkOptions?.map((network) => (
             <Checkbox
-              key={category?.value}
-              label={category?.label}
-              checked={localFilters?.categories?.includes(category?.value)}
+              key={network?.value}
+              label={network?.label}
+              checked={localFilters?.networks?.includes(network?.value)}
               onChange={(e) => {
-                const updatedCategories = e?.target?.checked
-                  ? [...localFilters?.categories, category?.value]
-                  : localFilters?.categories?.filter(c => c !== category?.value);
-                handleFilterChange('categories', updatedCategories);
+                const updatedNetworks = e?.target?.checked
+                  ? [...localFilters?.networks, network?.value]
+                  : localFilters?.networks?.filter(c => c !== network?.value);
+                handleFilterChange('networks', updatedNetworks);
+              }}
+            />
+          ))}
+        </div>
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-foreground mb-3">
+          Statuses
+        </label>
+        <div className="space-y-2">
+          {statuses?.map((status) => (
+            <Checkbox
+              key={status?.value}
+              label={status?.label}
+              checked={localFilters?.statuses?.includes(status?.value)}
+              onChange={(e) => {
+                const updatedStatuses = e?.target?.checked
+                  ? [...localFilters?.statuses, status?.value]
+                  : localFilters?.statuses?.filter(c => c !== status?.value);
+                handleFilterChange('statuses', updatedStatuses);
               }}
             />
           ))}
@@ -199,16 +219,11 @@ const FilterPanel = ({ isOpen, onClose, filters, onFiltersChange, isMobile = fal
       </div>
 
       {/* Additional Options */}
-      <div className="space-y-3 hidden">
+      <div className="space-y-3 ">
         <Checkbox
-          label="Escrow Available"
-          checked={localFilters?.hasEscrow}
-          onChange={(e) => handleFilterChange('hasEscrow', e?.target?.checked)}
-        />
-        <Checkbox
-          label="Verified Sellers Only"
-          checked={localFilters?.isVerified}
-          onChange={(e) => handleFilterChange('isVerified', e?.target?.checked)}
+          label="Listed"
+          checked={localFilters?.listed}
+          onChange={(e) => handleFilterChange('isListed', e?.target?.checked)}
         />
       </div>
 

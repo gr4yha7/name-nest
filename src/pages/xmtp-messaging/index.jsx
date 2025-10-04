@@ -108,7 +108,7 @@ const XMTPMessaging = () => {
 
         {/* Main Content: styled like real-time-messaging-center */}
         <div className="bg-card border border-border rounded-lg shadow-card overflow-hidden">
-          <div className="flex h-[calc(100vh-200px)]">
+          <div className="flex h-full">
               <MessagingProvider>
               {isMobile ? (
                   <>

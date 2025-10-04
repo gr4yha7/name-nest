@@ -154,12 +154,12 @@ const DomainDetailNegotiation = () => {
   ];
 
   // Show XMTP errors
-  useEffect(() => {
-    if (xmtpError) {
-      console.error('XMTP Error:', xmtpError);
-      toast.error(`XMTP Error: ${xmtpError.message}`);
-    }
-  }, [xmtpError]);
+  // useEffect(() => {
+  //   if (xmtpError) {
+  //     console.error('XMTP Error:', xmtpError);
+  //     toast.error(`XMTP Error: ${xmtpError.message}`);
+  //   }
+  // }, [xmtpError]);
 
   useEffect(() => {
     // Scroll to top on component mount
@@ -297,9 +297,9 @@ const DomainDetailNegotiation = () => {
   //   }
   // }, [connectXMTP]);
 
-  // const handleContact = async () => {
-  //   await handleConnectXMTP()
-  // };
+  const handleContact = async () => {
+    console.log("messaging")
+  };
 
   const handleToggleFavorite = (isFavorited) => {
     console.log('Favorite toggled:', isFavorited);

@@ -155,7 +155,7 @@ const ThreadView = ({ isMobile = false, onBack }) => {
                 </div>
               }
               <Button
-              onClick={() => navigate("/domain-detail-negotiation")}
+              onClick={() => navigate(`/domain-detail-negotiation?token_id=${selectedDomainMessage?.tokens[0]?.tokenId}&domain=${selectedDomainMessage?.name}`)}
               variant="outline" size="sm">
                 View Listing
               </Button>
@@ -164,7 +164,7 @@ const ThreadView = ({ isMobile = false, onBack }) => {
         </div>
       </div>
 
-        <div className="flex flex-col mt-4">
+        <div className="flex h-[600px] flex-col mt-4">
           <div className="flex-1 overflow-y-auto p-4 space-y-4">
             {Object.entries(grouped).map(([date, msgs]) => (
               <div key={date} className="space-y-2">

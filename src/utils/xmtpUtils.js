@@ -44,22 +44,29 @@ export const getExistingXMTPClient = async (address) => {
     throw new Error('Address is required');
   }
 
-  let client;
-  let error; 
   try {
-    // Build existing client
-    client = await Client.build(
-      { identifier: address, identifierKind: 'Ethereum' },
-      { env: 'production', appVersion: 'namenest/1.0.0' }
-    );
+    // First check if address can message
+    const canMessage = await Client.canMessage([
+      { identifier: address, identifierKind: 'Ethereum' }
+    ]);
     
-    console.log('Built existing XMTP client');
-    return client;
+    const canMessageResult = Array.from(canMessage.values())[0];
+    
+    if (canMessageResult) {
+      // Build existing client
+      const client = await Client.build(
+        { identifier: address, identifierKind: 'Ethereum' },
+        { env: 'dev', appVersion: 'namenest/1.0.0' }
+      );
+      
+      console.log('Built existing XMTP client');
+      return client;
+    } else {
+      console.log('Address cannot message on XMTP');
+      return null;
+    }
   } catch (error) {
     console.error('Error creating XMTP client:', error);
-    if (error.message.includes('NoModificationAllowedError')) {
-      console.error('File system access conflict. Please try reinitializing the client.');
-    }
     throw error;
   }
 };
@@ -96,7 +103,7 @@ export const createXMTPClient = async (address) => {
 
   try {
     // Build existing client
-    const client = await Client.create(signer, { env: 'production', appVersion: 'namenest/1.0.0' })
+    const client = await Client.create(signer, { env: 'dev', appVersion: 'namenest/1.0.0', dbPath: null })
     
     console.log('Built existing XMTP client');
     return client;
@@ -151,7 +158,7 @@ export const revokeXMTPInstallations = async (address) => {
       // Build client first, then revoke installations
       const client = await Client.build(
         { identifier: address, identifierKind: 'Ethereum' },
-        { env: 'production', appVersion: 'namenest/1.0.0' }
+        { env: 'dev', appVersion: 'namenest/1.0.0' }
       );
       
       // Now call revokeAllOtherInstallations on the client instance

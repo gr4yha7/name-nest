@@ -67,14 +67,14 @@ export function useXMTP() {
         // console.log('Building existing XMTP client...');
         client = await Client.build(
           { identifier: address, identifierKind: 'Ethereum' },
-          { env: 'dev', appVersion: 'namenest/1.0.0' }
+          { env: 'production', appVersion: 'namenest/1.0.0' }
         );
         await client.revokeAllOtherInstallations()
         // console.log('Built existing XMTP client');
       } else {
         // Create new client
         console.log('Creating new XMTP client...');
-        client = await Client.create(signer, { env: 'dev', appVersion: 'namenest/1.0.0' });
+        client = await Client.create(signer, { env: 'production', appVersion: 'namenest/1.0.0' });
         await client.revokeAllOtherInstallations()
         console.log('Created new XMTP client');
       }
@@ -84,9 +84,26 @@ export function useXMTP() {
       return client;
     } catch (err) {
       console.error('Failed to connect to XMTP:', err);
-      toast.error('Failed to connect to XMTP:', err);
-      setError(err);
-      setIsLoading(false);
+      
+      // Handle specific database connection errors
+      if (err.message.includes('Database(NotFound)') || err.message.includes('Metadata(Connection')) {
+        console.error('XMTP database not found. This may be due to environment mismatch or corrupted client data.');
+        toast.error('XMTP database connection failed. Please try reconnecting your wallet.');
+        setError(new Error('XMTP database connection failed. Please try reconnecting your wallet.'));
+      } else if (err.message.includes('NoModificationAllowedError')) {
+        console.error('File system access conflict. Please try reinitializing the client.');
+        toast.error('File system access conflict. Please refresh the page and try again.');
+        setError(new Error('File system access conflict. Please refresh the page and try again.'));
+      } else if (err.message.includes('InvalidSignature')) {
+        toast.error('Invalid signature. Please ensure your wallet is properly connected.');
+        setError(new Error('Invalid signature. Please ensure your wallet is properly connected.'));
+      } else if (err.message.includes('NetworkError') || err.message.includes('Connection')) {
+        toast.error('Network connection failed. Please check your internet connection and try again.');
+        setError(new Error('Network connection failed. Please check your internet connection and try again.'));
+      } else {
+        toast.error('Failed to connect to XMTP: ' + err.message);
+        setError(err);
+      }
     } finally {
       setIsLoading(false);
     }

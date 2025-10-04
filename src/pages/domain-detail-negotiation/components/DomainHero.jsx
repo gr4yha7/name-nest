@@ -110,7 +110,7 @@ const DomainHero = ({ domain, onMakeOffer, onBuyNow, onContactSeller, onToggleFa
             >
               Make Offer
             </Button>
-            <Button
+            {/* <Button
               variant="ghost"
               fullWidth
               onClick={() => address ? onContactSeller() : toast.error("Please connect your wallet to contact domain owner")}
@@ -118,7 +118,7 @@ const DomainHero = ({ domain, onMakeOffer, onBuyNow, onContactSeller, onToggleFa
               iconPosition="left"
             >
               Contact Seller
-            </Button>
+            </Button> */}
           </div>
 
           {/* Seller Info */}
@@ -129,7 +129,7 @@ const DomainHero = ({ domain, onMakeOffer, onBuyNow, onContactSeller, onToggleFa
               </div>
               <div>
                 <div className="font-medium text-foreground">{formatEthereumAddress(domain?.tokens[0]?.ownerAddress)} - Owner</div>
-                <div className="flex items-center space-x-2 text-sm text-muted-foreground">
+                <div className="flex items-center hidden space-x-2 text-sm text-muted-foreground">
                   <span>{domain?.seller?.totalSales} domains</span>
                 </div>
               </div>

@@ -80,7 +80,7 @@ console.log("fullDomainDetails", fullDomainDetails)
                         {formatUnits(fullDomainDetails?.tokens[0]?.listings[0]?.price, fullDomainDetails?.tokens[0]?.listings[0]?.currency?.decimals)} {fullDomainDetails?.tokens[0]?.listings[0]?.currency?.symbol}
                       </div>
                       <div className="text-sm text-muted-foreground">
-                        USD - ${Number(fullDomainDetails?.tokens[0]?.listings[0].currency.usdExchangeRate * formatUnits(fullDomainDetails?.tokens[0]?.listings[0]?.price, fullDomainDetails?.tokens[0]?.listings[0]?.currency?.decimals) ?? 0).toFixed(2)}
+                        USD - ${Number(fullDomainDetails?.tokens[0]?.listings[0].currency.usdExchangeRate * formatUnits(fullDomainDetails?.tokens[0]?.listings[0]?.price, fullDomainDetails?.tokens[0]?.listings[0]?.currency?.decimals)).toFixed(2)}
                       </div>
                     </div>
                   }

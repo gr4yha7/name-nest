@@ -8,9 +8,15 @@ const GlobalContext = createContext();
 // Create a provider component
 export const GlobalProvider = ({ children }) => {
     const [selectedDomain, setSelectedDomain] = useState(null);
+    const [selectedDomainMessage, setSelectedDomainMessage] = useState(null);
     const [fetchedDomains, setFetchedDomains] = useState([]);
     const [xmtpClient, setXmtpClient] = useState(null)
-  
+    const [xmtpStatus, setXmtpStatus] = useState({
+      isSetup: false,
+      isLoading: false,
+      error: null
+    });
+
     // Initialize Doma services
     const { 
       isInitialized, 
@@ -113,9 +119,13 @@ export const GlobalProvider = ({ children }) => {
     refresh,
     selectedDomain,
     setSelectedDomain,
+    selectedDomainMessage,
+    setSelectedDomainMessage,
     fetchedDomains,
     setFetchedDomains,
     setXmtpClient,
+    xmtpStatus,
+    setXmtpStatus
   };
 
   return (

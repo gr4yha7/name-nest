@@ -566,7 +566,6 @@ console.log("result?.data",result)
       priceRangeMax: filters.priceRangeMax ? filters.priceRangeMax : null,
     };
 
-    console.log(filters?.priceRangeMax?.length)
 
     // Only add optional parameters if they have valid values
     if (filters.ownedBy && filters.ownedBy.length > 0) {

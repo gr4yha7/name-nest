@@ -1,21 +1,24 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { cn } from "utils/cn";
-import { useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAccount } from "wagmi";
-import { Loader } from "lucide-react";
+import { Loader, TimerIcon } from "lucide-react";
 import { toast } from "sonner";
 import { useGlobal } from "context/global";
 import { useMessagingContext } from "./MessagingContext";
 import MessageComposer from "./MessageComposer";
 import WelcomePane from "./WelcomePane";
+import Button from "components/ui/Button";
+import Icon from "components/AppIcon";
+import { formatDistance, parseISO } from "date-fns";
 
 /**
  * ThreadView
  * Right-hand side: messages of selected conversation + composer.
  */
-const ThreadView = () => {
+const ThreadView = ({ isMobile = false, onBack }) => {
   const [searchParams] = useSearchParams();
-  const { xmtpClient } = useGlobal();
+  const { xmtpClient, selectedDomainMessage } = useGlobal();
   const { isThreadOpen, setIsThreadOpen, syncing, setSyncing } = useMessagingContext();
   const { address } = useAccount();
 
@@ -23,8 +26,10 @@ const ThreadView = () => {
   const [messages, setMessages] = useState([]);
   const [sending, setSending] = useState(false);
 
+  const navigate = useNavigate();
+
   const isVisible = useMemo(() => {
-    return Boolean(searchParams.get("dm") && searchParams.get("sender") && xmtpClient);
+    return Boolean(searchParams.get("dm") && searchParams.get("recipient") && xmtpClient);
   }, [searchParams, xmtpClient]);
 
   const amISender = useCallback(
@@ -39,7 +44,7 @@ const ThreadView = () => {
       acc[day].push({
         id: m.id,
         content: m.content,
-        sender: amISender(m.senderInboxId) ? address || "Unknown" : searchParams.get("sender") || "Unknown",
+        sender: amISender(m.senderInboxId) ? address || "Unknown" : searchParams.get("recipient") || "Unknown",
         timestamp: new Date(Number(m.sentAtNs) / 1_000_000),
       });
       return acc;
@@ -72,7 +77,7 @@ const ThreadView = () => {
 
   // Load chosen thread
   useEffect(() => {
-    if (searchParams.get("dm") && searchParams.get("sender") && xmtpClient) {
+    if (searchParams.get("dm") && searchParams.get("recipient") && xmtpClient) {
       setSyncing(false);
       setIsThreadOpen(true);
       (async () => {
@@ -104,8 +109,20 @@ const ThreadView = () => {
     [dm]
   );
 
+  const quickResponses = [
+    "Thanks for your interest!",
+    "Let me think about it",
+    "Can you provide more details?",
+    "That sounds reasonable",
+    "I\'ll get back to you soon"
+  ];
+
+  const handleQuickResponse = (response) => {
+    send(response);
+  };
+
   return (
-    <div className={cn("relative flex-1 border p-4 rounded-xl bg-white dark:bg-background transition-all w-full min-w-full md:min-w-[calc(100%_-_420px)] max-h-[calc(100%_-_var(--spacing)*2)] max-w-[calc(100%_-_400px)]", isThreadOpen ? "block" : "hidden md:block")}
+    <div className={cn("flex-1", isMobile ? 'w-full' : 'relative flex-1 border-r rounded-xl bg-white dark:bg-background transition-all w-full min-w-full md:min-w-[calc(100%_-_420px)] max-h-[calc(100%_-_var(--spacing)*2)]', isThreadOpen ? "block" : "hidden md:block")}
     >
       {syncing && (
         <div className="absolute top-0 left-0 w-full h-full bg-background/50 z-10 pointer-events-none transition-opacity backdrop-blur-xs">
@@ -116,7 +133,38 @@ const ThreadView = () => {
         </div>
       )}
       {isVisible ? (
-        <div className="flex flex-col h-[calc(100%_-_48px)] mt-4">
+        <>
+          <div className="bg-card border-b border-border p-4">
+
+        {/* Domain Context */}
+        <div className="mt-3 p-3 bg-muted rounded-lg">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <Icon name="Globe" size={16} className="text-primary" />
+              <span className="font-medium text-foreground">{selectedDomainMessage?.name}</span>
+            </div>
+
+            <div className="flex items-center space-x-4">
+              {selectedDomainMessage?.tokens[0]?.listings?.length > 0 &&
+                <div className="flex items-center space-x-4">
+                  <span className="text-sm text-muted-foreground">Listed: {formatDistance(parseISO(selectedDomainMessage?.tokens[0]?.listings[0]?.createdAt), new Date(), { addSuffix: true })}</span>
+                  <div className="flex items-center space-x-2">
+                    <TimerIcon name="Shield" size={16} className="text-success" />
+                    <span className="text-sm text-foreground">Listing Expires {formatDistance(parseISO(selectedDomainMessage?.tokens[0]?.listings[0]?.expiresAt), new Date(), { addSuffix: true })}</span>
+                  </div>
+                </div>
+              }
+              <Button
+              onClick={() => navigate(`/domain-detail-negotiation?token_id=${selectedDomainMessage?.tokens[0]?.tokenId}&domain=${selectedDomainMessage?.name}`)}
+              variant="outline" size="sm">
+                View Listing
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+        <div className="flex h-[600px] flex-col mt-4">
           <div className="flex-1 overflow-y-auto p-4 space-y-4">
             {Object.entries(grouped).map(([date, msgs]) => (
               <div key={date} className="space-y-2">
@@ -126,7 +174,7 @@ const ThreadView = () => {
                 {msgs.map((msg) => (
                   <div key={msg.id} className="flex flex-col space-y-1">
                     <div className={`flex ${msg.sender === address ? "justify-end" : "justify-start"}`}>
-                      <div className={`max-w-[70%] rounded-lg px-3 py-2 ${msg.sender === address ? "bg-blue-500 text-white" : "bg-gray-200 text-gray-900"}`}>
+                      <div className={`max-w-[70%] rounded-lg px-3 py-2 ${msg.sender === address ? "bg-[#1E40AF] text-white" : "bg-gray-200 text-gray-900"}`}>
                         <p className="text-sm whitespace-pre-wrap break-words">{msg.content}</p>
                         <span className="text-xs opacity-70">{msg.timestamp.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span>
                       </div>
@@ -137,10 +185,28 @@ const ThreadView = () => {
             ))}
             <div ref={endRef} />
           </div>
-          <div className="p-4">
+
+          <div className="px-4 py-2 border-t border-border bg-muted/50">
+            <div className="flex space-x-2 overflow-x-auto">
+              {quickResponses?.map((response, index) => (
+                <Button
+                  key={index}
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleQuickResponse(response)}
+                  className="whitespace-nowrap flex-shrink-0"
+                >
+                  {response}
+                </Button>
+              ))}
+            </div>
+          </div>
+
+          <div className="">
             <MessageComposer onSend={send} busy={sending} />
           </div>
         </div>
+        </>
       ) : (
         <WelcomePane />)
       }

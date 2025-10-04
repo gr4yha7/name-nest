@@ -50,13 +50,13 @@ const DomainOffers = () => {
   const handleCancelOffer = () => {
       if (!walletClient) return;
 
-      const signer = viemToEthersSigner(walletClient, offer?.chain?.networkId);
+      const signer = viemToEthersSigner(walletClient, selectedOffer?.chain?.networkId);
       
       try {
         setIsLoading(true);
-        const chainId = offer?.chain?.networkId;
+        const chainId = selectedOffer?.chain?.networkId;
         domaOrderbookService.cancelOffer(  
-        offer?.externalId,
+          selectedOffer?.externalId,
         signer, 
         chainId
       ).then((result) => {
@@ -68,6 +68,8 @@ const DomainOffers = () => {
             setIsLoading(false);
           }
         })
+        setIsLoading(false);
+
       } catch (error) {
         console.log(error)
         toast.error(error)

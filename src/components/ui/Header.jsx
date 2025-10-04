@@ -69,6 +69,13 @@ const Header = () => {
       authRequired: isDisconnected ? true : false
     },
     {
+      label: 'Account Settings',
+      path: '/account-setting',
+      icon: 'User',
+      tooltip: 'Manage Account Settings',
+      authRequired: true
+    },
+    {
       label: 'Analytics',
       path: '/analytics-performance-dashboard',
       icon: 'BarChart3',
@@ -239,7 +246,7 @@ const Header = () => {
                       <a href="/profile" className="block px-4 py-2 text-sm text-popover-foreground hover:bg-muted">
                         Profile
                       </a>
-                      <a href="/settings" className="block px-4 py-2 text-sm text-popover-foreground hover:bg-muted">
+                      <a href="/account-setting" className="block px-4 py-2 text-sm text-popover-foreground hover:bg-muted">
                         Settings
                       </a>
                       <hr className="my-1 border-border" />

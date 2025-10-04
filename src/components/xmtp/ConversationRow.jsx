@@ -3,6 +3,7 @@ import { Loader2 } from "lucide-react";
 import { shortenAddress } from "utils/cn";
 import { useNavigate } from "react-router";
 import { useGlobal } from "context/global";
+import { useSearchParams } from "react-router-dom";
 
 /**
  * ConversationRow
@@ -11,15 +12,21 @@ import { useGlobal } from "context/global";
 const ConversationRow = ({ dm }) => {
   const navigate = useNavigate();
   const { xmtpClient } = useGlobal();
+  const [searchParams] = useSearchParams();
   const [peerAddress, setPeerAddress] = useState("Unknown");
+  const [lastTime, setLastTime] = useState("");
   const [snippet, setSnippet] = useState("---");
   const [loading, setLoading] = useState(false);
+
+  const activeId = searchParams.get('dm');
+
 
   const applySnippet = useCallback(
     (message) => {
       if (!message || typeof message.content !== "string") return;
       const type = message.content.split("::")[0];
       const fromMe = message.senderInboxId === xmtpClient?.inboxId;
+      setLastTime(new Date(Number(message?.sentAtNs) / 1_000_000).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }));
       if (fromMe) {
         if (type === "send_offer") setSnippet("💌 Sent an offer");
         else if (type === "accept_offer") setSnippet("🎉 Accepted an offer");
@@ -79,7 +86,7 @@ const ConversationRow = ({ dm }) => {
   }, [dm, xmtpClient?.preferences, applySnippet]);
 
   const goThread = useCallback(() => {
-    navigate(`?dm=${dm.id}&sender=${peerAddress}`);
+    navigate(`?dm=${dm.id}&recipient=${peerAddress}`);
   }, [dm.id, navigate, peerAddress]);
 
   if (loading) {
@@ -92,13 +99,28 @@ const ConversationRow = ({ dm }) => {
   }
 
   return (
-    <div className="flex items-center gap-4 p-4 hover:bg-accent border-b cursor-pointer transition-all" onClick={goThread}>
-      <div className="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center min-w-[40px]">
-        <span className="text-sm font-medium text-gray-600">{peerAddress ? peerAddress.slice(2, 4).toUpperCase() : "??"}</span>
-      </div>
+
+    <div onClick={goThread} className={`p-4 cursor-pointer flex items-start space-x-3 transition-standard hover:bg-muted ${activeId === dm.id ? 'bg-muted border-r-2 border-primary' : ''}`}>
+      {/* Content */}
       <div className="flex-1 min-w-0">
-        <div className="text-sm font-medium">{shortenAddress(peerAddress)}</div>
-        <div className="text-sm text-muted-foreground line-clamp-1">{snippet}</div>
+        <div className="flex items-center justify-between mb-1">
+          <h4 className="text-sm font-medium text-foreground truncate">
+            {shortenAddress(peerAddress)}
+          </h4>
+          <span className="text-xs text-muted-foreground flex-shrink-0">
+            {lastTime}
+          </span>
+        </div>
+        <div className="flex items-center justify-between mb-1">
+          <span className={`text-xs font-medium text-success`}>
+            active
+          </span>
+        </div>
+        <div className="flex items-center justify-between">
+          <p className="text-sm text-muted-foreground truncate flex-1">
+            {snippet}
+          </p>
+        </div>
       </div>
     </div>
   );

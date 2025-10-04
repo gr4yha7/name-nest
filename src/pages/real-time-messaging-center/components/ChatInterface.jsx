@@ -354,7 +354,7 @@ const ChatInterface = ({
             <textarea
               value={messageText}
               onChange={(e) => setMessageText(e?.target?.value)}
-              placeholder="Type your message..."
+              placeholder="Type your messagejh..."
               className="w-full px-3 py-2 border border-border rounded-md bg-input text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent resize-none"
               rows={1}
               onKeyDown={(e) => {

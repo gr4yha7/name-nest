@@ -147,9 +147,9 @@ const Header = () => {
         <div className="flex items-center justify-between h-16 px-4 lg:px-6">
           {/* Logo */}
           <div className="flex items-center">
-            <a href="/" className="flex items-cente space-x- w-40">
+            <div onClick={()=>navigate("/domain-marketplace-browse")}  className="flex cursor-pointer items-cente space-x- w-40">
               <img src="/assets/namnest.png" className='w-full' />
-            </a>
+            </div>
           </div>
 
           {/* Desktop Navigation */}

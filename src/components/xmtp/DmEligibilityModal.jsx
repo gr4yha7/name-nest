@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from "react-router";
-import { toast } from "sonner";
 import Icon from '../AppIcon';
 import Button from '../ui/Button';
 import { useGlobal } from 'context/global';
 import { getExistingXMTPClient } from 'utils/xmtpUtils';
 import { useAccount } from 'wagmi';
+import toast from 'react-hot-toast';
 
 function extractHexAddress(input) {
   const match = input.match(/0x[a-fA-F0-9]{40}/);
@@ -21,8 +21,7 @@ const DmEligibilityModal = ({ domain, isOpen, onClose, setIsOwnerEligible }) => 
   const { setXmtpClient } = useGlobal();
   const { address } = useAccount();
   const navigate = useNavigate();
-  // const userAddress = extractHexAddress(domain?.offererAddress)
-  console.log("userAddr", userAddress)
+
 
   const openDm = useCallback(async () => {
     if (!userAddress) return;
@@ -42,7 +41,9 @@ const DmEligibilityModal = ({ domain, isOpen, onClose, setIsOwnerEligible }) => 
       const inboxId = await client.findInboxIdByIdentifier(identifier);
 
       if (!inboxId) {
-        return toast.error("Unable to find user inbox ID.");
+        onClose();
+      toast.error("Connecting to user Inbox failed.");
+        return;
       }
 
       // Try to fetch existing DM
@@ -60,17 +61,16 @@ const DmEligibilityModal = ({ domain, isOpen, onClose, setIsOwnerEligible }) => 
       }
 
       if (!convo) {
-        return toast.error("Failed to open or create conversation.");
+        onClose();
+        toast.error("can't connect");
+        return;
       }
 
       navigate(`/messages?dm=${convo.id}&recipient=${userAddress}`);
     } catch (err) {
+      onClose();
+      toast.error("Connecting to user Inbox failed.");
       console.error("Error opening DM:", err);
-      if (err.message.includes("InboxValidationFailed")) {
-        toast.error("Failed to validate inbox. Please try again.");
-      } else {
-        toast.error("Something went wrong while opening messages.");
-      }
     }
   }, [userAddress]);
   

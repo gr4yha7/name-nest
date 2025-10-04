@@ -56,7 +56,7 @@ export const getExistingXMTPClient = async (address) => {
       // Build existing client
       const client = await Client.build(
         { identifier: address, identifierKind: 'Ethereum' },
-        { env: 'production', appVersion: 'namenest/1.0.0' }
+        { env: 'production', appVersion: 'namenest/1.0.0', dbPath: null }
       );
       
       console.log('Built existing XMTP client');

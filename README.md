@@ -1,17 +1,12 @@
 # NameNest
-
-
 A comprehensive decentralized domain marketplace built with React, featuring real-time domain trading, domain landing pages preview, portfolio management, and secure messaging through (XMTP integration and through Doma Protocol integration).
 
 
 ## 🌟 Overview
-
-
 NameNest is a next-generation domain marketplace that enables users to buy, sell, and trade tokenized domains across multiple blockchains. Built with modern web technologies and integrated with Doma Protocol, it provides a seamless experience for domain trading with real-time updates, secure messaging, and comprehensive portfolio management.
 
 
 ## 🚀 Key Features
-
 
 ### 🏷️ **Domain Marketplace**
 - **Multi-Chain Support**: Trade domains on Doma, BaseSepolia,Sepolia, etc.
@@ -29,8 +24,10 @@ NameNest is a next-generation domain marketplace that enables users to buy, sell
 - **Rich Content**: Support for offers negotiation, counter-offers, and structured messages
 
 
-### 💬 **Domain Landing Page Preview and SEO Optimized Content**
-- **GrapesJs Integration**: Domain Landing Page Built with GrapeJs
+### 💬 **Custom SEO-Optimized Landing Pages For Domain Owners**
+- **GrapesJS Studio Integration**: Custom Domain Landing Page Editor (modifiable HTML content, UI components, styling, etc.)
+- **SEO Optimization**: Includes meta tags, Open Graph tags, Twitter card tags, Structured JSON-LD Validated Data, Robots Meta, Canonical URL, etc.  
+- **SEO Scoring**: Integrated Cheerio for SEO scoring and analytics.
 
 
 ### 📊 **Analytics & Insights**
@@ -61,7 +58,8 @@ NameNest is a next-generation domain marketplace that enables users to buy, sell
 - **Ethers.js** - Ethereum blockchain interaction
 - **Wagmi** - React hooks for Ethereum wallet integration
 - **XMTP** - Decentralized messaging protocol
-- **GrapeJs** - Landing Page Preview (SEO Optimized)
+- **GrapeJs** - Custom Domain Landing Page Editor (SEO Optimized)
+- **Cheerio** - SEO Score & Analytics generation
 
 
 ### **Real-Time Features**
@@ -87,36 +85,42 @@ NameNest is a next-generation domain marketplace that enables users to buy, sell
 
 
 1. **Clone the repository:**
+```bash
 git clone https://github.com/gr4yha7/namenest.git
 cd namenest
+```
 
-
-2. **Switch to Node.js v22:**
-nvm use lts/jod
-
-
-3. **Install dependencies:**
+2. **Install dependencies:**
+```bash
 npm install
+```
 
-
-4. **Set up environment variables:**
+3. **Set up environment variables:**
+```bash
 cp .env.example .env
    
-   Edit `.env` with your configuration:
-Doma Protocol Configuration
+# Edit `.env` with your configuration:
+# Doma Protocol Configuration
+VITE_ENVIRONMENT=development
+VITE_DOMA_POLL_INTERVAL=300000
+VITE_DOMA_CACHE_TTL=300000
+VITE_DOMA_BASE_API_URL=https://api-testnet.doma.xyz
+
 VITE_DOMA_POLL_API_URL=https://api-testnet.doma.xyz/v1/poll
-VITE_DOMA_ORDERBOOK_API_URL=https://api-testnet.doma.xyz/orderbook
-VITE_DOMA_SUBGRAPH_URL=https://api-testnet.doma.xyz/subgraph
+VITE_DOMA_ORDERBOOK_API_URL=https://api-testnet.doma.xyz/v1/orderbook
+VITE_DOMA_SUBGRAPH_URL=https://api-testnet.doma.xyz/graphql
 VITE_DOMA_API_KEY=your_doma_api_key_here
 
+VITE_GRAPHJS_LICENSE_KEY==your_graphjs_studio_license_key_here
+```
 
-5. **Start the development server:**
+4. **Start the development server:**
+```bash
 npm run start
+```
 
 
 ## 🔗 Doma Protocol Integration
-
-
 NameNest is built on top of Doma Protocol, providing:
 
 
@@ -141,7 +145,6 @@ NameNest is built on top of Doma Protocol, providing:
 - **Domain Activities**: Complete audit trail of all token activities (listing, purchased, offers, etc)
 
 ## 📁 Project Structure
-
 
 namenest/
 ├── public/                    # Static assets and images
@@ -185,7 +188,6 @@ namenest/
 
 
 ## 📱 Application Pages
-
 
 ### **🏪 Domain Marketplace Browse**
 - Browse available domain listings across all supported networks
@@ -234,12 +236,7 @@ namenest/
 - Smart contract interaction management
 
 
-
-
-
 ## 🎨 Styling
-
-
 This project uses Tailwind CSS for styling. The configuration includes:
 
 
@@ -252,7 +249,5 @@ This project uses Tailwind CSS for styling. The configuration includes:
 
 
 ## 📱 Responsive Design
-
-
 The app is built with responsive design using Tailwind CSS breakpoints.
 

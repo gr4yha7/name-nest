@@ -4,21 +4,21 @@ const seoTags = `
     <meta name="keywords" content="Domain, Web3 domain, ENS domain, Doma Protocol domain, blockchain domain, premium domain, NFT domain, decentralized web">
     <meta name="author" content="NameNest">
     <meta name="robots" content="index, follow">
-    <link rel="canonical" href="https://name-nest-lemon.vercel.app/crypto.eth">
+    <link rel="canonical" href="https://namenestdomains.com">
     
     <!-- Open Graph Meta Tags (Facebook, LinkedIn) -->
     <meta property="og:type" content="website">
     <meta property="og:title" content="NameNest Domain">
     <meta property="og:description" content="Own a premium domain on the Doma Testnet blockchain. Memorable, brandable, and built on decentralized technology. Listed for a price or best offer.">
-    <meta property="og:image" content="https://name-nest-lemon.vercel.app/og-image.jpg">
-    <meta property="og:url" content="https://name-nest-lemon.vercel.app/crypto.eth">
+    <meta property="og:image" content="https://namenestdomains.com/og-image.jpg">
+    <meta property="og:url" content="https://namenestdomains.com">
     <meta property="og:site_name" content="NameNest">
     
     <!-- Twitter Card Meta Tags -->
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="NameNest Domain">
     <meta name="twitter:description" content="Own a premium domain on the Doma Testnet blockchain. Memorable, brandable, and built on decentralized technology. Listed for a price or best offer.">
-    <meta name="twitter:image" content="https://name-nest-lemon.vercel.app/twitter-card.jpg">
+    <meta name="twitter:image" content="https://namenestdomains.com/twitter-card.jpg">
     <meta name="twitter:creator" content="@namenest_">
     
     <!-- JSON-LD Structured Data -->
@@ -46,13 +46,13 @@ const seoTags = `
       "@context": "https://schema.org",
       "@type": "Organization",
       "name": "NameNest",
-      "url": "https://name-nest-lemon.vercel.app",
-      "logo": "https://name-nest-lemon.vercel.app/logo.png",
+      "url": "https://namenestdomains.com",
+      "logo": "https://namenestdomains.com/logo.png",
       "description": "Own a premium domain on the Doma Testnet blockchain. Memorable, brandable, and built on decentralized technology. Listed for a price or best offer.",
       "contactPoint": {
         "@type": "ContactPoint",
         "contactType": "Sales",
-        "email": "contact@name-nest-lemon.vercel.app"
+        "email": "contact@namenestdomains.com"
       }
     }
     </script>

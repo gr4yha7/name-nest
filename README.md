@@ -1,24 +1,37 @@
 # NameNest
 
-A comprehensive decentralized domain marketplace built with React, featuring real-time domain trading, portfolio management, and secure messaging through Doma Protocol integration.
+
+A comprehensive decentralized domain marketplace built with React, featuring real-time domain trading, domain landing pages preview, portfolio management, and secure messaging through (XMTP integration and through Doma Protocol integration).
+
 
 ## 🌟 Overview
 
+
 NameNest is a next-generation domain marketplace that enables users to buy, sell, and trade tokenized domains across multiple blockchains. Built with modern web technologies and integrated with Doma Protocol, it provides a seamless experience for domain trading with real-time updates, secure messaging, and comprehensive portfolio management.
+
 
 ## 🚀 Key Features
 
+
 ### 🏷️ **Domain Marketplace**
-- **Multi-Chain Support**: Trade domains on Ethereum, Polygon, and Solana
+- **Multi-Chain Support**: Trade domains on Doma, BaseSepolia,Sepolia, etc.
 - **Real-Time Listings**: Live updates of domain availability and pricing
-- **Advanced Search**: Filter by TLD, price range, network, and more
+- **Advanced Search**: Filter by TLD, price range, network, names, offers received and more
 - **Portfolio Management**: Track and manage your domain collection
+- **Domains Activities**: View Domain details (offers, activities, listing history, etc)
+- **Offers Management**: Offers Management (create offers, cancel offers, accept offer for a domain, direct domain purchase, etc)
+
 
 ### 💬 **Secure Messaging**
 - **XMTP Integration**: Decentralized, end-to-end encrypted messaging
 - **Domain Context**: Messages include domain information and offer details
 - **Spam Protection**: Built-in consent management for spam-free communication
-- **Rich Content**: Support for offers, counter-offers, and structured messages
+- **Rich Content**: Support for offers negotiation, counter-offers, and structured messages
+
+
+### 💬 **Domain Landing Page Preview and SEO Optimized Content**
+- **GrapesJs Integration**: Domain Landing Page Built with GrapeJs
+
 
 ### 📊 **Analytics & Insights**
 - **Performance Dashboard**: Track domain performance and market trends
@@ -26,12 +39,14 @@ NameNest is a next-generation domain marketplace that enables users to buy, sell
 - **Market Analytics**: Real-time market data and pricing insights
 - **Portfolio Analytics**: Comprehensive analysis of your domain holdings
 
+
 ### 🔄 **Real-Time Updates**
 - **Live Events**: Instant notifications for new listings, offers, and transactions
-- **WebSocket Integration**: Real-time data streaming for optimal user experience
 - **Event Filtering**: Customizable event subscriptions for relevant updates
 
+
 ## 🛠️ Technology Stack
+
 
 ### **Frontend**
 - **React 18** - Modern React with concurrent features and improved rendering
@@ -40,102 +55,94 @@ NameNest is a next-generation domain marketplace that enables users to buy, sell
 - **React Router v6** - Declarative routing for React applications
 - **Apollo Client** - GraphQL client for efficient data fetching and caching
 
-### **Blockchain Integration**
+
+### **Tools Integration**
 - **Doma Protocol** - Multi-chain domain tokenization and trading
 - **Ethers.js** - Ethereum blockchain interaction
 - **Wagmi** - React hooks for Ethereum wallet integration
 - **XMTP** - Decentralized messaging protocol
+- **GrapeJs** - Landing Page Preview (SEO Optimized)
+
 
 ### **Real-Time Features**
-- **GraphQL Subscriptions** - Real-time data updates
-- **WebSocket Polling** - Event streaming from Doma Protocol
-- **Apollo Cache** - Intelligent data caching and synchronization
+- **GraphQL Queries** - Real-time data updates
+- **Polling Events** - Event streaming from Doma Protocol
+
 
 ### **Development Tools**
-- **TypeScript** - Type-safe development
-- **ESLint & Prettier** - Code quality and formatting
-- **Jest & React Testing Library** - Comprehensive testing suite
+- **Javascript** - Type-safe development
+
 
 ## 📋 Prerequisites
+
 
 - **Node.js** (v22.x or higher) - Required for Doma Protocol integration
 - **npm** or **yarn** - Package manager
 - **Web3 Wallet** - MetaMask, WalletConnect, or similar
+- **Wallet Connect Project ID** - Get from [Wallet ConnnectKit)
 - **Doma Protocol API Key** - Get from [Doma Protocol](https://docs.doma.xyz)
+
 
 ## 🛠️ Installation
 
+
 1. **Clone the repository:**
-   ```bash
-   git clone https://github.com/gr4yha7/namenest.git
-   cd namenest
-   ```
+git clone https://github.com/gr4yha7/namenest.git
+cd namenest
+
 
 2. **Switch to Node.js v22:**
-   ```bash
-   nvm use lts/jod
-   ```
+nvm use lts/jod
+
 
 3. **Install dependencies:**
-   ```bash
-   npm install
-   ```
+npm install
+
 
 4. **Set up environment variables:**
-   ```bash
-   cp .env.example .env
-   ```
+cp .env.example .env
    
    Edit `.env` with your configuration:
-   ```env
-   # Doma Protocol Configuration
-   VITE_DOMA_POLL_API_URL=https://api-testnet.doma.xyz/v1/poll
-   VITE_DOMA_ORDERBOOK_API_URL=https://api-testnet.doma.xyz/orderbook
-   VITE_DOMA_SUBGRAPH_URL=https://api-testnet.doma.xyz/subgraph
-   VITE_DOMA_API_KEY=your_doma_api_key_here
-   
-   # XMTP Configuration
-   VITE_XMTP_ENV=dev
-   VITE_XMTP_PRIVATE_KEY=your_xmtp_private_key_here
-   
-   # Network Configuration
-   VITE_ETHEREUM_RPC_URL=https://mainnet.infura.io/v3/your_infura_key
-   VITE_POLYGON_RPC_URL=https://polygon-mainnet.infura.io/v3/your_infura_key
-   VITE_SOLANA_RPC_URL=https://api.mainnet-beta.solana.com
-   ```
+Doma Protocol Configuration
+VITE_DOMA_POLL_API_URL=https://api-testnet.doma.xyz/v1/poll
+VITE_DOMA_ORDERBOOK_API_URL=https://api-testnet.doma.xyz/orderbook
+VITE_DOMA_SUBGRAPH_URL=https://api-testnet.doma.xyz/subgraph
+VITE_DOMA_API_KEY=your_doma_api_key_here
+
 
 5. **Start the development server:**
-   ```bash
-   npm run dev
-   ```
+npm run start
+
 
 ## 🔗 Doma Protocol Integration
 
+
 NameNest is built on top of Doma Protocol, providing:
 
+
 ### **Multi-Chain Domain Trading**
-- **Ethereum**: ENS domains with ETH payments
-- **Polygon**: Low-cost domain trading with MATIC
-- **Solana**: High-performance domain transactions
+- **DomaTestnet, Base Sepolia, Sepolia, Curtis, etc**:  offers and direct purchase with WETH or USDC payments
+
 
 ### **Real-Time Features**
 - **Live Event Streaming**: Instant updates for new listings, offers, and transactions
-- **WebSocket Integration**: Real-time data synchronization
-- **Event Filtering**: Customizable event subscriptions
+- **Event Filtering**: Customizable event polling
+
 
 ### **Secure Messaging**
 - **XMTP Protocol**: Decentralized, end-to-end encrypted messaging
 - **Domain Context**: Messages include domain and offer information
-- **Spam Protection**: Built-in consent management
+
 
 ### **Advanced Analytics**
 - **Market Data**: Real-time pricing and trend analysis
 - **Portfolio Tracking**: Comprehensive domain portfolio management
 - **Transaction History**: Complete audit trail of all activities
+- **Domain Activities**: Complete audit trail of all token activities (listing, purchased, offers, etc)
 
 ## 📁 Project Structure
 
-```
+
 namenest/
 ├── public/                    # Static assets and images
 ├── src/
@@ -149,11 +156,8 @@ namenest/
 │   │   ├── domain-marketplace-browse/     # Domain marketplace
 │   │   ├── domain-portfolio-dashboard/    # Portfolio management
 │   │   ├── domain-detail-negotiation/     # Domain negotiation
-│   │   ├── domain-listing-creation/       # Create domain listings
-│   │   ├── real-time-messaging-center/    # XMTP messaging
-│   │   ├── transaction-order-management/  # Order management
-│   │   ├── web3-wallet-integration-hub/   # Wallet integration
-│   │   ├── decentralized-domain-registry/ # Domain registry
+│   │   ├── domain-offers/     # Domain offers management
+│   │   ├── domain-account-management/     # Account management (XMTP and general settings)
 │   │   └── analytics-performance-dashboard/ # Analytics
 │   ├── services/             # Service layer
 │   │   └── doma/            # Doma Protocol integration
@@ -178,9 +182,10 @@ namenest/
 ├── tailwind.config.js       # Tailwind CSS configuration
 ├── vite.config.mjs          # Vite configuration
 └── README.md                # Project documentation
-```
+
 
 ## 📱 Application Pages
+
 
 ### **🏪 Domain Marketplace Browse**
 - Browse available domain listings across all supported networks
@@ -188,11 +193,13 @@ namenest/
 - Real-time search with autocomplete suggestions
 - Domain preview with detailed information
 
+
 ### **💼 Portfolio Dashboard**
 - Manage your domain collection and listings
 - Track domain performance and market value
 - Bulk management tools for multiple domains
 - Analytics and insights for your portfolio
+
 
 ### **🤝 Domain Detail & Negotiation**
 - Detailed domain information and history
@@ -200,11 +207,11 @@ namenest/
 - Offer management and counter-offers
 - Transaction history and activity tracking
 
-### **📝 Listing Creation**
-- Create new domain listings with step-by-step wizard
-- Domain verification and validation
-- Pricing configuration and marketplace settings
-- SEO optimization and metadata management
+
+### **🤝 Domain Offers Management**
+- Detailed domain offers from the connected account
+- Offers management (displaying and cancelling of offers)
+
 
 ### **💬 Real-Time Messaging Center**
 - XMTP-powered secure messaging
@@ -212,11 +219,13 @@ namenest/
 - Offer and negotiation management
 - Message search and filtering
 
+
 ### **📊 Analytics & Performance Dashboard**
 - Market trends and domain performance metrics
 - Comparative analysis tools
 - Transaction history and reporting
 - Custom analytics and insights
+
 
 ### **🔗 Web3 Wallet Integration Hub**
 - Multi-wallet support (MetaMask, WalletConnect, etc.)
@@ -224,29 +233,15 @@ namenest/
 - Transaction history and status tracking
 - Smart contract interaction management
 
-## 🧩 Adding Routes
 
-To add new routes to the application, update the `Routes.jsx` file:
 
-```jsx
-import { useRoutes } from "react-router-dom";
-import DomainMarketplace from "pages/domain-marketplace-browse";
-import PortfolioDashboard from "pages/domain-portfolio-dashboard";
 
-const ProjectRoutes = () => {
-  let element = useRoutes([
-    { path: "/", element: <DomainMarketplace /> },
-    { path: "/portfolio", element: <PortfolioDashboard /> },
-    // Add more routes as needed
-  ]);
-
-  return element;
-};
-```
 
 ## 🎨 Styling
 
+
 This project uses Tailwind CSS for styling. The configuration includes:
+
 
 - Forms plugin for form styling
 - Typography plugin for text styling
@@ -255,15 +250,9 @@ This project uses Tailwind CSS for styling. The configuration includes:
 - Fluid typography for responsive text
 - Animation utilities
 
+
 ## 📱 Responsive Design
+
 
 The app is built with responsive design using Tailwind CSS breakpoints.
 
-
-## 📦 Deployment
-
-Build the application for production:
-
-```bash
-npm run build
-```

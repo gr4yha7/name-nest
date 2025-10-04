@@ -6,7 +6,6 @@ import NotFound from "pages/NotFound";
 import DomainListingCreation from './pages/domain-listing-creation';
 import TransactionOrderManagement from './pages/transaction-order-management';
 import DomainDetailNegotiation from './pages/domain-detail-negotiation';
-import RealTimeMessagingCenter from './pages/real-time-messaging-center';
 import DomainMarketplaceBrowse from './pages/domain-marketplace-browse';
 import AnalyticsPerformanceDashboard from './pages/analytics-performance-dashboard';
 import DomainPortfolioDashboard from './pages/domain-portfolio-dashboard';
@@ -49,7 +48,6 @@ const Routes = () => {
         <Route path="/domain-detail-negotiation" element={<DomainDetailNegotiation />} />
         <Route path="/domain-offers" element={<DomainOffers />} />
         <Route path="/account-setting" element={<AccountSettings />} />
-        <Route path="/real-time-messaging-center" element={<RealTimeMessagingCenter />} />
         <Route path="/domain-marketplace-browse" element={<DomainMarketplaceBrowse />} />
         <Route path="/analytics-performance-dashboard" element={<AnalyticsPerformanceDashboard />} />
         <Route path="/domain-portfolio-dashboard" element={<DomainPortfolioDashboard />} />

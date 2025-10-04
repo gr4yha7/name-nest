@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
-import { Loader2, MessageCircle } from "lucide-react";
-import { cn } from "utils/cn";
+// import { Loader2, MessageCircle } from "lucide-react";
+// import { cn } from "utils/cn";
 import ConversationRow from "./ConversationRow";
 import { useGlobal } from "context/global";
-import { useMessagingContext } from "./MessagingContext";
+// import { useMessagingContext } from "./MessagingContext";
 import Icon from "components/AppIcon";
 import Select from "components/ui/Select";
 import Input from "components/ui/Input";
@@ -16,7 +16,7 @@ const ConversationsPanel = ({ isMobile = false }) => {
   const { xmtpClient } = useGlobal();
   console.log("client2", xmtpClient)
 
-  const { isThreadOpen } = useMessagingContext();
+  // const { isThreadOpen } = useMessagingContext();
 
   const [threads, setThreads] = useState([]);
   const [loadingThreads, setLoadingThreads] = useState(false);

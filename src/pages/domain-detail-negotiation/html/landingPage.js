@@ -63,7 +63,6 @@ export const DOCUMENT_HTML = `<!DOCTYPE html>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    ${seoTags}
     <title>NameNest - Own Your Digital Identity</title>
     <style>
         * {

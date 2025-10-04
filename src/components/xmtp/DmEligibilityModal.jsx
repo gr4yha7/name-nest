@@ -72,7 +72,7 @@ const DmEligibilityModal = ({ domain, isOpen, onClose, setIsOwnerEligible }) => 
         toast.error("Something went wrong while opening messages.");
       }
     }
-  }, [userAddress, navigate]);
+  }, [userAddress]);
   
 
 

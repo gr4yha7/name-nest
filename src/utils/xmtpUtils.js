@@ -44,29 +44,22 @@ export const getExistingXMTPClient = async (address) => {
     throw new Error('Address is required');
   }
 
+  let client;
+  let error; 
   try {
-    // First check if address can message
-    const canMessage = await Client.canMessage([
-      { identifier: address, identifierKind: 'Ethereum' }
-    ]);
+    // Build existing client
+    client = await Client.build(
+      { identifier: address, identifierKind: 'Ethereum' },
+      { env: 'dev', appVersion: 'namenest/1.0.0' }
+    );
     
-    const canMessageResult = Array.from(canMessage.values())[0];
-    
-    if (canMessageResult) {
-      // Build existing client
-      const client = await Client.build(
-        { identifier: address, identifierKind: 'Ethereum' },
-        { env: 'dev', appVersion: 'namenest/1.0.0' }
-      );
-      
-      console.log('Built existing XMTP client');
-      return client;
-    } else {
-      console.log('Address cannot message on XMTP');
-      return null;
-    }
+    console.log('Built existing XMTP client');
+    return client;
   } catch (error) {
     console.error('Error creating XMTP client:', error);
+    if (error.message.includes('NoModificationAllowedError')) {
+      console.error('File system access conflict. Please try reinitializing the client.');
+    }
     throw error;
   }
 };

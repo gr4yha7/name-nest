@@ -155,7 +155,7 @@ const DomainMarketplaceBrowse = () => {
   
 
   // Handle XMTP connection
-  const handleConnectXMTP = useCallback(async (domain) => {
+  const handleConnectXMTP = (async (domain) => {
     try {
       setIsDmCheckModalOpen(true);
       const isSetup = await checkXMTPStatus(extractHexAddress(domain?.tokens?.length > 0 ? domain?.tokens[0].ownerAddress : domain?.offererAddress));
@@ -171,7 +171,7 @@ const DomainMarketplaceBrowse = () => {
       console.error('Failed to check domain owner XMTP:', error);
       toast.error('Failed to check domain owner XMTP');
     }
-  }, []);
+  });
 
   const handleContact = async (domain) => {
 

@@ -153,13 +153,7 @@ const DomainDetailNegotiation = () => {
     { label: domainDetails?.name, path: location?.pathname, isLast: true }
   ];
 
-  // Show XMTP errors
-  // useEffect(() => {
-  //   if (xmtpError) {
-  //     console.error('XMTP Error:', xmtpError);
-  //     toast.error(`XMTP Error: ${xmtpError.message}`);
-  //   }
-  // }, [xmtpError]);
+
 
   useEffect(() => {
     // Scroll to top on component mount
@@ -285,17 +279,6 @@ const DomainDetailNegotiation = () => {
     setBuyDomainModal(true);
   };
 
-  // Handle XMTP connection
-  // const handleConnectXMTP = useCallback(async () => {
-  //   try {
-  //     await connectXMTP();
-  //     toast.success('Connected to XMTP!');
-  //     setOpenDmEligibilityModal(true);
-  //   } catch (error) {
-  //     console.error('Failed to connect to XMTP:', error);
-  //     toast.error('Failed to connect to XMTP');
-  //   }
-  // }, [connectXMTP]);
 
   const handleContact = async () => {
     console.log("messaging")

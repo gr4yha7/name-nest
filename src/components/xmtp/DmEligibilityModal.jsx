@@ -3,9 +3,9 @@ import { useNavigate } from "react-router";
 import { toast } from "sonner";
 import Icon from '../AppIcon';
 import Button from '../ui/Button';
-import { Loader2 } from 'lucide-react';
-import NotOnXmtp from './NotOnXmtp';
 import { useGlobal } from 'context/global';
+import { getExistingXMTPClient } from 'utils/xmtpUtils';
+import { useAccount } from 'wagmi';
 
 function extractHexAddress(input) {
   const match = input.match(/0x[a-fA-F0-9]{40}/);
@@ -17,54 +17,73 @@ const DmEligibilityModal = ({ domain, isOpen, onClose, setIsOwnerEligible }) => 
   if (!isOpen || !domain) {
     return null;
   }
-  const [loading, setLoading] = useState(true);
-  const [allowed, setAllowed] = useState(false);
   const [userAddress, setUserAddress] = useState(extractHexAddress(domain?.tokens?.length > 0 ? domain?.tokens[0].ownerAddress : domain?.offererAddress));
-  const { xmtpClient } = useGlobal();
+  const { setXmtpClient } = useGlobal();
+  const { address } = useAccount();
   const navigate = useNavigate();
   // const userAddress = extractHexAddress(domain?.offererAddress)
   console.log("userAddr", userAddress)
 
   const openDm = useCallback(async () => {
     if (!userAddress) return;
-    const identifier = { identifier: userAddress, identifierKind: "Ethereum" };
-    const inboxId = await xmtpClient?.findInboxIdByIdentifier(identifier);
-    if (!inboxId) return toast.error("Unable to find user inbox ID.");
-    const existing = await xmtpClient?.conversations.getDmByInboxId(inboxId);
-    const convo = existing || (await xmtpClient?.conversations.newDm(inboxId));
-    navigate(`/messages?dm=${convo?.id}&sender=${userAddress}`);
-  }, [userAddress, xmtpClient, navigate]);
 
-  const checkCanDm = async () => {
-    setLoading(true);
-    setAllowed(false);
     try {
-      const identifier = { identifier: userAddress, identifierKind: "Ethereum" };
-      const can = await xmtpClient?.canMessage([identifier]);
-      if (can?.get(userAddress)) {
-        setLoading(false);
-        setAllowed(true);
-        setIsOwnerEligible(true);
-        await openDm();
-      } else {
-        setLoading(false);
-        setAllowed(false);
-        setIsOwnerEligible(false);
+      const client = await getExistingXMTPClient(address);
+      console.log("client1", client)
+      setXmtpClient(client);
+      if (!client) {
+        return toast.error("Unable to initialize XMTP client.");
       }
-    } catch (e) {
-      console.error('XMTP eligibility error:', e);
-      setAllowed(false);
-      setLoading(false);
+
+      // Force sync conversations to avoid stale state
+      await client.conversations.sync();
+
+      const identifier = { identifier: userAddress, identifierKind: "Ethereum" };
+      const inboxId = await client.findInboxIdByIdentifier(identifier);
+
+      if (!inboxId) {
+        return toast.error("Unable to find user inbox ID.");
+      }
+
+      // Try to fetch existing DM
+      let convo = await client.conversations.getDmByInboxId(inboxId);
+
+      // If not found, resync and retry
+      if (!convo) {
+        await client.conversations.sync();
+        convo = await client.conversations.getDmByInboxId(inboxId);
+      }
+
+      // If still not found, create a new one
+      if (!convo) {
+        convo = await client.conversations.newDm(inboxId);
+      }
+
+      if (!convo) {
+        return toast.error("Failed to open or create conversation.");
+      }
+
+      navigate(`/messages?dm=${convo.id}&recipient=${userAddress}`);
+    } catch (err) {
+      console.error("Error opening DM:", err);
+      if (err.message.includes("InboxValidationFailed")) {
+        toast.error("Failed to validate inbox. Please try again.");
+      } else {
+        toast.error("Something went wrong while opening messages.");
+      }
     }
-  }
-  useEffect(async () => {
-    // if (!userAddress || !isOpen) {
-    //   setLoading(false);
-    //   setAllowed(false);
-    //   return;
-    // }
-    await checkCanDm();
-  }, [userAddress]);
+  }, [userAddress, navigate]);
+  
+
+
+  useEffect(() => {
+    const runCheck = async () => {
+      
+      await openDm();
+    };
+    
+    runCheck();
+  }, [userAddress, isOpen]);
 
   
 
@@ -78,18 +97,9 @@ const DmEligibilityModal = ({ domain, isOpen, onClose, setIsOwnerEligible }) => 
           </Button>
         </div>
         <div className="p-6">
-          {loading && (
-            <div className="flex items-center justify-center gap-2 py-8">
-              <Loader2 className="h-5 w-5 animate-spin" />
-              <span>Checking if recipient is registered on XMTP...</span>
-            </div>
-          )}
-          {!loading && !allowed && <NotOnXmtp />}
-          {!loading && allowed && (
             <div className="text-center py-8">
               <p className="text-green-600">User is registered on XMTP. Starting conversation...</p>
             </div>
-          )}
         </div>
       </div>
     </div>

@@ -69,17 +69,19 @@ export function useXMTP() {
           { identifier: address, identifierKind: 'Ethereum' },
           { env: 'dev', appVersion: 'namenest/1.0.0' }
         );
-        // await client.revokeAllOtherInstallations()
+        await client.revokeAllOtherInstallations()
         // console.log('Built existing XMTP client');
       } else {
         // Create new client
         console.log('Creating new XMTP client...');
         client = await Client.create(signer, { env: 'dev', appVersion: 'namenest/1.0.0' });
-        // await client.revokeAllOtherInstallations()
+        await client.revokeAllOtherInstallations()
         console.log('Created new XMTP client');
       }
       setXmtpClient(client);
       setIsXMTPConnected(true);
+
+      return client;
     } catch (err) {
       console.error('Failed to connect to XMTP:', err);
       toast.error('Failed to connect to XMTP:', err);

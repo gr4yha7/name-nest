@@ -1086,7 +1086,7 @@ const CustomLandingPage = ({ domainDetails }) => {
             blocks: true, // This enables the Data Source specific blocks
             globalData: { // Provide default globalData for the project
               domain: {
-                price: `${formatUnits(domainDetails?.tokens[0]?.listings[0]?.price, domainDetails?.tokens[0]?.listings[0]?.currency?.decimals)} ${domainDetails?.tokens[0]?.listings[0]?.currency?.symbol}`,
+                price: `${domainDetails?.tokens[0]?.listings?.length > 0 ? formatUnits(domainDetails?.tokens[0]?.listings[0]?.price, domainDetails?.tokens[0]?.listings[0]?.currency?.decimals) : "Domain Not Listed Yet"} ${domainDetails?.tokens[0]?.listings?.length > 0 ? domainDetails?.tokens[0]?.listings[0]?.currency?.symbol : ""}`,
                 chain: domainDetails?.tokens[0]?.chain?.name,
                 ...domainDetails,
               }, // domain details

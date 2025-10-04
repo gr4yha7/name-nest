@@ -68,7 +68,7 @@ const RtmcConversations = ({ isMobile = false }) => {
       const inboxId = await dm.peerInboxId();
       const states = await xmtpClient?.preferences.inboxStateFromInboxIds([inboxId]);
       const peer = states?.[0]?.identifiers?.[0]?.identifier || 'unknown';
-      navigate(`?dm=${dm.id}&sender=${peer}`);
+      navigate(`?dm=${dm.id}&recipient=${peer}`);
     } catch {
       navigate(`?dm=${dm.id}`);
     }

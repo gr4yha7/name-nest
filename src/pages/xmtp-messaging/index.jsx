@@ -1,4 +1,4 @@
-import React, { /*useState, useEffect,*/ useCallback } from 'react';
+import React, { /*useState, useEffect,*/ useCallback, useEffect, useState } from 'react';
 // import { useAccount, useConnect, useDisconnect } from 'wagmi';
 // import { useXMTP } from '../../hooks/useXMTP';
 // import { toast } from 'sonner';
@@ -13,6 +13,9 @@ import ConversationsPanel from 'components/xmtp/ConversationsPanel';
 import ThreadView from 'components/xmtp/ThreadView';
 
 const XMTPMessaging = () => {
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 1024);
+  const [showMobileChat, setShowMobileChat] = useState(false);
+
   // const { isConnected: walletConnected } = useAccount();
   // const { connect, connectors, isPending } = useConnect();
   // const { disconnect } = useDisconnect();
@@ -68,15 +71,26 @@ const XMTPMessaging = () => {
   //   toast.success(`Offer sent: ${offerData.price} ${offerData.currency}`);
   // }, []);
 
+  useEffect(() => {
+    const handleResize = () => {
+      const mobile = window.innerWidth < 1024;
+      setIsMobile(mobile);
+      if (!mobile) {
+        setShowMobileChat(false);
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  const handleBackToList = () => {
+    setShowMobileChat(false);
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
-      {/* <DmEligibilityModal
-        isOpen={isCanDmModalOpen}
-        onClose={() => setIsCanDmModalOpen(false)}
-        userAddress={testUserAddress}
-      /> */}
-      
       <div className="container mx-auto px-4 py-6">
         <Breadcrumb customItems={[{ label: 'Home', path: '/' }, { label: 'Messages', path: '/xmtp-messaging-test', isLast: true }]} />
 
@@ -84,29 +98,34 @@ const XMTPMessaging = () => {
         <div className="flex items-center justify-between mb-6">
           <div>
             <h1 className="text-2xl font-bold text-foreground">Messages</h1>
-            <p className="text-muted-foreground">Manage your domain negotiations and communications</p>
+            <p className="text-muted-foreground">
+              Manage your domain negotiations and communications
+            </p>
           </div>
-          {/* <div className="flex items-center space-x-3">
-            {!walletConnected ? (
-              <Button onClick={connectWallet} disabled={isPending}>
-                {isPending ? 'Connecting...' : 'Connect Wallet'}
-              </Button>
-            ) : !isXMTPConnected ? (
-              <Button onClick={handleConnectXMTP} disabled={isXMTPLoading}>
-                {isXMTPLoading ? 'Connecting...' : 'Connect XMTP'}
-              </Button>
-            ) : (
-              <Button variant="outline" onClick={() => disconnect()}>Disconnect</Button>
-            )}
-          </div> */}
         </div>
+
+
 
         {/* Main Content: styled like real-time-messaging-center */}
         <div className="bg-card border border-border rounded-lg shadow-card overflow-hidden">
-          <div className="flex h-[calc(100vh-200px)] mx-4">
+          <div className="flex h-[calc(100vh-200px)]">
               <MessagingProvider>
-                <ConversationsPanel />
-                <ThreadView />
+              {isMobile ? (
+                  <>
+                    {!showMobileChat ? (
+                      <ConversationsPanel isMobile />
+                    ) : (
+                      <ThreadView isMobile onBack={handleBackToList}/>
+                    )}
+                  </>
+                ) : (
+                  <>
+                    <ConversationsPanel />
+                    <ThreadView />
+                  </>
+                )}
+
+                {/* <ThreadView /> */}
               </MessagingProvider>
             {/* {walletConnected && isXMTPConnected ? (
               <MessagingProvider>

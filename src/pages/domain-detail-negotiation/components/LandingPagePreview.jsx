@@ -2,15 +2,18 @@ import React, { useState } from 'react';
 import Icon from '../../../components/AppIcon';
 import Button from '../../../components/ui/Button';
 import CustomLandingPage from './CustomLandingPage';
+import { analyzeSEO } from 'utils/seoScore';
+import { DOCUMENT_HTML } from '../html/landingPage';
 
 const LandingPagePreview = ({ domain }) => {
   const [viewMode, setViewMode] = useState('desktop');
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const previewUrl = `https://${domain?.name}`;
+  // const previewUrl = `https://${domain?.name}`;
 
   const toggleFullscreen = () => {
     setIsFullscreen(!isFullscreen);
   };
+  const seoResults = analyzeSEO(DOCUMENT_HTML)
 
   return (
     <div className="bg-card border border-border rounded-lg shadow-card overflow-hidden">
@@ -51,13 +54,13 @@ const LandingPagePreview = ({ domain }) => {
           >
             <Icon name={isFullscreen ? "Minimize2" : "Maximize2"} size={16} />
           </Button>
-          <Button
+          {/* <Button
             variant="ghost"
             size="sm"
             onClick={() => window.open(previewUrl, '_blank')}
           >
             <Icon name="ExternalLink" size={16} />
-          </Button>
+          </Button> */}
         </div>
       </div>
       {/* Preview Container */}
@@ -86,24 +89,22 @@ const LandingPagePreview = ({ domain }) => {
         </div>
 
         {/* Preview Info */}
-        {!isFullscreen && (
-          <div className="px-4 pb-4 hidden">
-            <div className="flex items-center justify-between text-sm text-muted-foreground">
+          <div className="px-4 pb-4">
+            <div className="flex items-center justify-between text-sm text-blue-900">
               <div className="flex items-center space-x-4">
-                <span>Last updated: {domain?.landingPage?.lastUpdated}</span>
-                <span>•</span>
-                <span>SEO Score: {domain?.landingPage?.seoScore}/100</span>
+                {/* <span>Last updated: {domain?.landingPage?.lastUpdated}</span>
+                <span>•</span> */}
+                <span>{`SEO Score: ${seoResults.percentage}% - Grade: ${seoResults.grade}`}</span>
               </div>
-              <div className="flex items-center space-x-2">
+              {/* <div className="flex items-center space-x-2">
                 <Icon name="Eye" size={14} />
                 <span>{domain?.landingPage?.views} views</span>
-              </div>
+              </div> */}
             </div>
           </div>
-        )}
       </div>
       {/* SEO Metrics */}
-      {!isFullscreen && (
+      {/* {!isFullscreen && (
         <div className="p-4 hidden border-t border-border bg-muted/30">
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
             <div className="text-center">
@@ -124,7 +125,7 @@ const LandingPagePreview = ({ domain }) => {
             </div>
           </div>
         </div>
-      )}
+      )} */}
     </div>
   );
 };

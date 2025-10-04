@@ -1,5 +1,4 @@
-import cheerio from 'cheerio';
-import { useState, useEffect } from 'react';
+import * as cheerio from 'cheerio';
 
 /**
  * SEO Auditor Class - Core functionality

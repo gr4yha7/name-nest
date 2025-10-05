@@ -58,7 +58,7 @@ NameNest is a next-generation domain marketplace that enables users to buy, sell
 - **Ethers.js** - Ethereum blockchain interaction
 - **Wagmi** - React hooks for Ethereum wallet integration
 - **XMTP** - Decentralized messaging protocol
-- **GrapeJs** - Custom Domain Landing Page Editor (SEO Optimized)
+- **GrapesJS Studio** - Custom Domain Landing Page Editor (SEO Optimized)
 - **Cheerio** - SEO Score & Analytics generation
 
 
@@ -111,7 +111,7 @@ VITE_DOMA_ORDERBOOK_API_URL=https://api-testnet.doma.xyz/v1/orderbook
 VITE_DOMA_SUBGRAPH_URL=https://api-testnet.doma.xyz/graphql
 VITE_DOMA_API_KEY=your_doma_api_key_here
 
-VITE_GRAPHJS_LICENSE_KEY==your_graphjs_studio_license_key_here
+VITE_GRAPESJS_LICENSE_KEY==your_grapesjs_studio_license_key_here
 ```
 
 4. **Start the development server:**

@@ -62,7 +62,7 @@ const CustomLandingPage = ({ domainDetails }) => {
     >
       <StudioEditor
         options={{
-          licenseKey: import.meta.env.VITE_GRAPHJS_LICENSE_KEY,
+        //   licenseKey: import.meta.env.VITE_GRAPESJS_LICENSE_KEY,
           project: {
             type: 'web',
           },

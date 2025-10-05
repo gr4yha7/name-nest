@@ -62,9 +62,17 @@ const CustomLandingPage = ({ domainDetails }) => {
     >
       <StudioEditor
         options={{
-        //   licenseKey: import.meta.env.VITE_GRAPESJS_LICENSE_KEY,
+          licenseKey: import.meta.env.VITE_GRAPESJS_LICENSE_KEY,
           project: {
             type: 'web',
+            default: {
+                pages: [
+                  {
+                    name: 'Home',
+                    component: DOCUMENT_HTML,
+                  },
+                ]
+            }
           },
           dataSources: {
             blocks: true, // This enables the Data Source specific blocks
